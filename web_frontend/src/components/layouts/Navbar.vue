@@ -47,6 +47,4 @@ const toggleDropdown = () => {
 };
 </script>
 
-<style scoped>
-/* Optional: Add hover underline or other effects */
-</style>
+
