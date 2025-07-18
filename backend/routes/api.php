@@ -1,13 +1,36 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\TeacherController;
+use App\Http\Controllers\API\StudentLeaveController;
 
+// Public Routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+// Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
-});
 
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Admin Routes
+    Route::middleware('role:admin')->get('/admin-area', fn() => 'Admin Access');
+
+    // Teacher Routes
+    Route::middleware('role:teacher')->group(function () {
+        Route::get('/teacher-area', fn() => 'Teacher Access');
+        Route::get('/leave-requests', [TeacherController::class, 'viewLeaveRequests']);
+        Route::post('/leave-requests/{id}/approve', [TeacherController::class, 'approve']);
+        Route::post('/leave-requests/{id}/reject', [TeacherController::class, 'reject']);
+        Route::get('/students', [TeacherController::class, 'studentsList']);
+    });
+
+    // Student Routes
+    Route::middleware('role:student')->group(function () {
+        Route::post('/student/request-leave', [StudentLeaveController::class, 'requestLeave']);
+        Route::get('/student/my-leaves', [StudentLeaveController::class, 'myLeaves']);
+        Route::get('/student/dashboard', [StudentLeaveController::class, 'dashboard']);
+    });
+
+});
