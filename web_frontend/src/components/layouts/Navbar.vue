@@ -20,7 +20,7 @@
     <div class="relative" @click="toggleDropdown">
       <div class="flex items-center space-x-2 border border-blue-500 px-3 py-1 rounded-full cursor-pointer hover:bg-blue-50 transition">
         <div class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-sm">J</div>
-        <span class="text-gray-800 font-medium text-sm">John Doe</span>
+        <span class="text-gray-800 font-medium text-sm">Sela Torm</span>
         <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
