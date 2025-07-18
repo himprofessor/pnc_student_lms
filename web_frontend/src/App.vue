@@ -9,7 +9,3 @@ import Navbar from './components/layouts/Navbar.vue';
 
 
 </script>
-
-<style scoped>
-
-</style>
