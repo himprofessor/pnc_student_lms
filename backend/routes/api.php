@@ -27,10 +27,14 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Student Routes
-    Route::middleware('role:student')->group(function () {
+    Route::middleware('auth:sanctum')->group(function () {
         Route::post('/student/request-leave', [StudentLeaveController::class, 'requestLeave']);
         Route::get('/student/my-leaves', [StudentLeaveController::class, 'myLeaves']);
+        Route::get('/student/leave-history', [StudentLeaveController::class, 'leaveHistory']);
         Route::get('/student/dashboard', [StudentLeaveController::class, 'dashboard']);
+        Route::get('/student/leave-request/{id}', [StudentLeaveController::class, 'leaveRequestDetails']);
+        Route::put('/student/leave-request/{id}', [StudentLeaveController::class, 'updateLeaveRequest']);
+        Route::delete('/student/leave-request/{id}', [StudentLeaveController::class, 'deleteLeaveRequest']);
     });
 
 });

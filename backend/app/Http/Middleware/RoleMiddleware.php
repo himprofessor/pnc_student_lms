@@ -12,8 +12,6 @@ class RoleMiddleware
         return response()->json(['error' => 'Unauthorized'], 403);
     }
 
-    \Log::info('User ID: ' . Auth::id() . ' Role: ' . Auth::user()->role); // Log user role
-
     if (!Auth::user()->hasRole($role)) {
         return response()->json(['error' => 'Unauthorized'], 403);
     }
