@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,18 +9,18 @@ class LeaveRequest extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'leave_type',
-        'start_date',
-        'end_date',
+        'student_id',
+        'leave_type_id',
         'reason',
-        'document_path',
+        'from_date',
+        'to_date',
         'contact_info',
+        'supporting_documents',
         'status',
     ];
 
-    public function user()
+    public function leaveType()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(LeaveType::class, 'leave_type_id');
     }
 }
