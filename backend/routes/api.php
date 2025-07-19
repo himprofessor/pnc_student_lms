@@ -2,9 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\TeacherController;
 use App\Http\Controllers\API\StudentLeaveController;
-use App\Http\Controllers\API\UserController;
 
 // Public Routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -14,6 +14,14 @@ Route::post('/login', [AuthController::class, 'login']);
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
 
+  // User CRUD Routes
+  Route::apiResource('users', UserController::class);
+
+  Route::get('/user', function (Illuminate\Http\Request $request) {
+    return $request->user();
+});
+
+  
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // Admin Routes
