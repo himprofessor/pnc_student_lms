@@ -11,9 +11,9 @@
 
     <!-- Menu -->
     <div class="flex space-x-6 items-center">
-      <a href="#" class="text-gray-700 hover:bg-blue-300  px-3 py-1 rounded-md transition">Dashboard</a>
-      <a href="#" class="text-gray-700 hover:bg-blue-300  px-3 py-1 rounded-md transition">Request Leave</a>
-      <a href="#" class="text-gray-700 hover:bg-blue-300  px-3 py-1 rounded-md transition">History</a>
+      <a href="/" class="text-gray-700 hover:bg-blue-300  px-3 py-1 rounded-md transition">Dashboard</a>
+      <a href="/request-leave" class="text-gray-700 hover:bg-blue-300  px-3 py-1 rounded-md transition">Request Leave</a>
+      <a href="/history" class="text-gray-700 hover:bg-blue-300  px-3 py-1 rounded-md transition">History</a>
     </div>
 
     <!-- User Dropdown -->
