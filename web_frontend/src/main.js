@@ -1,22 +1,15 @@
-import './assets/main.css'
-import Vue from 'vue';
-import App from './App.vue';
-import router from './router';
-import axios from 'axios';
+import './assets/main.css';
 
-// Axios Instance
-const http = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
 
-Vue.prototype.$http = http;
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 
-Vue.config.productionTip = false;
+import App from './App.vue'
+import router from './router'
 
-new Vue({
-  router,
-  render: h => h(App),
-}).$mount('#app');
+const app = createApp(App)
+
+app.use(createPinia())
+app.use(router)
+
+app.mount('#app')
