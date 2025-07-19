@@ -4,10 +4,12 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\TeacherController;
 use App\Http\Controllers\API\StudentLeaveController;
+use App\Http\Controllers\API\UserController;
 
 // Public Routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
 
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -16,6 +18,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Admin Routes
     Route::middleware('role:admin')->get('/admin-area', fn() => 'Admin Access');
+
+  // User CRUD Routes
+  Route::apiResource('users', UserController::class);
 
     // Teacher Routes
     Route::middleware('role:teacher')->group(function () {

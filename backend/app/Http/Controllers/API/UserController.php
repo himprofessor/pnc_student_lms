@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -55,7 +56,8 @@ class UserController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
                 'password' => 'required|string|min:8',
-                'role_id' => 'required|exists:roles,id',
+                'role_id' => 'required_without:role|exists:roles,id',
+                'role' => 'required_without:role_id|string|exists:roles,name',
             ]);
 
             if ($validator->fails()) {
@@ -66,11 +68,18 @@ class UserController extends Controller
                 ], 422);
             }
 
+            // Get role_id from role name if role is provided
+            $roleId = $request->role_id;
+            if ($request->has('role') && !$request->has('role_id')) {
+                $role = Role::where('name', $request->role)->first();
+                $roleId = $role->id;
+            }
+
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'role_id' => $request->role_id,
+                'role_id' => $roleId,
             ]);
 
             $user->load('role');
@@ -135,11 +144,13 @@ class UserController extends Controller
                 ], 404);
             }
 
+            // Simple validation - only validate fields that are present
             $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users,email,' . $id,
-                'password' => 'nullable|string|min:8',
-                'role_id' => 'required|exists:roles,id',
+                'name' => 'sometimes|required|string|max:255',
+                'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $id,
+                'password' => 'sometimes|nullable|string|min:8',
+                'role_id' => 'sometimes|required|exists:roles,id',
+                'role' => 'sometimes|required|string|exists:roles,name',
             ]);
 
             if ($validator->fails()) {
@@ -150,18 +161,35 @@ class UserController extends Controller
                 ], 422);
             }
 
-            $updateData = [
-                'name' => $request->name,
-                'email' => $request->email,
-                'role_id' => $request->role_id,
-            ];
+            // Prepare update data
+            $updateData = [];
 
-            // Only update password if provided
-            if ($request->filled('password')) {
-                $updateData['password'] = Hash::make($request->password);
+            if ($request->has('name')) {
+                $updateData['name'] = $request->name;
             }
 
-            $user->update($updateData);
+            if ($request->has('email')) {
+                $updateData['email'] = $request->email;
+            }
+
+            if ($request->filled('password')) {
+                $updateData['password'] = $request->password; // Let the model handle hashing
+            }
+
+            if ($request->has('role_id')) {
+                $updateData['role_id'] = $request->role_id;
+            } elseif ($request->has('role')) {
+                $role = Role::where('name', $request->role)->first();
+                $updateData['role_id'] = $role->id;
+            }
+
+            // Update using the update method
+            if (!empty($updateData)) {
+                $user->update($updateData);
+            }
+
+            // Refresh the model to get updated data
+            $user->refresh();
             $user->load('role');
 
             return response()->json([
