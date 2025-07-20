@@ -60,30 +60,38 @@ class AuthController extends Controller
 
    public function login(Request $request)
 {
-    $credentials = $request->validate([
+    // Validate incoming request
+    $validator = Validator::make($request->all(), [
         'email' => 'required|email',
         'password' => 'required|string',
     ]);
 
+    // If validation fails, return error messages
+    if ($validator->fails()) {
+        return response()->json(['error' => $validator->errors()], 422);
+    }
+
     // Check if the email ends with the allowed domains
-    if (!str_ends_with($credentials['email'], '@student.passerellesnumeriques.org') &&
-        !str_ends_with($credentials['email'], '@passerellesnumeriques.org')) {
-        return response()->json(['error' => 'Invalid email domain'], 401);
+    if (!str_ends_with($request->email, '@student.passerellesnumeriques.org') &&
+        !str_ends_with($request->email, '@passerellesnumeriques.org')) {
+        return response()->json(['error' => ['email' => ['Invalid email domain']]], 401);
     }
 
-    if (!Auth::attempt($credentials)) {
-        return response()->json(['error' => 'Invalid credentials'], 401);
+    // Attempt to authenticate the user
+    if (!Auth::attempt($request->only('email', 'password'))) {
+        return response()->json(['error' => ['password' => ['Invalid credentials']]], 401);
     }
 
+    // Retrieve the authenticated user
     $user = Auth::user();
     $token = $user->createToken('auth_token')->plainTextToken;
 
+    // Return token and user information
     return response()->json([
         'token' => $token,
         'user' => $user->only(['id', 'name', 'email', 'role_id']),
     ]);
 }
-
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
