@@ -1,8 +1,10 @@
 <template>
-  <Navbar />
-  <router-view /> <!-- ✅ This shows ProfileSettings.vue when route changes -->
+  <div>
+    <Navbar />
+    <RouterView />
+  </div>
 </template>
 
 <script setup>
-import Navbar from './components/layouts/Navbar.vue'
+import Navbar from './components/layouts/Navbar.vue';
 </script>
