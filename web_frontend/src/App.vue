@@ -1,8 +1,10 @@
 <template>
- 
-  <router-view />
+  <div>
+    <Navbar />
+    <RouterView />
+  </div>
 </template>
 
-<script>
- 
+<script setup>
+import Navbar from './components/layouts/Navbar.vue';
 </script>
