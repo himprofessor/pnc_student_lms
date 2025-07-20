@@ -12,27 +12,27 @@ use Illuminate\Support\Facades\Validator;
 class AuthController extends Controller
 {
     public function registerStudent(Request $request)
-    {
-        // Validate the incoming request
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users|ends_with:@student.passerellesnumeriques.org',
-            'password' => 'required|string|min:8',
-        ]);
+{
+    // Validate the incoming request
+    $validator = Validator::make($request->all(), [
+        'name' => 'required|string|max:255',
+        'email' => 'required|string|email|max:255|unique:users|ends_with:@student.passerellesnumeriques.org',
+        'password' => 'required|string|min:8',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 400);
-        }
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'role_id' => 3, // Role ID for Student
-        ]);
-
-        return response()->json(['message' => 'Student account created successfully.']);
+    if ($validator->fails()) {
+        return response()->json(['error' => $validator->errors()], 400);
     }
+
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => bcrypt($request->password),
+        'role_id' => 3, // Ensure this role ID is correct
+    ]);
+
+    return response()->json(['message' => 'Student account created successfully.']);
+}
 
     public function registerTeacher(Request $request)
     {
@@ -58,31 +58,31 @@ class AuthController extends Controller
         return response()->json(['message' => 'Teacher account created successfully.']);
     }
 
-    public function login(Request $request)
-    {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
+   public function login(Request $request)
+{
+    $credentials = $request->validate([
+        'email' => 'required|email',
+        'password' => 'required|string',
+    ]);
 
-        // Check if the email ends with the allowed domains
-        if (!str_ends_with($credentials['email'], '@student.passerellesnumeriques.org') &&
-            !str_ends_with($credentials['email'], '@passerellesnumeriques.org')) {
-            return response()->json(['error' => 'Invalid email domain'], 401);
-        }
-
-        if (!Auth::attempt($credentials)) {
-            return response()->json(['error' => 'Invalid credentials'], 401);
-        }
-
-        $user = Auth::user();
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'token' => $token,
-            'user' => $user->only(['id', 'name', 'email', 'role_id']),
-        ]);
+    // Check if the email ends with the allowed domains
+    if (!str_ends_with($credentials['email'], '@student.passerellesnumeriques.org') &&
+        !str_ends_with($credentials['email'], '@passerellesnumeriques.org')) {
+        return response()->json(['error' => 'Invalid email domain'], 401);
     }
+
+    if (!Auth::attempt($credentials)) {
+        return response()->json(['error' => 'Invalid credentials'], 401);
+    }
+
+    $user = Auth::user();
+    $token = $user->createToken('auth_token')->plainTextToken;
+
+    return response()->json([
+        'token' => $token,
+        'user' => $user->only(['id', 'name', 'email', 'role_id']),
+    ]);
+}
 
     public function logout(Request $request)
     {

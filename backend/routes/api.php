@@ -31,7 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Student Routes
-    Route::middleware('role:student')->group(function () {
+   Route::middleware('role:3')->group(function () {
         Route::post('/student/request-leave', [StudentLeaveController::class, 'requestLeave']);
         Route::get('/student/my-leaves', [StudentLeaveController::class, 'myLeaves']);
         Route::get('/student/leave-history', [StudentLeaveController::class, 'leaveHistory']);
