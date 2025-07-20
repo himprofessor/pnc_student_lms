@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\TeacherController;
 use App\Http\Controllers\API\StudentLeaveController;
 use App\Http\Controllers\Auth\LoginController;
@@ -22,9 +21,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Admin Routes
     Route::middleware('role:admin')->get('/admin-area', fn() => 'Admin Access');
 
-  // User CRUD Routes
-  Route::apiResource('users', UserController::class);
-
     // Teacher Routes
     Route::middleware('role:teacher')->group(function () {
         Route::get('/teacher-area', fn() => 'Teacher Access');
@@ -35,7 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Student Routes
-    Route::middleware('role:student')->group(function () {
+   Route::middleware('role:3')->group(function () {
         Route::post('/student/request-leave', [StudentLeaveController::class, 'requestLeave']);
         Route::get('/student/my-leaves', [StudentLeaveController::class, 'myLeaves']);
         Route::get('/student/leave-history', [StudentLeaveController::class, 'leaveHistory']);
