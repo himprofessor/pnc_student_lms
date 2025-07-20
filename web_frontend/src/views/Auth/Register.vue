@@ -6,14 +6,17 @@
         <div>
           <label for="name" class="block text-gray-700">Name</label>
           <input v-model="name" id="name" type="text" placeholder="Enter your name" class="w-full p-2 border rounded" required />
+          <p v-if="fieldErrors.name" class="text-red-600 text-sm mt-1">{{ fieldErrors.name }}</p>
         </div>
         <div>
           <label for="email" class="block text-gray-700">Email address</label>
           <input v-model="email" id="email" type="email" placeholder="Enter your email" class="w-full p-2 border rounded" required />
+          <p v-if="fieldErrors.email" class="text-red-600 text-sm mt-1">{{ fieldErrors.email }}</p>
         </div>
         <div>
           <label for="password" class="block text-gray-700">Password</label>
-          <input v-model="password" id="password" type="password" placeholder="Enter your password" class="w-full p-2 border rounded" required />
+          <input v-model="password" id="password" type="password" placeholder="Enter your password" class="w-full p-2 border rounded" :class="{'border-red-600': fieldErrors.password}" required />
+          <p v-if="fieldErrors.password" class="text-red-600 text-sm mt-1">{{ fieldErrors.password }}</p>
         </div>
         <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Register</button>
       </form>
@@ -36,11 +39,11 @@ const router = useRouter()
 const name = ref('')
 const email = ref('')
 const password = ref('')
-const errorMessage = ref('')
+const fieldErrors = ref({}) // Changed from errorMessage to fieldErrors
 
 // Function to register a new user
 const register = async () => {
-  errorMessage.value = ''
+  fieldErrors.value = {} // Reset errors
 
   try {
     const { apiEndpoint, roleId } = determineEndpointAndRole(email.value)
@@ -55,7 +58,20 @@ const register = async () => {
     alert(response.data.message)
     router.push('/login')
   } catch (error) {
-    errorMessage.value = error.response?.data?.error || error.message || 'An unexpected error occurred.'
+    // Populate fieldErrors with specific messages
+    if (error.response?.data?.error) {
+      if (error.response.data.error.password) {
+        fieldErrors.value.password = error.response.data.error.password[0];
+      }
+      if (error.response.data.error.email) {
+        fieldErrors.value.email = error.response.data.error.email[0];
+      }
+      if (error.response.data.error.name) {
+        fieldErrors.value.name = error.response.data.error.name[0];
+      }
+    } else {
+      fieldErrors.value.general = 'An unexpected error occurred.'
+    }
   }
 }
 
