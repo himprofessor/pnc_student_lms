@@ -15,7 +15,6 @@ const router = createRouter({
          { path: '/request-leave', component: RequestLeavePage },
          { path: '/history', component: HistoryPage },
          { path: '/profile', component: ProfilePage },
-     
   ],
 })
 
