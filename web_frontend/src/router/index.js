@@ -17,6 +17,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
 <<<<<<< HEAD
+<<<<<<< HEAD
     {
       path: '/',
       name: 'home',
@@ -33,6 +34,9 @@ const router = createRouter({
   ],
 =======
     { path: '/', component: Home },
+=======
+    { path: '/', component: Home, meta: { hideNavbar: true } },
+>>>>>>> bd759637f061ec9e27a81602d4610f3b10b2f5fd
     { path: '/login', component: Login, meta: { hideNavbar: true } },
     { path: '/register', component: Register, meta: { hideNavbar: true } },
     { path: '/dashboard', component: DashboardPage },
@@ -41,6 +45,19 @@ const router = createRouter({
     { path: '/profile', component: ProfilePage },
   ]
 >>>>>>> 4c7df4aec0fdac2788799808f3bd67f4da808222
+})
+
+
+router.beforeEach((to, from, next) => {
+  const publicPages = ['/login', '/register', '/']
+  const authRequired = !publicPages.includes(to.path)
+  const token = localStorage.getItem('token')
+
+  if (authRequired && !token) {
+    return next('/login')
+  }
+
+  next()
 })
 
 export default router
