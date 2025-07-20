@@ -10,7 +10,7 @@ class User extends Authenticatable
     use HasApiTokens, Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'password', 'role_id'
+        'name', 'email', 'password', 'role_id', // Make sure role_id is included
     ];
 
     protected $hidden = [
@@ -24,11 +24,11 @@ class User extends Authenticatable
 
     public function hasRole($role)
     {
-        return $this->role === $role;  
-    }
-    public function student()
-    {
-        return $this->hasOne(student::class);
+        return $this->role && $this->role->name === $role; // Check role name
     }
 
+    public function student()
+    {
+        return $this->hasOne(Student::class); // Ensure class name is capitalized
+    }
 }
