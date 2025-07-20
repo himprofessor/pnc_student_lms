@@ -12,7 +12,7 @@ import Navbar from './components/layouts/Navbar.vue';
 
 const route = useRoute();
 
-const isAuthPage = computed(() => {
-  return route.path === '/login' || route.path === '/register';
-});
+const authPages = ['/login', '/register'];
+
+const isAuthPage = computed(() => authPages.includes(route.path));
 </script>
