@@ -11,7 +11,7 @@ import ProfilePage from '../views/ProfilePage.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/', component: Home },
+    { path: '/', component: Home, meta: { hideNavbar: true } },
     { path: '/login', component: Login, meta: { hideNavbar: true } },
     { path: '/register', component: Register, meta: { hideNavbar: true } },
     { path: '/dashboard', component: DashboardPage },
@@ -19,6 +19,19 @@ const router = createRouter({
     { path: '/history', component: HistoryPage },
     { path: '/profile', component: ProfilePage },
   ]
+})
+
+
+router.beforeEach((to, from, next) => {
+  const publicPages = ['/login', '/register', '/']
+  const authRequired = !publicPages.includes(to.path)
+  const token = localStorage.getItem('token')
+
+  if (authRequired && !token) {
+    return next('/login')
+  }
+
+  next()
 })
 
 export default router
