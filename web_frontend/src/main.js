@@ -1,13 +1,20 @@
-import './assets/main.css'
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
+import './assets/main.css';
 
-import App from './App.vue'
-import router from './router'
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
+import axios from 'axios';
 
-const app = createApp(App)
+import App from './App.vue';
+import router from './router';
 
-app.use(createPinia())
-app.use(router)
+// Set the base URL for Axios
+axios.defaults.baseURL = 'http://127.0.0.1:8000/api'; // Your API base URL
 
-app.mount('#app')
+const app = createApp(App);
+
+app.config.globalProperties.$axios = axios; // Make Axios available globally
+
+app.use(createPinia());
+app.use(router);
+
+app.mount('#app');
