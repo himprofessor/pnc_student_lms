@@ -1,6 +1,6 @@
 <script setup>
+import Register from '../views/Auth/Register.vue';
  
-import Register from './Auth/Register.vue';
 </script>
 
 <template>
