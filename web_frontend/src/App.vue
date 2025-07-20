@@ -1,15 +1,12 @@
 <template>
   <div>
-    <nav>
-      <RouterLink to="/login">Login</RouterLink> |
-      <RouterLink to="/register">Register</RouterLink>
-    </nav>
+    <Navbar />
     <RouterView />
   </div>
 </template>
 
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import Navbar from './components/layouts/Navbar.vue';
 </script>
 
 <style>

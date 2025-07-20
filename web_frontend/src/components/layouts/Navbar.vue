@@ -11,9 +11,9 @@
 
     <!-- Menu -->
     <div class="flex space-x-6 items-center">
-      <a href="#" class="text-gray-700 hover:bg-blue-300  px-3 py-1 rounded-md transition">Dashboard</a>
-      <a href="#" class="text-gray-700 hover:bg-blue-300  px-3 py-1 rounded-md transition">Request Leave</a>
-      <a href="#" class="text-gray-700 hover:bg-blue-300  px-3 py-1 rounded-md transition">History</a>
+      <router-link to="/dashboard" class="text-gray-700 hover:bg-blue-300 px-3 py-1 rounded-md transition">Dashboard</router-link>
+      <router-link to="/request-leave" class="text-gray-700 hover:bg-blue-300 px-3 py-1 rounded-md transition">Request Leave</router-link>
+      <router-link to="/history" class="text-gray-700 hover:bg-blue-300 px-3 py-1 rounded-md transition">History</router-link>
     </div>
 
     <!-- User Dropdown -->
@@ -27,12 +27,9 @@
       </div>
 
       <!-- Dropdown menu -->
-      <div
-        v-if="dropdownOpen"
-        class="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg border border-gray-200 z-50"
-      >
-        <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-md">Profile</a>
-        <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-b-md">Sign out</a>
+      <div v-if="dropdownOpen" class="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+        <router-link to="/profile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-md">Profile</router-link>
+        <router-link to="/signout" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-b-md">Sign out</router-link>
       </div>
     </div>
   </nav>
