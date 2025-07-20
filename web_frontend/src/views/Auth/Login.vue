@@ -38,7 +38,6 @@ const login = async () => {
 
     // Store the token and redirect to the dashboard
     localStorage.setItem('token', response.data.token)
-    alert('Login successful!')
     router.push('/dashboard') // Redirect to the personalized dashboard
   } catch (error) {
     errorMessage.value = error.response?.data?.error || 'Login failed. Please check your credentials.'
