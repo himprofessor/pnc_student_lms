@@ -1,8 +1,11 @@
 <template>
-    <Navbar />
+  <div class="p-4 bg-blue-500 text-white text-center">
+    Hi Tailwind in Vue 3!
+  </div>
 </template>
 
-<script setup>
-import Navbar from './components/layouts/Navbar.vue';
-
+<script>
+export default {
+  name: 'App',
+};
 </script>
