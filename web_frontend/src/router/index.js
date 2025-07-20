@@ -1,20 +1,21 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import ProfileSettings from '../views/ProfileSettings.vue' // ✅ Correct name
+import Register from '../Auth/Register.vue';
+import Login from '../Auth/Login.vue';
+import DashboardPage from '../views/DashboardPage.vue';
+import RequestLeavePage from '../views/RequestLeavePage.vue';
+import HistoryPage from '../views/HistoryPage.vue';
+import ProfilePage from '../views/ProfilePage.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: HomeView,
-    },
-    {
-      path: '/profile-settings',
-      name: 'profile-settings',
-      component: ProfileSettings, // ✅ Correct component
-    },
+     { path: '/register', component: Register },
+     { path: '/login', component: Login },
+      { path: '/dashboard', component: DashboardPage },
+         { path: '/request-leave', component: RequestLeavePage },
+         { path: '/history', component: HistoryPage },
+         { path: '/profile', component: ProfilePage },
+     
   ],
 })
 
