@@ -7,7 +7,7 @@ use App\Http\Controllers\API\TeacherController;
 use App\Http\Controllers\API\StudentLeaveController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\Auth\LoginController;
-
+use App\Http\Controllers\Api\LeaveTypeController;
 // Public Routes
 Route::post('/register/student', [AuthController::class, 'registerStudent']);
 Route::post('/register/teacher', [AuthController::class, 'registerTeacher']);
@@ -25,6 +25,8 @@ Route::get('/test', function () {
     ]);
 });
 
+//Type of leave 
+Route::get('/leave-types', [LeaveTypeController::class, 'index']);
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
