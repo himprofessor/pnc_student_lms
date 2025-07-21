@@ -11,32 +11,28 @@
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      name: '',
-      email: '',
-      password: '',
-      error: null,
-    };
-  },
-  methods: {
-    async registerUser() {
-      try {
-        const response = await this.$http.post('/api/register', {
-          name: this.name,
-          email: this.email,
-          password: this.password,
-        });
-        // Handle success (e.g., redirect or show a message)
-        console.log('Registration successful:', response.data);
-      } catch (err) {
-        this.error = err.response.data.error || 'Registration failed';
-      }
-    },
-  },
-};
+<script setup>
+import { ref } from 'vue'
+import axios from '../axios'
+
+const name = ref('')
+const email = ref('')
+const password = ref('')
+const error = ref(null)
+
+const registerUser = async () => {
+  try {
+    const response = await axios.post('/api/register', {
+      name: name.value,
+      email: email.value,
+      password: password.value,
+    })
+    // Handle success (e.g., redirect or show a message)
+    console.log('Registration successful:', response.data)
+  } catch (err) {
+    error.value = err.response?.data?.error || 'Registration failed'
+  }
+}
 </script>
 
 <style scoped>

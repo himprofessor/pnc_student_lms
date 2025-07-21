@@ -10,30 +10,26 @@
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      email: '',
-      password: '',
-      error: null,
-    };
-  },
-  methods: {
-    async loginUser() {
-      try {
-        const response = await this.$http.post('/api/login', {
-          email: this.email,
-          password: this.password,
-        });
-        // Handle success (e.g., save token and redirect)
-        console.log('Login successful:', response.data);
-      } catch (err) {
-        this.error = err.response.data.error || 'Login failed';
-      }
-    },
-  },
-};
+<script setup>
+import { ref } from 'vue'
+import axios from '../axios'
+
+const email = ref('')
+const password = ref('')
+const error = ref(null)
+
+const loginUser = async () => {
+  try {
+    const response = await axios.post('/api/login', {
+      email: email.value,
+      password: password.value,
+    })
+    // Handle success (e.g., save token and redirect)
+    console.log('Login successful:', response.data)
+  } catch (err) {
+    error.value = err.response?.data?.error || 'Login failed'
+  }
+}
 </script>
 
 <style scoped>
