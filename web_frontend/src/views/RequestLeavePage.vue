@@ -156,50 +156,50 @@ const form = reactive({
   from_date: '',
   to_date: '',
   contact_info: '',
-  supporting_documents: null, // This will hold the File object
+  supporting_documents: null,
 });
 
-// Function to fetch leave types
+// Fetch leave types on component mount
+onMounted(() => {
+  fetchLeaveTypes();
+});
+
+// Fetch leave types from API
 const fetchLeaveTypes = async () => {
   try {
-    const response = await axios.get('/leave-types'); // Uses the global baseURL from main.js
+    const response = await axios.get('/leave-types');
     leaveTypes.value = response.data.data;
   } catch (error) {
     console.error('Error fetching leave types:', error);
-    // More specific error message if the backend provides one, otherwise a generic one
     errorMessage.value = error.response?.data?.message || 'Failed to load leave types. Please try again.';
   }
 };
 
-// Function to handle file upload input change
+// Handle file input change
 const handleFileUpload = (event) => {
   form.supporting_documents = event.target.files[0];
 };
 
-// Function to submit leave request
+// Submit the leave request
 const submitLeaveRequest = async () => {
   loading.value = true;
   successMessage.value = '';
   errorMessage.value = '';
   validationErrors.value = [];
 
-  // Frontend check for token existence before attempting to send the request
   const authToken = localStorage.getItem('authToken');
   if (!authToken) {
-    errorMessage.value = 'Authentication token not found. Please log in again.'; //
+    errorMessage.value = 'Authentication token not found. Please log in again.';
     loading.value = false;
-    router.push('/login'); // Redirect to login if no token found locally
+    router.push('/login');
     return;
   }
 
-  // Create FormData for sending data, crucial for file uploads
   const formData = new FormData();
   formData.append('leave_type_id', form.leave_type_id);
   formData.append('reason', form.reason);
   formData.append('from_date', form.from_date);
   formData.append('to_date', form.to_date);
-
-  // Append optional fields only if they have a value
   if (form.contact_info) {
     formData.append('contact_info', form.contact_info);
   }
@@ -208,39 +208,43 @@ const submitLeaveRequest = async () => {
   }
 
   try {
-    // Axios will automatically include the Authorization header because of the interceptor in main.js
-    const response = await axios.post('/student/request-leave', formData); //
+    const response = await axios.post('/student/request-leave', formData);
 
     successMessage.value = response.data.message || 'Leave request submitted successfully!';
-    resetForm(); // Clear the form on success
+    resetForm();
+
+    // Delay and redirect after success
+    setTimeout(() => {
+      router.push('/dashboard');
+    }, 1500);
   } catch (error) {
     console.error('Error submitting leave request:', error);
+
     if (error.response) {
-      if (error.response.status === 422) { // Backend validation errors
-        const errors = error.response.data.errors;
-        for (const key in errors) {
-          validationErrors.value.push(errors[key][0]);
+      const status = error.response.status;
+      const responseData = error.response.data;
+
+      if (status === 422 && responseData.errors) {
+        for (const key in responseData.errors) {
+          validationErrors.value.push(responseData.errors[key][0]);
         }
-        errorMessage.value = error.response.data.message || 'Please correct the errors in the form.';
-      } else if (error.response.status === 401 || error.response.status === 403) { // Authentication/Authorization errors
-        errorMessage.value = error.response.data.message || 'You are not authorized. Please log in again.';
-        // The main.js interceptor will also handle the redirection for 401/403
-      } else if (error.response.data.message) { // Specific error message from API
-        errorMessage.value = error.response.data.message;
-      } else { // Generic fallback for other HTTP errors
-        errorMessage.value = `Error ${error.response.status}: ${error.response.statusText || 'An unexpected error occurred.'}`; //
+        errorMessage.value = responseData.message || 'Please fix the validation errors.';
+      } else if (status === 401 || status === 403) {
+        errorMessage.value = responseData.message || 'Unauthorized. Please log in again.';
+      } else {
+        errorMessage.value = responseData.message || `Error ${status}: ${error.response.statusText || 'Something went wrong.'}`;
       }
-    } else if (error.request) { // No response from server (network issue, CORS, wrong URL)
-      errorMessage.value = 'No response from server. Check your network connection or API URL.';
-    } else { // Error setting up the request
-      errorMessage.value = 'An unknown error occurred while setting up the request.';
+    } else if (error.request) {
+      errorMessage.value = 'No response from server. Please check your network or try again later.';
+    } else {
+      errorMessage.value = 'An unknown error occurred during the request.';
     }
   } finally {
     loading.value = false;
   }
 };
 
-// Function to reset the form fields and messages
+// Reset the form after submission or error
 const resetForm = () => {
   form.leave_type_id = '';
   form.reason = '';
@@ -249,7 +253,6 @@ const resetForm = () => {
   form.contact_info = '';
   form.supporting_documents = null;
 
-  // Manually clear the file input element's value
   const fileInput = document.getElementById('file-upload');
   if (fileInput) {
     fileInput.value = '';
@@ -259,19 +262,4 @@ const resetForm = () => {
   errorMessage.value = '';
   successMessage.value = '';
 };
-
-// Lifecycle hook: fetch leave types when the component is mounted
-onMounted(() => {
-  fetchLeaveTypes();
-});
 </script>
-
-<style scoped>
-/* Add any component-specific styles here if needed */
-/* Tailwind CSS classes should already handle most styling */
-
-/* Style for invalid inputs */
-.border-red-500 {
-  border-color: #ef4444; /* Tailwind's red-500 */
-}
-</style>
