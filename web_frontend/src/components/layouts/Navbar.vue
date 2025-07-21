@@ -1,50 +1,91 @@
 <template>
   <nav class="flex items-center justify-between px-6 py-3 shadow bg-white">
     <!-- Logo -->
-    <div class="flex items-center space-x-2">
-      <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422A12.042 12.042 0 0118 14.5C18 17.538 15.538 20 12.5 20S7 17.538 7 14.5c0-.697.096-1.374.273-2.017L12 14z" />
-      </svg>
-      <span class="text-lg font-semibold text-gray-800">LeaveMS</span>
+    <div class="flex items-center space-x-3">
+      <img src="@/assets/logo.svg" alt="LMS Logo" class="w-8 h-8" />
+      <span class="text-xl font-bold text-gray-800">Student LMS</span>
     </div>
 
     <!-- Menu -->
     <div class="flex space-x-6 items-center">
-      <router-link to="/dashboard" class="text-gray-700 hover:bg-blue-300 px-3 py-1 rounded-md transition">Dashboard</router-link>
-      <router-link to="/request-leave" class="text-gray-700 hover:bg-blue-300 px-3 py-1 rounded-md transition">Request Leave</router-link>
-      <router-link to="/history" class="text-gray-700 hover:bg-blue-300 px-3 py-1 rounded-md transition">History</router-link>
-    </div>
-
-    <!-- Debug Info (remove in production) -->
-    <div class="text-xs text-gray-500 mr-4 bg-yellow-100 p-2 rounded">
-      <div>Token: {{ hasToken ? 'Yes' : 'No' }}</div>
-      <div>User: {{ user ? 'Loaded' : 'None' }}</div>
-      <div>Loading: {{ isLoading ? 'Yes' : 'No' }}</div>
-      <div>Error: {{ apiError || 'None' }}</div>
-      <button @click="manualFetch" class="bg-blue-500 text-white px-2 py-1 rounded text-xs mt-1">
-        Retry Fetch
-      </button>
+      <router-link to="/dashboard" class="text-gray-700 hover:bg-blue-100 px-3 py-2 rounded-md transition font-medium">
+        Dashboard
+      </router-link>
+      <router-link to="/request-leave" class="text-gray-700 hover:bg-blue-100 px-3 py-2 rounded-md transition font-medium">
+        Request Leave
+      </router-link>
+      <router-link to="/history" class="text-gray-700 hover:bg-blue-100 px-3 py-2 rounded-md transition font-medium">
+        History
+      </router-link>
     </div>
 
     <!-- User Dropdown -->
-    <div class="relative" @click="toggleDropdown">
-      <div class="flex items-center space-x-2 border border-blue-500 px-3 py-1 rounded-full cursor-pointer hover:bg-blue-50 transition">
-        <div class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-sm">
+    <div class="relative">
+      <div 
+        @click="toggleDropdown" 
+        class="flex items-center space-x-3 border border-blue-500 px-4 py-2 rounded-full cursor-pointer hover:bg-blue-50 transition-all duration-200"
+      >
+        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-md">
           {{ getUserInitials() }}
         </div>
-        <span class="text-gray-800 font-medium text-sm">
-          {{ userName }}
-        </span>
-        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <div class="flex flex-col items-start">
+          <span class="text-gray-800 font-semibold text-sm">
+            {{ userName }}
+          </span>
+          <span class="text-gray-500 text-xs">
+            {{ userRole }}
+          </span>
+        </div>
+        <svg 
+          class="w-4 h-4 text-gray-600 transition-transform duration-200" 
+          :class="{ 'rotate-180': dropdownOpen }"
+          fill="none" 
+          stroke="currentColor" 
+          stroke-width="2" 
+          viewBox="0 0 24 24"
+        >
           <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </div>
 
       <!-- Dropdown menu -->
-      <div v-if="dropdownOpen" class="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg border border-gray-200 z-50">
-        <router-link to="/profile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-md">Profile</router-link>
-        <button @click="handleSignOut" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-b-md">Sign out</button>
+      <div 
+        v-if="dropdownOpen" 
+        class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1"
+      >
+        <div class="px-4 py-2 border-b border-gray-100">
+          <p class="text-sm font-semibold text-gray-800">{{ userName }}</p>
+          <p class="text-xs text-gray-500">{{ userEmail }}</p>
+        </div>
+        <router-link 
+          to="/profile" 
+          class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
+          @click="dropdownOpen = false"
+        >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          Profile Settings
+        </router-link>
+        <button 
+          @click="handleSignOut" 
+          class="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+        >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          Sign Out
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div v-if="isLoading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white p-6 rounded-lg shadow-xl">
+        <div class="flex items-center space-x-3">
+          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          <span class="text-gray-700">Loading user data...</span>
+        </div>
       </div>
     </div>
   </nav>
@@ -64,65 +105,63 @@ const apiError = ref(null)
 const hasToken = computed(() => !!localStorage.getItem('token'))
 
 const userName = computed(() => {
-  console.log('=== USERNAME COMPUTED ===')
-  console.log('isLoading:', isLoading.value)
-  console.log('user object:', user.value)
-  console.log('apiError:', apiError.value)
-  
   if (isLoading.value) return 'Loading...'
-  if (apiError.value) return 'Error'
-  if (!user.value) {
-    console.log('No user data available')
-    return 'Guest'
-  }
+  if (apiError.value) return 'Error Loading'
+  if (!user.value) return 'Guest User'
   
-  // Try different possible name fields
-  const possibleNames = [
-    user.value.name,
-    user.value.full_name,
-    user.value.first_name,
-    user.value.username,
-    user.value.email
-  ]
-  
-  console.log('Possible names:', possibleNames)
-  
-  const foundName = possibleNames.find(name => name && name.trim())
-  console.log('Selected name:', foundName)
-  
-  return foundName || 'User'
+  return user.value.name || user.value.full_name || user.value.email?.split('@')[0] || 'User'
+})
+
+const userEmail = computed(() => {
+  if (!user.value) return 'No email'
+  return user.value.email || 'No email provided'
+})
+
+const userRole = computed(() => {
+  if (!user.value) return 'Guest'
+  return user.value.role || user.value.role_name || 'Student'
 })
 
 const toggleDropdown = () => {
   dropdownOpen.value = !dropdownOpen.value
 }
 
+// Close dropdown when clicking outside
+const closeDropdown = (event) => {
+  if (!event.target.closest('.relative')) {
+    dropdownOpen.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', closeDropdown)
+})
+
 const getUserInitials = () => {
   if (!user.value) return 'G'
   
-  const name = user.value.name || user.value.full_name || user.value.email || 'Guest'
+  const name = user.value.name || user.value.full_name || user.value.email || 'Guest User'
   
   if (name.includes('@')) {
     return name.charAt(0).toUpperCase()
   }
   
-  return name
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase())
-    .slice(0, 2)
-    .join('')
+  const words = name.split(' ')
+  if (words.length >= 2) {
+    return (words[0].charAt(0) + words[1].charAt(0)).toUpperCase()
+  }
+  
+  return name.charAt(0).toUpperCase()
 }
 
 const fetchUser = async () => {
   const token = localStorage.getItem('token')
   
-  console.log('=== NAVBAR FETCH USER ===')
+  console.log('=== FETCHING USER DATA ===')
   console.log('Token exists:', !!token)
-  console.log('Token value (first 20 chars):', token ? token.substring(0, 20) + '...' : 'null')
   
   if (!token) {
-    console.log('No token, redirecting to login')
-    apiError.value = 'No token'
+    console.log('No token found, redirecting to login')
     router.push('/login')
     return
   }
@@ -131,15 +170,9 @@ const fetchUser = async () => {
   apiError.value = null
   
   try {
-    console.log('Making API request to /api/user...')
-    console.log('Request URL: http://localhost:8000/api/user')
-    console.log('Request headers:', {
-      'Authorization': `Bearer ${token.substring(0, 20)}...`,
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    })
+    console.log('Making API request to fetch user...')
     
-    const response = await axios.get('http://localhost:8000/api/users', {
+    const response = await axios.get('http://localhost:8000/api/user', {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/json',
@@ -147,28 +180,20 @@ const fetchUser = async () => {
       }
     })
     
-    console.log('API Response Status:', response.status)
-    console.log('API Response Headers:', response.headers)
-    console.log('API Response Data:', response.data)
+    console.log('User data received:', response.data)
     
     user.value = response.data
     localStorage.setItem('user_data', JSON.stringify(response.data))
     
-    console.log('User data set successfully:', user.value)
+    // Emit user data to other components if needed
+    window.dispatchEvent(new CustomEvent('userDataLoaded', { detail: response.data }))
     
   } catch (error) {
-    console.error('=== NAVBAR API ERROR ===')
-    console.error('Error object:', error)
-    console.error('Error message:', error.message)
-    console.error('Response status:', error.response?.status)
-    console.error('Response data:', error.response?.data)
-    console.error('Response headers:', error.response?.headers)
-    console.error('Request config:', error.config)
-    
-    apiError.value = `${error.response?.status || 'Network'}: ${error.response?.data?.message || error.message}`
+    console.error('Failed to fetch user data:', error)
+    apiError.value = error.response?.data?.message || error.message
     
     if (error.response?.status === 401) {
-      console.log('Unauthorized, clearing storage')
+      console.log('Token expired, clearing storage')
       localStorage.removeItem('token')
       localStorage.removeItem('user_data')
       router.push('/login')
@@ -178,36 +203,32 @@ const fetchUser = async () => {
   }
 }
 
-const manualFetch = async () => {
-  console.log('Manual fetch triggered')
-  await fetchUser()
-}
-
 const handleSignOut = () => {
-  localStorage.removeItem('token')
-  localStorage.removeItem('user_data')
-  user.value = null
-  router.push('/login')
+  if (confirm('Are you sure you want to sign out?')) {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user_data')
+    user.value = null
+    dropdownOpen.value = false
+    router.push('/login')
+  }
 }
 
 onMounted(async () => {
-  console.log('=== NAVBAR MOUNTED ===')
+  console.log('Navbar component mounted')
   
-  // First load from localStorage
+  // Try to load user from localStorage first for immediate display
   const storedUser = localStorage.getItem('user_data')
-  console.log('Stored user data:', storedUser)
-  
   if (storedUser) {
     try {
       user.value = JSON.parse(storedUser)
-      console.log('Loaded user from storage:', user.value)
+      console.log('Loaded user from localStorage:', user.value)
     } catch (e) {
-      console.error('Error parsing stored user:', e)
+      console.error('Error parsing stored user data:', e)
       localStorage.removeItem('user_data')
     }
   }
   
-  // Then fetch fresh data
+  // Fetch fresh user data from API
   await fetchUser()
 })
 </script>
