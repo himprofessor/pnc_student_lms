@@ -40,37 +40,49 @@ const router = useRouter()
 const email = ref('')
 const password = ref('')
 const errorMessage = ref('')
-const fieldErrors = ref({}) // Object to hold field-specific errors
+const fieldErrors = ref({})
+const isLoading = ref(false)
 
 const login = async () => {
   errorMessage.value = ''
-  fieldErrors.value = {} // Reset field errors on each attempt
+  fieldErrors.value = {}
+  isLoading.value = true
 
   try {
+    // Clear any existing tokens first
+    localStorage.removeItem('token')
+    localStorage.removeItem('user_data')
+
     const response = await axios.post('http://localhost:8000/api/login', {
       email: email.value,
       password: password.value,
     })
 
-    // Store the token and redirect to the dashboard
+    console.log('Login response:', response.data)
+
+    // Store the token
     localStorage.setItem('token', response.data.token)
-    router.push('/dashboard') // Redirect to the personalized dashboard
+    
+    // Store user data if provided
+    if (response.data.user) {
+      localStorage.setItem('user_data', JSON.stringify(response.data.user))
+    }
+
+    // Redirect to dashboard
+    router.push('/dashboard')
+    
   } catch (error) {
-    // Check if there are validation errors from the server
-    if (error.response?.data?.error) {
-      if (error.response.data.error.email) {
-        fieldErrors.value.email = error.response.data.error.email[0]; // First error message
-      }
-      if (error.response.data.error.password) {
-        fieldErrors.value.password = error.response.data.error.password[0]; // First error message
-      }
+    console.error('Login error:', error)
+    
+    if (error.response?.data?.errors) {
+      fieldErrors.value = error.response.data.errors
+    } else if (error.response?.data?.message) {
+      errorMessage.value = error.response.data.message
     } else {
       errorMessage.value = 'Login failed. Please check your credentials.'
     }
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
-
-<style scoped>
-/* Add any specific styles here if needed */
-</style>

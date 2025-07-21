@@ -31,15 +31,42 @@
         <!-- Profile Header Card -->
         <div class="bg-white rounded-lg shadow-md p-6">
           <div class="flex items-center space-x-6">
-            <div class="w-24 h-24 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-center text-3xl font-bold shadow-lg">
-              {{ getUserInitials() }}
+            <!-- Profile Image -->
+            <div class="relative">
+              <div class="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center justify-center text-3xl font-bold shadow-lg">
+                <img 
+                  v-if="getProfileImageUrl() && !imageError" 
+                  :src="getProfileImageUrl()" 
+                  :alt="user.name"
+                  class="w-full h-full object-cover"
+                  @error="handleImageError"
+                />
+                <span v-else>{{ getUserInitials() }}</span>
+              </div>
+              <!-- Change Photo Button -->
+              <button 
+                @click="triggerFileInput"
+                class="absolute -bottom-2 -right-2 bg-blue-600 text-white rounded-full p-2 hover:bg-blue-700 transition-colors shadow-lg"
+                title="Change profile photo"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+              <!-- Hidden file input -->
+              <input 
+                ref="fileInput"
+                type="file" 
+                accept="image/*" 
+                @change="handleImageUpload"
+                class="hidden"
+              />
             </div>
+            
             <div class="flex-1">
               <h2 class="text-3xl font-bold text-gray-900">{{ user.name || user.full_name || 'N/A' }}</h2>
               <p class="text-gray-600 text-lg mb-2">{{ user.email || 'N/A' }}</p>
-              
-               
-             
             </div>
             <div class="text-right text-sm text-gray-500">
               <p>Member since</p>
@@ -63,7 +90,7 @@
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                <p class="text-gray-900 bg-gray-50 p-3 rounded-md">{{ user.role.name }}</p>
+                <p class="text-gray-900 bg-gray-50 p-3 rounded-md">{{ user.role?.name || 'Not assigned' }}</p>
               </div>
             </div>
             <div class="space-y-4">
@@ -83,72 +110,8 @@
           </div>
         </div>
 
-        <!-- Update Profile Form -->
+        <!-- Change Password Form -->
         <div class="bg-white rounded-lg shadow-md p-6">
-          <h3 class="text-xl font-semibold text-gray-900 mb-4">Update Profile Information</h3>
-          <form @submit.prevent="updateProfile" class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
-                <input 
-                  id="fullName"
-                  type="text" 
-                  v-model="profileForm.fullName" 
-                  class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                  placeholder="Enter your full name"
-                  required
-                />
-              </div>
-              <div>
-                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
-                <input 
-                  id="email"
-                  type="email" 
-                  v-model="profileForm.email" 
-                  class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                  placeholder="Enter your email address"
-                  required
-                />
-              </div>
-              <div>
-                <label for="contactInfo" class="block text-sm font-medium text-gray-700 mb-1">Contact Information</label>
-                <input 
-                  id="contactInfo"
-                  type="text" 
-                  v-model="profileForm.contactInfo" 
-                  class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                  placeholder="Phone number, address, etc."
-                />
-              </div>
-              <div>
-                <label for="emergencyContact" class="block text-sm font-medium text-gray-700 mb-1">Emergency Contact</label>
-                <input 
-                  id="emergencyContact"
-                  type="text" 
-                  v-model="profileForm.emergencyContact" 
-                  class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                  placeholder="Emergency contact information"
-                />
-              </div>
-            </div>
-            <div class="flex justify-end pt-4">
-              <button 
-                type="submit" 
-                :disabled="isUpdatingProfile"
-                class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center"
-              >
-                <svg v-if="isUpdatingProfile" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                {{ isUpdatingProfile ? 'Updating...' : 'Update Profile' }}
-              </button>
-            </div>
-          </form>
-        </div>
-
-            <!-- Change Password Form -->
-            <div class="bg-white rounded-lg shadow-md p-6">
           <h3 class="text-xl font-semibold text-gray-900 mb-4">Change Password</h3>
           <form @submit.prevent="changePassword" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -195,7 +158,7 @@
                     @click="showNewPassword = !showNewPassword"
                     class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                   >
-                    <svg v-if="showNewPassword" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <svg v-if="showNewPassword" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
                     </svg>
                     <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -257,12 +220,19 @@
       <div v-if="errorMessage" class="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
         {{ errorMessage }}
       </div>
+
+      <!-- Image Upload Loading Overlay -->
+      <div v-if="isUploadingImage" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 flex items-center space-x-4">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span class="text-gray-700">Uploading image...</span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
@@ -273,31 +243,26 @@ const router = useRouter()
 const user = ref(null)
 const isLoadingUser = ref(false)
 const debugError = ref(null)
-const isUpdatingProfile = ref(false)
+
 const isChangingPassword = ref(false)
+const isUploadingImage = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
+const imageError = ref(false)
+
+// File input reference
+const fileInput = ref(null)
 
 // Password visibility toggles
 const showCurrentPassword = ref(false)
 const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
 
-// Form data
-const profileForm = ref({
-  fullName: '',
-  email: '',
-  contactInfo: '',
-  emergencyContact: ''
-})
-
 const passwordForm = ref({
   currentPassword: '',
   newPassword: '',
   confirmNewPassword: ''
 })
-
-
 
 // Helper functions
 const getUserInitials = () => {
@@ -320,6 +285,144 @@ const formatDate = (dateString) => {
   }
 }
 
+const getProfileImageUrl = () => {
+  if (!user.value || imageError.value) return null
+  
+  const imageField = user.value.img_url ||
+                    user.value.img || 
+                    user.value.profile_image || 
+                    user.value.avatar || 
+                    user.value.image || 
+                    user.value.photo ||
+                    user.value.profile_photo
+
+  if (!imageField) return null
+
+  if (imageField.startsWith('http://') || imageField.startsWith('https://')) {
+    return imageField
+  }
+
+  if (imageField.startsWith('/')) {
+    return `http://127.0.0.1:8000${imageField}`
+  }
+
+  return `http://127.0.0.1:8000/storage/${imageField}`
+}
+
+const handleImageError = () => {
+  console.log('Image failed to load, falling back to initials')
+  imageError.value = true
+}
+
+// Image upload functions
+const triggerFileInput = () => {
+  fileInput.value?.click()
+}
+
+const handleImageUpload = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  console.log('=== IMAGE UPLOAD DEBUG ===')
+  console.log('Selected file:', {
+    name: file.name,
+    size: file.size,
+    type: file.type,
+    lastModified: file.lastModified
+  })
+
+  // Validate file type
+  if (!file.type.startsWith('image/')) {
+    showError('Please select a valid image file')
+    return
+  }
+
+  // Validate file size (5MB max)
+  if (file.size > 5 * 1024 * 1024) {
+    showError('Image size must be less than 5MB')
+    return
+  }
+
+  isUploadingImage.value = true
+
+  try {
+    const token = localStorage.getItem('token')
+    console.log('Token exists:', !!token)
+    console.log('Token preview:', token ? token.substring(0, 20) + '...' : 'null')
+
+    const formData = new FormData()
+    formData.append('img', file)
+
+    // Debug FormData
+    console.log('FormData entries:')
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value)
+    }
+
+    const url = 'http://127.0.0.1:8000/api/user/upload-image'
+    console.log('Upload URL:', url)
+
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json'
+      // Don't set Content-Type for FormData, let browser set it with boundary
+    }
+    console.log('Request headers:', headers)
+
+    console.log('Making request...')
+    const response = await axios.post(url, formData, { headers })
+
+    console.log('Upload successful!')
+    console.log('Response status:', response.status)
+    console.log('Response data:', response.data)
+    console.log('Does response have img?:', response.data?.data?.img || response.data?.img)
+    console.log('Does response have img_url?:', response.data?.data?.img_url || response.data?.img_url)
+
+    // Reset image error state
+    imageError.value = false
+    
+    showSuccess('Profile image updated successfully!')
+    
+    // Refetch user data to get updated image path
+    await fetchUserData()
+
+  } catch (error) {
+    console.error('=== UPLOAD ERROR ===')
+    console.error('Error object:', error)
+    console.error('Error message:', error.message)
+    console.error('Response status:', error.response?.status)
+    console.error('Response headers:', error.response?.headers)
+    console.error('Response data:', error.response?.data)
+    console.error('Request config:', error.config)
+    
+    if (error.response?.data?.errors) {
+      // Handle validation errors
+      const errors = error.response.data.errors
+      console.error('Validation errors:', errors)
+      const errorMessages = Object.values(errors).flat().join(', ')
+      showError(`Validation Error: ${errorMessages}`)
+    } else if (error.response?.data?.message) {
+      showError(error.response.data.message)
+    } else if (error.response?.status === 404) {
+      showError('Upload endpoint not found. Please check the API route.')
+    } else if (error.response?.status === 401) {
+      showError('Unauthorized. Please login again.')
+      // Redirect to login
+      localStorage.removeItem('token')
+      localStorage.removeItem('user_data')
+      router.push('/login')
+    } else {
+      showError('Failed to upload image. Please try again.')
+    }
+  } finally {
+    isUploadingImage.value = false
+    // Clear the file input
+    if (fileInput.value) {
+      fileInput.value.value = ''
+    }
+  }
+}
+
 // API functions
 const fetchUserData = async () => {
   const token = localStorage.getItem('token')
@@ -332,7 +435,7 @@ const fetchUserData = async () => {
   debugError.value = null
   
   try {
-        const response = await axios.get('http://localhost:8000/api/login', {
+    const response = await axios.get('http://127.0.0.1:8000/api/user', {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/json',
@@ -341,14 +444,12 @@ const fetchUserData = async () => {
     })
     
     user.value = response.data
+    localStorage.setItem('user_data', JSON.stringify(user.value))
     
-    // Populate form with current user data
-    profileForm.value = {
-      fullName: user.value.name || user.value.full_name || '',
-      email: user.value.email || '',
-      contactInfo: user.value.contact_info || user.value.phone || '',
-      emergencyContact: user.value.emergency_contact || ''
-    }
+
+    
+    // Emit event to update navbar
+    window.dispatchEvent(new CustomEvent('userDataUpdated', { detail: user.value }))
     
   } catch (error) {
     console.error('Failed to fetch user data:', error)
@@ -364,46 +465,6 @@ const fetchUserData = async () => {
   }
 }
 
-const updateProfile = async () => {
-  if (!profileForm.value.fullName || !profileForm.value.email) {
-    showError('Please fill in required fields: Full Name and Email')
-    return
-  }
-
-  isUpdatingProfile.value = true
-  
-  try {
-    const token = localStorage.getItem('token')
-    
-    const response = await axios.put('http://localhost:8000/api/user/profile', {
-      name: profileForm.value.fullName,
-      email: profileForm.value.email,
-      contact_info: profileForm.value.contactInfo,
-      emergency_contact: profileForm.value.emergencyContact
-    }, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
-    })
-    
-    // Update local user data
-    user.value = response.data
-    localStorage.setItem('user_data', JSON.stringify(response.data))
-    
-    showSuccess('Profile updated successfully!')
-    
-    // Emit event to update navbar
-    window.dispatchEvent(new CustomEvent('userDataUpdated', { detail: response.data }))
-    
-  } catch (error) {
-    console.error('Failed to update profile:', error)
-    showError(error.response?.data?.message || 'Failed to update profile. Please try again.')
-  } finally {
-    isUpdatingProfile.value = false
-  }
-}
 
 const changePassword = async () => {
   if (!passwordForm.value.currentPassword || !passwordForm.value.newPassword || !passwordForm.value.confirmNewPassword) {
@@ -426,7 +487,7 @@ const changePassword = async () => {
   try {
     const token = localStorage.getItem('token')
     
-    await axios.put('http://localhost:8000/api/user/password', {
+    await axios.put('http://127.0.0.1:8000/api/user/password', {
       current_password: passwordForm.value.currentPassword,
       new_password: passwordForm.value.newPassword,
       new_password_confirmation: passwordForm.value.confirmNewPassword
@@ -476,12 +537,6 @@ onMounted(async () => {
   if (storedUser) {
     try {
       user.value = JSON.parse(storedUser)
-      profileForm.value = {
-        fullName: user.value.name || user.value.full_name || '',
-        email: user.value.email || '',
-        contactInfo: user.value.contact_info || user.value.phone || '',
-        emergencyContact: user.value.emergency_contact || ''
-      }
     } catch (e) {
       console.error('Error parsing stored user data:', e)
       localStorage.removeItem('user_data')
@@ -538,5 +593,18 @@ button:hover:not(:disabled) {
     text-align: center;
   }
 }
-</style>
 
+/* Custom styles for file input and image upload */
+.relative:hover .absolute {
+  opacity: 1;
+}
+
+.absolute {
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* Image upload overlay styles */
+.fixed.inset-0 {
+  backdrop-filter: blur(2px);
+}
+</style>

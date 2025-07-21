@@ -16,25 +16,27 @@
       <router-link to="/history" class="text-gray-700 hover:bg-blue-300 px-3 py-1 rounded-md transition">History</router-link>
     </div>
 
-    <!-- Debug Info (remove in production) -->
-    <div class="text-xs text-gray-500 mr-4 bg-yellow-100 p-2 rounded">
-      <div>Token: {{ hasToken ? 'Yes' : 'No' }}</div>
-      <div>User: {{ user ? 'Loaded' : 'None' }}</div>
-      <div>Loading: {{ isLoading ? 'Yes' : 'No' }}</div>
-      <div>Error: {{ apiError || 'None' }}</div>
-      <button @click="manualFetch" class="bg-blue-500 text-white px-2 py-1 rounded text-xs mt-1">
-        Retry Fetch
-      </button>
-    </div>
-
     <!-- User Dropdown -->
     <div class="relative" @click="toggleDropdown">
       <div class="flex items-center space-x-2 border border-blue-500 px-3 py-1 rounded-full cursor-pointer hover:bg-blue-50 transition">
-        <div class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-sm">
-          {{ getUserInitials() }}
+        <!-- Profile Image or Initials -->
+        <div class="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center">
+          <img 
+            v-if="getProfileImageUrl()" 
+            :src="getProfileImageUrl()" 
+            :alt="displayName"
+            class="w-full h-full object-cover"
+            @error="handleImageError"
+          />
+          <div 
+            v-else 
+            class="w-full h-full bg-blue-600 text-white flex items-center justify-center font-semibold text-sm"
+          >
+            {{ getUserInitials() }}
+          </div>
         </div>
         <span class="text-gray-800 font-medium text-sm">
-          {{ userName }}
+          {{ displayName }}
         </span>
         <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
@@ -60,37 +62,20 @@ const dropdownOpen = ref(false)
 const user = ref(null)
 const isLoading = ref(false)
 const apiError = ref(null)
+const imageError = ref(false)
 
 const hasToken = computed(() => !!localStorage.getItem('token'))
 
-const userName = computed(() => {
-  console.log('=== USERNAME COMPUTED ===')
-  console.log('isLoading:', isLoading.value)
-  console.log('user object:', user.value)
-  console.log('apiError:', apiError.value)
-  
+const displayName = computed(() => {
   if (isLoading.value) return 'Loading...'
   if (apiError.value) return 'Error'
-  if (!user.value) {
-    console.log('No user data available')
-    return 'Guest'
-  }
+  if (!user.value) return 'Guest'
   
-  // Try different possible name fields
-  const possibleNames = [
-    user.value.name,
-    user.value.full_name,
-    user.value.first_name,
-    user.value.username,
-    user.value.email
-  ]
-  
-  console.log('Possible names:', possibleNames)
-  
-  const foundName = possibleNames.find(name => name && name.trim())
-  console.log('Selected name:', foundName)
-  
-  return foundName || 'User'
+  return user.value.name || 
+         user.value.full_name || 
+         user.value.first_name || 
+         (user.value.email ? user.value.email.split('@')[0] : null) || 
+         'User'
 })
 
 const toggleDropdown = () => {
@@ -100,46 +85,83 @@ const toggleDropdown = () => {
 const getUserInitials = () => {
   if (!user.value) return 'G'
   
-  const name = user.value.name || user.value.full_name || user.value.email || 'Guest'
+  const name = user.value.name || 
+               user.value.full_name || 
+               user.value.first_name || 
+               user.value.email || 
+               'Guest'
   
   if (name.includes('@')) {
     return name.charAt(0).toUpperCase()
   }
   
-  return name
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase())
-    .slice(0, 2)
-    .join('')
+  const words = name.split(' ')
+  if (words.length >= 2) {
+    return (words[0].charAt(0) + words[1].charAt(0)).toUpperCase()
+  }
+  
+  return name.charAt(0).toUpperCase()
+}
+
+const getProfileImageUrl = () => {
+  if (!user.value || imageError.value) return null
+  
+  // Check different possible image field names
+  const imageField = user.value.img_url ||
+                    user.value.img || 
+                    user.value.profile_image || 
+                    user.value.avatar || 
+                    user.value.image || 
+                    user.value.photo ||
+                    user.value.profile_photo
+
+  console.log('=== NAVBAR IMAGE DEBUG ===')
+  console.log('user.value:', user.value)
+  console.log('user.value.img:', user.value.img)
+  console.log('user.value.img_url:', user.value.img_url)
+  console.log('imageField:', imageField)
+
+  if (!imageField) {
+    console.log('No image field found')
+    return null
+  }
+
+  let finalUrl = ''
+
+  // If it's already a full URL, return as is
+  if (imageField.startsWith('http://') || imageField.startsWith('https://')) {
+    finalUrl = imageField
+  } else if (imageField.startsWith('/')) {
+    // If it's a relative path, construct the full URL
+    finalUrl = `http://127.0.0.1:8000${imageField}`
+  } else {
+    // If it's just a filename, assume it's in storage/app/public/profile-images
+    finalUrl = `http://127.0.0.1:8000/storage/${imageField}`
+  }
+
+  console.log('Final image URL:', finalUrl)
+  return finalUrl
+}
+
+const handleImageError = () => {
+  console.log('Image failed to load, falling back to initials')
+  imageError.value = true
 }
 
 const fetchUser = async () => {
   const token = localStorage.getItem('token')
   
-  console.log('=== NAVBAR FETCH USER ===')
-  console.log('Token exists:', !!token)
-  console.log('Token value (first 20 chars):', token ? token.substring(0, 20) + '...' : 'null')
-  
   if (!token) {
-    console.log('No token, redirecting to login')
-    apiError.value = 'No token'
     router.push('/login')
     return
   }
 
   isLoading.value = true
   apiError.value = null
+  imageError.value = false // Reset image error state
   
   try {
-    console.log('Making API request to /api/user...')
-    console.log('Request URL: http://localhost:8000/api/user')
-    console.log('Request headers:', {
-      'Authorization': `Bearer ${token.substring(0, 20)}...`,
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    })
-    
-    const response = await axios.get('http://localhost:8000/api/users', {
+    const response = await axios.get('http://127.0.0.1:8000/api/user', {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/json',
@@ -147,28 +169,17 @@ const fetchUser = async () => {
       }
     })
     
-    console.log('API Response Status:', response.status)
-    console.log('API Response Headers:', response.headers)
-    console.log('API Response Data:', response.data)
-    
     user.value = response.data
     localStorage.setItem('user_data', JSON.stringify(response.data))
     
-    console.log('User data set successfully:', user.value)
+    console.log('User loaded successfully:', user.value)
+    console.log('Profile image field:', getProfileImageUrl())
     
   } catch (error) {
-    console.error('=== NAVBAR API ERROR ===')
-    console.error('Error object:', error)
-    console.error('Error message:', error.message)
-    console.error('Response status:', error.response?.status)
-    console.error('Response data:', error.response?.data)
-    console.error('Response headers:', error.response?.headers)
-    console.error('Request config:', error.config)
-    
-    apiError.value = `${error.response?.status || 'Network'}: ${error.response?.data?.message || error.message}`
+    console.error('Error fetching user:', error)
+    apiError.value = error.response?.data?.message || error.message
     
     if (error.response?.status === 401) {
-      console.log('Unauthorized, clearing storage')
       localStorage.removeItem('token')
       localStorage.removeItem('user_data')
       router.push('/login')
@@ -178,36 +189,59 @@ const fetchUser = async () => {
   }
 }
 
-const manualFetch = async () => {
-  console.log('Manual fetch triggered')
-  await fetchUser()
-}
-
-const handleSignOut = () => {
+const handleSignOut = async () => {
+  const token = localStorage.getItem('token')
+  
+  // Try to logout on the server first
+  if (token) {
+    try {
+      await axios.post('http://127.0.0.1:8000/api/logout', {}, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      })
+    } catch (error) {
+      console.error('Logout API error:', error)
+    }
+  }
+  
+  // Clear local storage
   localStorage.removeItem('token')
   localStorage.removeItem('user_data')
+  
+  // Clear user state
   user.value = null
+  
+  // Redirect to login
   router.push('/login')
 }
 
+// Listen for user data updates from profile page
+const handleUserDataUpdate = (event) => {
+  if (event.detail) {
+    user.value = event.detail
+    localStorage.setItem('user_data', JSON.stringify(event.detail))
+    imageError.value = false // Reset image error when user data updates
+  }
+}
+
 onMounted(async () => {
-  console.log('=== NAVBAR MOUNTED ===')
+  // Listen for user data updates
+  window.addEventListener('userDataUpdated', handleUserDataUpdate)
   
-  // First load from localStorage
+  // Load from localStorage first
   const storedUser = localStorage.getItem('user_data')
-  console.log('Stored user data:', storedUser)
-  
   if (storedUser) {
     try {
       user.value = JSON.parse(storedUser)
-      console.log('Loaded user from storage:', user.value)
     } catch (e) {
-      console.error('Error parsing stored user:', e)
       localStorage.removeItem('user_data')
     }
   }
   
-  // Then fetch fresh data
+  // Fetch fresh data
   await fetchUser()
 })
 </script>
