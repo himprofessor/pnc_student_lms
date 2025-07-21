@@ -11,9 +11,9 @@
 
     <!-- Menu -->
     <div class="flex space-x-6 items-center">
-      <a href="/" class="text-gray-700 hover:bg-blue-300  px-3 py-1 rounded-md transition">Dashboard</a>
-      <a href="/request-leave" class="text-gray-700 hover:bg-blue-300  px-3 py-1 rounded-md transition">Request Leave</a>
-      <a href="/history" class="text-gray-700 hover:bg-blue-300  px-3 py-1 rounded-md transition">History</a>
+      <router-link to="/dashboard" class="text-gray-700 hover:bg-blue-300 px-3 py-1 rounded-md transition">Dashboard</router-link>
+      <router-link to="/request-leave" class="text-gray-700 hover:bg-blue-300 px-3 py-1 rounded-md transition">Request Leave</router-link>
+      <router-link to="/history" class="text-gray-700 hover:bg-blue-300 px-3 py-1 rounded-md transition">History</router-link>
     </div>
 
     <!-- User Dropdown -->
@@ -25,24 +25,34 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </div>
+ <!-- Dropdown menu -->
+ <div v-if="dropdownOpen" class="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+        <router-link to="/profile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-md">Profile</router-link>
+        <button @click="handleSignOut" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-b-md">
+  Sign out
+</button>
 
-      <!-- Dropdown menu -->
-      <div
-        v-if="dropdownOpen"
-        class="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg border border-gray-200 z-50"
-      >
-        <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-md">Profile</a>
-        <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-b-md">Sign out</a>
       </div>
     </div>
   </nav>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const dropdownOpen = ref(false);
+const router = useRouter()
+const dropdownOpen = ref(false)
+
 const toggleDropdown = () => {
-  dropdownOpen.value = !dropdownOpen.value;
-};
+  dropdownOpen.value = !dropdownOpen.value
+}
+
+const handleSignOut = () => {
+  localStorage.removeItem('token') // remove token
+  router.push('/login') // redirect to login page
+}
 </script>
+
+
+
