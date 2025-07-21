@@ -12,41 +12,36 @@ class StudentLeaveController extends Controller
     // Submit a new leave request
     public function requestLeave(Request $request)
     {
-        try {
-            $request->validate([
-                'leave_type_id' => 'required|exists:leave_types,id',
-                'reason' => 'required|string',
-                'from_date' => 'required|date',
-                'to_date' => 'required|date|after_or_equal:from_date',
-                'contact_info' => 'nullable|string',
-                'supporting_documents' => 'nullable|file|mimes:pdf,doc,docx,jpg,png|max:2048',
-            ]);
+        $request->validate([
+            'leave_type_id' => 'required|exists:leave_types,id', // Validate the leave type
+            'reason' => 'required|string',
+            'from_date' => 'required|date',
+            'to_date' => 'required|date|after_or_equal:from_date',
+            'contact_info' => 'nullable|string',
+            'supporting_documents' => 'nullable|file|mimes:pdf,doc,docx,jpg,png|max:2048',
+        ]);
 
-            // Handle file upload
-            $documentPath = null;
-            if ($request->hasFile('supporting_documents')) {
-                $documentPath = $request->file('supporting_documents')->store('supporting_documents');
-            }
-
-            $leave = LeaveRequest::create([
-                'student_id' => Auth::id(),
-                'leave_type_id' => $request->leave_type_id,
-                'reason' => $request->reason,
-                'from_date' => $request->from_date,
-                'to_date' => $request->to_date,
-                'contact_info' => $request->contact_info,
-                'supporting_documents' => $documentPath,
-                'status' => 'pending',
-            ]);
-
-            return response()->json([
-                'message' => 'Leave request submitted successfully.',
-                'data' => $leave,
-            ], 201);
-        } catch (\Exception $e) {
-            \Log::error('Leave request error: ' . $e->getMessage());
-            return response()->json(['error' => 'Internal Server Error'], 500);
+        // Handle file upload
+        $documentPath = null;
+        if ($request->hasFile('supporting_documents')) {
+            $documentPath = $request->file('supporting_documents')->store('supporting_documents');
         }
+
+        $leave = LeaveRequest::create([
+            'student_id' => Auth::id(),
+            'leave_type_id' => $request->leave_type_id,
+            'reason' => $request->reason,
+            'from_date' => $request->from_date,
+            'to_date' => $request->to_date,
+            'contact_info' => $request->contact_info,
+            'supporting_documents' => $documentPath,
+            'status' => 'pending',
+        ]);
+
+        return response()->json([
+            'message' => 'Leave request submitted successfully.',
+            'data' => $leave,
+        ], 201);
     }
 
     // View logged-in student's leave requests
