@@ -30,12 +30,25 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     
     // User Profile Routes (Available to ALL authenticated users)
-    Route::get('/user', [UserController::class, 'getCurrentUser']);
-    Route::put('/user/profile', [UserController::class, 'updateProfile']);
+    Route::get('/user', [UserController::class, 'getCurrentUser']);        // GET profile
+    Route::put('/user/profile', [UserController::class, 'updateProfile']); // UPDATE profile
+    
     Route::put('/user/password', [UserController::class, 'updatePassword']);
+    Route::post('/user/upload-image', [UserController::class, 'uploadProfileImage']);
+    Route::delete('/user/delete-image', [UserController::class, 'deleteProfileImage']);
 
     // Admin Routes
-    Route::middleware('role:admin')->get('/admin-area', fn() => 'Admin Access');
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/admin-area', fn() => 'Admin Access');
+        
+        // User management routes for admin
+        Route::get('/users', [UserController::class, 'index']);
+        Route::post('/users', [UserController::class, 'store']);
+        Route::get('/users/{id}', [UserController::class, 'show']);
+        Route::put('/users/{id}', [UserController::class, 'update']);
+        Route::delete('/users/{id}', [UserController::class, 'destroy']);
+        Route::post('/users/bulk-delete', [UserController::class, 'bulkDelete']);
+    });
 
     // Teacher Routes
     Route::middleware('role:teacher')->group(function () {
