@@ -8,9 +8,80 @@ use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
+    /**
+     * Get current authenticated user
+     */
+    public function getCurrentUser(Request $request)
+    {
+        try {
+            $user = $request->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not found'
+                ], 404);
+            }
+            
+            // Load the role relationship
+            $user->load('role');
+            
+            return response()->json($user);
+        } catch (\Exception $e) {
+            Log::error('Error in getCurrentUser: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching user data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update current user's profile
+     */
+    public function updateProfile(Request $request)
+    {
+        try {
+            $user = $request->user();
+            
+            $validator = Validator::make($request->all(), [
+                'name' => 'sometimes|required|string|max:255',
+                'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
+                'contact_info' => 'sometimes|nullable|string|max:255',
+                'emergency_contact' => 'sometimes|nullable|string|max:255',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation error',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+            
+            $user->update($validator->validated());
+            $user->load('role');
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile updated successfully',
+                'data' => $user
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error updating profile: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating profile',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     /**
      * Display a listing of users
      */

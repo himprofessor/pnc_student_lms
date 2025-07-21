@@ -1,9 +1,11 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\TeacherController;
 use App\Http\Controllers\API\StudentLeaveController;
+use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\Auth\LoginController;
 
 // Public Routes
@@ -14,9 +16,23 @@ Route::post('/login', [AuthController::class, 'login']);
 // Admin Login Route
 Route::post('/admin/login', [LoginController::class, 'login']);
 
+// Test route to verify API is working
+Route::get('/test', function () {
+    return response()->json([
+        'message' => 'API is working',
+        'time' => now(),
+        'status' => 'success'
+    ]);
+});
+
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    
+    // User Profile Routes (Available to ALL authenticated users)
+    Route::get('/user', [UserController::class, 'getCurrentUser']);
+    Route::put('/user/profile', [UserController::class, 'updateProfile']);
+    Route::put('/user/password', [UserController::class, 'updatePassword']);
 
     // Admin Routes
     Route::middleware('role:admin')->get('/admin-area', fn() => 'Admin Access');
@@ -31,7 +47,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Student Routes
-   Route::middleware('role:3')->group(function () {
+    Route::middleware('role:3')->group(function () {
         Route::post('/student/request-leave', [StudentLeaveController::class, 'requestLeave']);
         Route::get('/student/my-leaves', [StudentLeaveController::class, 'myLeaves']);
         Route::get('/student/leave-history', [StudentLeaveController::class, 'leaveHistory']);
