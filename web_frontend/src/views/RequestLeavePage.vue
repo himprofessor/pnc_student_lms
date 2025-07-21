@@ -137,139 +137,116 @@
     </div>
   </template>
 
-  <script setup>
-  import { ref, onMounted, reactive } from 'vue';
-  import axios from 'axios';
-  import { useRouter } from 'vue-router'; // Import useRouter for potential redirection
+<script setup>
+import { ref, onMounted, reactive } from 'vue';
+import axios from 'axios';
+import { useRouter } from 'vue-router';
 
-  const router = useRouter(); // Initialize router
+const router = useRouter();
 
-  // State variables
-  const leaveTypes = ref([]);
-  const loading = ref(false);
-  const successMessage = ref('');
-  const errorMessage = ref('');
-  const validationErrors = ref([]);
+const leaveTypes = ref([]);
+const loading = ref(false);
+const successMessage = ref('');
+const errorMessage = ref('');
+const validationErrors = ref([]);
 
-  const form = reactive({
-    leave_type_id: '',
-    reason: '',
-    from_date: '',
-    to_date: '',
-    contact_info: '',
-    supporting_documents: null, // This will hold the File object
-  });
+const form = reactive({
+  leave_type_id: '',
+  reason: '',
+  from_date: '',
+  to_date: '',
+  contact_info: '',
+  supporting_documents: null,
+});
 
-  // --- API Calls ---
+// Fetch leave types
+const fetchLeaveTypes = async () => {
+  try {
+    const res = await axios.get('/leave-types');
+    leaveTypes.value = res.data.data;
+  } catch (error) {
+    console.error('Error fetching leave types:', error);
+    errorMessage.value = 'Failed to load leave types.';
+  }
+};
 
-  // Function to fetch leave types
-  const fetchLeaveTypes = async () => {
-    try {
-      const response = await axios.get('/leave-types'); // Using relative path due to axios.defaults.baseURL
-      leaveTypes.value = response.data.data;
-    } catch (error) {
-      console.error('Error fetching leave types:', error);
-      // If fetching leave types fails due to auth (e.g., token expired), the interceptor will handle redirect.
-      errorMessage.value = 'Failed to load leave types. Please try again.';
-    }
-  };
+// File upload
+const handleFileUpload = (event) => {
+  form.supporting_documents = event.target.files[0] || null;
+};
 
-  // Function to handle file upload
-  const handleFileUpload = (event) => {
-    form.supporting_documents = event.target.files[0];
-  };
+// Submit form
+const submitLeaveRequest = async () => {
+  loading.value = true;
+  successMessage.value = '';
+  errorMessage.value = '';
+  validationErrors.value = [];
 
-  // Function to submit leave request
-  const submitLeaveRequest = async () => {
-    loading.value = true;
-    successMessage.value = '';
-    errorMessage.value = '';
-    validationErrors.value = [];
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    errorMessage.value = 'Authentication token not found. Please log in.';
+    router.push('/login');
+    loading.value = false;
+    return;
+  }
 
-    // It's still good practice to check for the token here for immediate feedback,
-    // although the Axios interceptor handles the actual request rejection.
-    const authToken = localStorage.getItem('authToken');
-    if (!authToken) {
-      errorMessage.value = 'Authentication token not found. Please log in again.';
-      loading.value = false;
-      router.push('/login'); // Redirect to login if no token on submission attempt
-      return;
-    }
+  const formData = new FormData();
+  formData.append('leave_type_id', form.leave_type_id);
+  formData.append('reason', form.reason);
+  formData.append('from_date', form.from_date);
+  formData.append('to_date', form.to_date);
+  if (form.contact_info) formData.append('contact_info', form.contact_info);
+  if (form.supporting_documents) formData.append('supporting_documents', form.supporting_documents);
 
-    // Create FormData for sending data, especially crucial for file uploads
-    const formData = new FormData();
-    formData.append('leave_type_id', form.leave_type_id);
-    formData.append('reason', form.reason);
-    formData.append('from_date', form.from_date);
-    formData.append('to_date', form.to_date);
-
-    // Append optional fields only if they have a value
-    if (form.contact_info) {
-      formData.append('contact_info', form.contact_info);
-    }
-    if (form.supporting_documents) {
-      formData.append('supporting_documents', form.supporting_documents);
-    }
-
-    try {
-      // Axios will automatically include the Authorization header because of the interceptor in main.js
-      const response = await axios.post('/student/request-leave', formData); // Using relative path
-
-      successMessage.value = response.data.message || 'Leave request submitted successfully!';
-      resetForm(); // Clear the form on success
-    } catch (error) {
-      console.error('Error submitting leave request:', error);
-      if (error.response) {
-        if (error.response.status === 422) {
-          const errors = error.response.data.errors;
-          for (const key in errors) {
-            validationErrors.value.push(errors[key][0]);
-          }
-          errorMessage.value = error.response.data.message || 'Please correct the errors in the form.';
-        } else if (error.response.status === 401 || error.response.status === 403) {
-          // The Axios response interceptor in main.js should handle redirection for 401/403
-          errorMessage.value = error.response.data.message || 'You are not authorized to perform this action. Please log in.';
-        } else if (error.response.data.message) {
-          errorMessage.value = error.response.data.message;
-        } else {
-          errorMessage.value = `Error ${error.response.status}: ${error.response.statusText || 'An unexpected error occurred.'}`;
+  try {
+    const res = await axios.post('/student/request-leave', formData);
+    successMessage.value = res.data.message || 'Leave request submitted successfully!';
+    resetForm();
+  } catch (error) {
+    if (error.response) {
+      const res = error.response;
+      if (res.status === 422 && res.data.errors) {
+        const errs = res.data.errors;
+        for (const field in errs) {
+          validationErrors.value.push(errs[field][0]);
         }
-      } else if (error.request) {
-        errorMessage.value = 'No response from server. Check your network connection or API URL.';
+        errorMessage.value = res.data.message || 'Please fix the errors.';
+      } else if (res.status === 401 || res.status === 403) {
+        errorMessage.value = res.data.message || 'Unauthorized. Please log in.';
+        router.push('/login');
       } else {
-        errorMessage.value = 'Error setting up the request.';
+        errorMessage.value = res.data.message || `Unexpected error (${res.status})`;
       }
-    } finally {
-      loading.value = false;
+    } else if (error.request) {
+      errorMessage.value = 'No response from server. Check your internet.';
+    } else {
+      errorMessage.value = 'Error setting up request.';
     }
-  };
+  } finally {
+    loading.value = false;
+  }
+};
 
-  // Function to reset the form
-  const resetForm = () => {
-    form.leave_type_id = '';
-    form.reason = '';
-    form.from_date = '';
-    form.to_date = '';
-    form.contact_info = '';
-    form.supporting_documents = null;
+// Reset form
+const resetForm = () => {
+  form.leave_type_id = '';
+  form.reason = '';
+  form.from_date = '';
+  form.to_date = '';
+  form.contact_info = '';
+  form.supporting_documents = null;
 
-    const fileInput = document.getElementById('file-upload');
-    if (fileInput) {
-      fileInput.value = '';
-    }
+  const fileInput = document.getElementById('file-upload');
+  if (fileInput) fileInput.value = '';
 
-    validationErrors.value = [];
-    errorMessage.value = '';
-    successMessage.value = '';
-  };
+  validationErrors.value = [];
+  errorMessage.value = '';
+  successMessage.value = '';
+};
 
-  // --- Lifecycle Hooks ---
-  onMounted(() => {
-    // Axios base URL and Authorization header are handled by main.js,
-    // so no need to explicitly set them here.
-    fetchLeaveTypes(); // Fetch leave types when the component is mounted
-  });
-  </script>
+onMounted(fetchLeaveTypes);
+</script>
+
 
   <style scoped>
   /* Add any component-specific styles here if needed */
