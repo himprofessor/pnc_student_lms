@@ -10,6 +10,7 @@ class CreateLeaveRequestsTable extends Migration
         Schema::create('leave_requests', function (Blueprint $table) {
             $table->id();
             $table->foreignId('student_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('educator_id')->nullable()->constrained()->onDelete('cascade');
             $table->string('reason');
             $table->date('from_date');
             $table->date('to_date');
