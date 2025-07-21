@@ -132,10 +132,11 @@ class UserController extends Controller
     /**
      * Update the specified user
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, string $id = null)
     {
         try {
-            $user = User::find($id);
+            // If no ID provided, update the authenticated user (for profile updates)
+            $user = $id ? User::find($id) : $request->user();
 
             if (!$user) {
                 return response()->json([
@@ -147,10 +148,12 @@ class UserController extends Controller
             // Simple validation - only validate fields that are present
             $validator = Validator::make($request->all(), [
                 'name' => 'sometimes|required|string|max:255',
-                'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $id,
+                'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $user->id,
                 'password' => 'sometimes|nullable|string|min:8',
                 'role_id' => 'sometimes|required|exists:roles,id',
                 'role' => 'sometimes|required|string|exists:roles,name',
+                'contact_info' => 'sometimes|nullable|string|max:255',
+                'emergency_contact' => 'sometimes|nullable|string|max:255',
             ]);
 
             if ($validator->fails()) {
@@ -173,7 +176,7 @@ class UserController extends Controller
             }
 
             if ($request->filled('password')) {
-                $updateData['password'] = $request->password; // Let the model handle hashing
+                $updateData['password'] = Hash::make($request->password);
             }
 
             if ($request->has('role_id')) {
@@ -181,6 +184,14 @@ class UserController extends Controller
             } elseif ($request->has('role')) {
                 $role = Role::where('name', $request->role)->first();
                 $updateData['role_id'] = $role->id;
+            }
+
+            if ($request->has('contact_info')) {
+                $updateData['contact_info'] = $request->contact_info;
+            }
+
+            if ($request->has('emergency_contact')) {
+                $updateData['emergency_contact'] = $request->emergency_contact;
             }
 
             // Update using the update method
@@ -202,6 +213,52 @@ class UserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error updating user',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update user password
+     */
+    public function updatePassword(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'current_password' => 'required',
+                'new_password' => 'required|string|min:8|confirmed',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation error',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $user = $request->user();
+
+            if (!Hash::check($request->current_password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Current password is incorrect'
+                ], 400);
+            }
+
+            $user->update([
+                'password' => Hash::make($request->new_password)
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Password updated successfully'
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating password',
                 'error' => $e->getMessage()
             ], 500);
         }

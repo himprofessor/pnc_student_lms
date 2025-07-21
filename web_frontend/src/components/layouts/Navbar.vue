@@ -100,13 +100,9 @@ const router = useRouter()
 const dropdownOpen = ref(false)
 const user = ref(null)
 const isLoading = ref(false)
-const apiError = ref(null)
-
-const hasToken = computed(() => !!localStorage.getItem('token'))
 
 const userName = computed(() => {
   if (isLoading.value) return 'Loading...'
-  if (apiError.value) return 'Error Loading'
   if (!user.value) return 'Guest User'
   
   return user.value.name || user.value.full_name || user.value.email?.split('@')[0] || 'User'
@@ -119,23 +115,27 @@ const userEmail = computed(() => {
 
 const userRole = computed(() => {
   if (!user.value) return 'Guest'
-  return user.value.role || user.value.role_name || 'Student'
+  
+  // Check different ways the role might be provided
+  if (user.value.role && user.value.role.name) {
+    return user.value.role.name.charAt(0).toUpperCase() + user.value.role.name.slice(1)
+  }
+  
+  if (user.value.role_name) {
+    return user.value.role_name.charAt(0).toUpperCase() + user.value.role_name.slice(1)
+  }
+  
+  // Fallback based on role_id
+  if (user.value.role_id === 1) return 'Admin'
+  if (user.value.role_id === 2) return 'Teacher'
+  if (user.value.role_id === 3) return 'Student'
+  
+  return 'User'
 })
 
 const toggleDropdown = () => {
   dropdownOpen.value = !dropdownOpen.value
 }
-
-// Close dropdown when clicking outside
-const closeDropdown = (event) => {
-  if (!event.target.closest('.relative')) {
-    dropdownOpen.value = false
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', closeDropdown)
-})
 
 const getUserInitials = () => {
   if (!user.value) return 'G'
@@ -157,21 +157,14 @@ const getUserInitials = () => {
 const fetchUser = async () => {
   const token = localStorage.getItem('token')
   
-  console.log('=== FETCHING USER DATA ===')
-  console.log('Token exists:', !!token)
-  
   if (!token) {
-    console.log('No token found, redirecting to login')
     router.push('/login')
     return
   }
 
   isLoading.value = true
-  apiError.value = null
   
   try {
-    console.log('Making API request to fetch user...')
-    
     const response = await axios.get('http://localhost:8000/api/user', {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -180,20 +173,15 @@ const fetchUser = async () => {
       }
     })
     
-    console.log('User data received:', response.data)
+    console.log('User data loaded:', response.data)
     
     user.value = response.data
     localStorage.setItem('user_data', JSON.stringify(response.data))
     
-    // Emit user data to other components if needed
-    window.dispatchEvent(new CustomEvent('userDataLoaded', { detail: response.data }))
-    
   } catch (error) {
     console.error('Failed to fetch user data:', error)
-    apiError.value = error.response?.data?.message || error.message
     
     if (error.response?.status === 401) {
-      console.log('Token expired, clearing storage')
       localStorage.removeItem('token')
       localStorage.removeItem('user_data')
       router.push('/login')
@@ -213,22 +201,28 @@ const handleSignOut = () => {
   }
 }
 
+// Close dropdown when clicking outside
+const closeDropdown = (event) => {
+  if (!event.target.closest('.relative')) {
+    dropdownOpen.value = false
+  }
+}
+
 onMounted(async () => {
-  console.log('Navbar component mounted')
+  // Add click outside listener
+  document.addEventListener('click', closeDropdown)
   
-  // Try to load user from localStorage first for immediate display
+  // Try to load user from localStorage first
   const storedUser = localStorage.getItem('user_data')
   if (storedUser) {
     try {
       user.value = JSON.parse(storedUser)
-      console.log('Loaded user from localStorage:', user.value)
     } catch (e) {
-      console.error('Error parsing stored user data:', e)
       localStorage.removeItem('user_data')
     }
   }
   
-  // Fetch fresh user data from API
+  // Fetch fresh user data
   await fetchUser()
 })
 </script>

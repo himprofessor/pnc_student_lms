@@ -21,6 +21,8 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id',
+        'contact_info',
+        'emergency_contact',
     ];
 
     /**
@@ -44,6 +46,13 @@ class User extends Authenticatable
     ];
 
     /**
+     * The attributes that should be appended to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['role_name'];
+
+    /**
      * Get the role that owns the user.
      */
     public function role()
@@ -52,10 +61,77 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the role name attribute.
+     */
+    public function getRoleNameAttribute()
+    {
+        return $this->role ? $this->role->name : 'No Role';
+    }
+
+    /**
      * Check if user has a specific role.
      */
     public function hasRole($role)
     {
-        return $this->role && $this->role->name === $role;
+        if (is_string($role)) {
+            return $this->role && $this->role->name === $role;
+        }
+        
+        if (is_numeric($role)) {
+            return $this->role_id == $role;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Check if user is admin.
+     */
+    public function isAdmin()
+    {
+        return $this->hasRole('admin') || $this->hasRole(1);
+    }
+
+    /**
+     * Check if user is teacher.
+     */
+    public function isTeacher()
+    {
+        return $this->hasRole('teacher') || $this->hasRole(2);
+    }
+
+    /**
+     * Check if user is student.
+     */
+    public function isStudent()
+    {
+        return $this->hasRole('student') || $this->hasRole(3);
+    }
+
+    /**
+     * Get user's full name or email if name is not available.
+     */
+    public function getDisplayNameAttribute()
+    {
+        return $this->name ?: $this->email;
+    }
+
+    /**
+     * Get user's initials for avatar.
+     */
+    public function getInitialsAttribute()
+    {
+        $name = $this->name ?: $this->email;
+        
+        if (strpos($name, '@') !== false) {
+            return strtoupper(substr($name, 0, 1));
+        }
+        
+        $words = explode(' ', $name);
+        if (count($words) >= 2) {
+            return strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+        }
+        
+        return strtoupper(substr($name, 0, 1));
     }
 }
