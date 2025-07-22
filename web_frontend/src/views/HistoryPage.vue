@@ -163,7 +163,7 @@
       <!-- Footer -->
       <div class="mt-6 text-center">
         <button @click="showModal = false"
-          class="bg-gradient-to-r from-red-500 to-indigo-500 text-white px-6 py-2 rounded-xl font-semibold hover:scale-105 transition">
+          class="bg-gradient-to-r from-red-700 to-indigo-500 text-white px-6 py-2 rounded-xl font-semibold hover:scale-105 transition">
           Close
         </button>
       </div>
