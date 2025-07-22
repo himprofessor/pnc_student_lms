@@ -50,7 +50,7 @@
                 title="Change profile photo"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0118.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </button>
@@ -77,37 +77,108 @@
 
         <!-- Account Information Card -->
         <div class="bg-white rounded-lg shadow-md p-6">
-          <h3 class="text-xl font-semibold text-gray-900 mb-4">Account Information</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold text-gray-900">Account Information</h3>
+            <button 
+              @click="toggleEditMode"
+              class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+            >
+              <svg v-if="!isEditMode" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              <svg v-else class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              {{ isEditMode ? 'Cancel' : 'Edit Profile' }}
+            </button>
+          </div>
+
+          <form @submit.prevent="updateProfile" class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-4">
+              <!-- Full Name -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                <p class="text-gray-900 bg-gray-50 p-3 rounded-md">{{ user.name || user.full_name || 'Not provided' }}</p>
+                <input 
+                  v-if="isEditMode"
+                  v-model="editForm.name"
+                  type="text"
+                  class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter your full name"
+                />
+                <p v-else class="text-gray-900 bg-gray-50 p-3 rounded-md">{{ user.name || user.full_name || 'Not provided' }}</p>
               </div>
+
+              <!-- Email (Read-only) -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                <p class="text-gray-900 bg-gray-50 p-3 rounded-md">{{ user.email || 'Not provided' }}</p>
+                <p class="text-gray-900 bg-gray-100 p-3 rounded-md border">{{ user.email || 'Not provided' }}</p>
+                <p class="text-xs text-gray-500 mt-1">Email cannot be changed</p>
               </div>
+
+              <!-- Role (Read-only) -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
                 <p class="text-gray-900 bg-gray-50 p-3 rounded-md">{{ user.role?.name || 'Not assigned' }}</p>
               </div>
             </div>
+
             <div class="space-y-4">
+              <!-- Student/User ID (Read-only) -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Student/User ID</label>
-                <p class="text-gray-900 bg-gray-50 p-3 rounded-md">{{ user.student_id || user.id || 'Not assigned' }}</p>
+                <p class="text-gray-900 bg-gray-100 p-3 rounded-md border">{{ user.student_id || user.id || 'Not assigned' }}</p>
+                <p class="text-xs text-gray-500 mt-1">ID cannot be changed</p>
               </div>
+
+              <!-- Contact Information -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Contact Information</label>
-                <p class="text-gray-900 bg-gray-50 p-3 rounded-md">{{ user.contact_info || user.phone || 'Not provided' }}</p>
+                <input 
+                  v-if="isEditMode"
+                  v-model="editForm.contact_info"
+                  type="text"
+                  class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter your phone number or contact info"
+                />
+                <p v-else class="text-gray-900 bg-gray-50 p-3 rounded-md">{{ user.contact_info || user.phone || 'Not provided' }}</p>
               </div>
+
+              <!-- Emergency Contact -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Emergency Contact</label>
-                <p class="text-gray-900 bg-gray-50 p-3 rounded-md">{{ user.emergency_contact || 'Not provided' }}</p>
+                <input 
+                  v-if="isEditMode"
+                  v-model="editForm.emergency_contact"
+                  type="text"
+                  class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter emergency contact information"
+                />
+                <p v-else class="text-gray-900 bg-gray-50 p-3 rounded-md">{{ user.emergency_contact || 'Not provided' }}</p>
               </div>
             </div>
-          </div>
+
+            <!-- Save/Cancel Buttons -->
+            <div v-if="isEditMode" class="md:col-span-2 flex justify-end space-x-4 pt-4 border-t">
+              <button 
+                type="button"
+                @click="cancelEdit"
+                class="bg-gray-500 text-white px-6 py-3 rounded-md hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit"
+                :disabled="isUpdatingProfile"
+                class="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center"
+              >
+                <svg v-if="isUpdatingProfile" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {{ isUpdatingProfile ? 'Saving...' : 'Save Changes' }}
+              </button>
+            </div>
+          </form>
         </div>
 
         <!-- Change Password Form -->
@@ -153,7 +224,7 @@
                     minlength="8"
                     required
                   />
-                  <button 
+                                   <button 
                     type="button"
                     @click="showNewPassword = !showNewPassword"
                     class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
@@ -246,6 +317,8 @@ const debugError = ref(null)
 
 const isChangingPassword = ref(false)
 const isUploadingImage = ref(false)
+const isUpdatingProfile = ref(false)
+const isEditMode = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
 const imageError = ref(false)
@@ -262,6 +335,13 @@ const passwordForm = ref({
   currentPassword: '',
   newPassword: '',
   confirmNewPassword: ''
+})
+
+// Edit form for profile data
+const editForm = ref({
+  name: '',
+  contact_info: '',
+  emergency_contact: ''
 })
 
 // Helper functions
@@ -312,6 +392,77 @@ const getProfileImageUrl = () => {
 const handleImageError = () => {
   console.log('Image failed to load, falling back to initials')
   imageError.value = true
+}
+
+// Edit mode functions
+const toggleEditMode = () => {
+  if (isEditMode.value) {
+    cancelEdit()
+  } else {
+    isEditMode.value = true
+    // Populate edit form with current user data
+    editForm.value = {
+      name: user.value.name || user.value.full_name || '',
+      contact_info: user.value.contact_info || user.value.phone || '',
+      emergency_contact: user.value.emergency_contact || ''
+    }
+  }
+}
+
+const cancelEdit = () => {
+  isEditMode.value = false
+  editForm.value = {
+    name: '',
+    contact_info: '',
+    emergency_contact: ''
+  }
+}
+
+const updateProfile = async () => {
+  if (!editForm.value.name.trim()) {
+    showError('Name is required')
+    return
+  }
+
+  isUpdatingProfile.value = true
+
+  try {
+    const token = localStorage.getItem('authToken')
+    
+    const response = await axios.put('http://127.0.0.1:8000/api/user/profile', {
+      name: editForm.value.name.trim(),
+      contact_info: editForm.value.contact_info.trim(),
+      emergency_contact: editForm.value.emergency_contact.trim()
+    }, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+
+    // Update user data with response
+    user.value = { ...user.value, ...response.data.data || response.data }
+    localStorage.setItem('user_data', JSON.stringify(user.value))
+    
+    // Emit event to update navbar
+    window.dispatchEvent(new CustomEvent('userDataUpdated', { detail: user.value }))
+    
+    isEditMode.value = false
+    showSuccess('Profile updated successfully!')
+    
+  } catch (error) {
+    console.error('Failed to update profile:', error)
+    if (error.response?.data?.errors) {
+      const errors = error.response.data.errors
+      const errorMessages = Object.values(errors).flat().join(', ')
+      showError(`Validation Error: ${errorMessages}`)
+    } else {
+      showError(error.response?.data?.message || 'Failed to update profile. Please try again.')
+    }
+  } finally {
+    isUpdatingProfile.value = false
+  }
 }
 
 // Image upload functions
@@ -404,7 +555,7 @@ const handleImageUpload = async (event) => {
     } else if (error.response?.data?.message) {
       showError(error.response.data.message)
     } else if (error.response?.status === 404) {
-      showError('Upload endpoint not found. Please check the API route.')
+         showError('Upload endpoint not found. Please check the API route.')
     } else if (error.response?.status === 401) {
       showError('Unauthorized. Please login again.')
       // Redirect to login
@@ -447,8 +598,6 @@ const fetchUserData = async () => {
     user.value = response.data
     localStorage.setItem('user_data', JSON.stringify(user.value))
     
-
-    
     // Emit event to update navbar
     window.dispatchEvent(new CustomEvent('userDataUpdated', { detail: user.value }))
     
@@ -466,7 +615,6 @@ const fetchUserData = async () => {
     isLoadingUser.value = false
   }
 }
-
 
 const changePassword = async () => {
   if (!passwordForm.value.currentPassword || !passwordForm.value.newPassword || !passwordForm.value.confirmNewPassword) {
@@ -608,5 +756,38 @@ button:hover:not(:disabled) {
 /* Image upload overlay styles */
 .fixed.inset-0 {
   backdrop-filter: blur(2px);
+}
+
+/* Edit mode styles */
+.bg-gray-100 {
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+}
+
+/* Transition effects for edit mode */
+input {
+  transition: all 0.2s ease-in-out;
+}
+
+input:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Button hover effects */
+button {
+  transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Form validation styles */
+input:invalid {
+  border-color: #ef4444;
+}
+
+input:valid {
+  border-color: #10b981;
 }
 </style>
