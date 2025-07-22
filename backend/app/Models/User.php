@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\Hash;
 
 class User extends Authenticatable
 {
@@ -13,20 +14,17 @@ class User extends Authenticatable
 
     /**
      * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
      */
     protected $fillable = [
         'name',
         'email',
         'password',
         'role_id',
+        'phone', // ✅ Add this if you allow profile update with phone
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
+     * The attributes that should be hidden for arrays or JSON.
      */
     protected $hidden = [
         'password',
@@ -35,16 +33,23 @@ class User extends Authenticatable
 
     /**
      * The attributes that should be cast.
-     *
-     * @var array<string, string>
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
     ];
 
     /**
-     * Get the role that owns the user.
+     * Automatically hash the password when creating or updating.
+     */
+    public function setPasswordAttribute($value)
+    {
+        if (!empty($value)) {
+            $this->attributes['password'] = Hash::make($value);
+        }
+    }
+
+    /**
+     * Relationship: A user belongs to a role.
      */
     public function role()
     {
@@ -52,7 +57,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user has a specific role.
+     * Check if user has a specific role (e.g., 'admin', 'teacher').
      */
     public function hasRole($role)
     {

@@ -76,7 +76,7 @@ class AuthController extends Controller
         !str_ends_with($request->email, '@passerellesnumeriques.org')) {
         return response()->json(['error' => ['email' => ['Invalid email domain']]], 401);
     }
-
+  
     // Attempt to authenticate the user
     if (!Auth::attempt($request->only('email', 'password'))) {
         return response()->json(['error' => ['password' => ['Invalid credentials']]], 401);
@@ -99,3 +99,4 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out successfully']);
     }
 }
+

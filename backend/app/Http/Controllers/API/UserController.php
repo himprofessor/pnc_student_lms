@@ -11,9 +11,8 @@ use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of users
-     */
+    // ---------------- Existing Admin CRUD ----------------
+
     public function index(Request $request)
     {
         try {
@@ -25,7 +24,8 @@ class UserController extends Controller
             if ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%");
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
                 });
             }
 
@@ -46,15 +46,13 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Store a newly created user
-     */
     public function store(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
+                'phone' => 'nullable|string|max:20',
                 'password' => 'required|string|min:8',
                 'role_id' => 'required_without:role|exists:roles,id',
                 'role' => 'required_without:role_id|string|exists:roles,name',
@@ -68,7 +66,6 @@ class UserController extends Controller
                 ], 422);
             }
 
-            // Get role_id from role name if role is provided
             $roleId = $request->role_id;
             if ($request->has('role') && !$request->has('role_id')) {
                 $role = Role::where('name', $request->role)->first();
@@ -78,6 +75,7 @@ class UserController extends Controller
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
+                'phone' => $request->phone,
                 'password' => Hash::make($request->password),
                 'role_id' => $roleId,
             ]);
@@ -99,9 +97,6 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Display the specified user
-     */
     public function show(string $id)
     {
         try {
@@ -129,9 +124,6 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Update the specified user
-     */
     public function update(Request $request, string $id)
     {
         try {
@@ -144,10 +136,10 @@ class UserController extends Controller
                 ], 404);
             }
 
-            // Simple validation - only validate fields that are present
             $validator = Validator::make($request->all(), [
                 'name' => 'sometimes|required|string|max:255',
                 'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $id,
+                'phone' => 'sometimes|nullable|string|max:20',
                 'password' => 'sometimes|nullable|string|min:8',
                 'role_id' => 'sometimes|required|exists:roles,id',
                 'role' => 'sometimes|required|string|exists:roles,name',
@@ -161,20 +153,11 @@ class UserController extends Controller
                 ], 422);
             }
 
-            // Prepare update data
             $updateData = [];
-
-            if ($request->has('name')) {
-                $updateData['name'] = $request->name;
-            }
-
-            if ($request->has('email')) {
-                $updateData['email'] = $request->email;
-            }
-
-            if ($request->filled('password')) {
-                $updateData['password'] = $request->password; // Let the model handle hashing
-            }
+            if ($request->has('name')) $updateData['name'] = $request->name;
+            if ($request->has('email')) $updateData['email'] = $request->email;
+            if ($request->has('phone')) $updateData['phone'] = $request->phone;
+            if ($request->filled('password')) $updateData['password'] = Hash::make($request->password);
 
             if ($request->has('role_id')) {
                 $updateData['role_id'] = $request->role_id;
@@ -183,14 +166,11 @@ class UserController extends Controller
                 $updateData['role_id'] = $role->id;
             }
 
-            // Update using the update method
             if (!empty($updateData)) {
                 $user->update($updateData);
             }
 
-            // Refresh the model to get updated data
-            $user->refresh();
-            $user->load('role');
+            $user->refresh()->load('role');
 
             return response()->json([
                 'success' => true,
@@ -207,9 +187,6 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Remove the specified user
-     */
     public function destroy(string $id)
     {
         try {
@@ -222,7 +199,6 @@ class UserController extends Controller
                 ], 404);
             }
 
-            // Prevent deleting the currently authenticated user
             if (auth()->id() == $id) {
                 return response()->json([
                     'success' => false,
@@ -246,9 +222,6 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Bulk delete users
-     */
     public function bulkDelete(Request $request)
     {
         try {
@@ -265,12 +238,7 @@ class UserController extends Controller
                 ], 422);
             }
 
-            $ids = $request->ids;
-            
-            // Remove current user's ID from the list to prevent self-deletion
-            $ids = array_filter($ids, function($id) {
-                return $id != auth()->id();
-            });
+            $ids = array_filter($request->ids, fn($id) => $id != auth()->id());
 
             if (empty($ids)) {
                 return response()->json([
@@ -290,6 +258,63 @@ class UserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error deleting users',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // ---------------- ✅ New Methods for Profile ----------------
+
+    public function viewProfile(Request $request)
+    {
+        try {
+            $user = $request->user()->load('role');
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile retrieved successfully',
+                'data' => $user
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error retrieving profile',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updateProfile(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            $validator = Validator::make($request->all(), [
+                'name' => 'sometimes|required|string|max:255',
+                'phone' => 'sometimes|nullable|string|max:20',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation error',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            if ($request->has('name')) $user->name = $request->name;
+            if ($request->has('phone')) $user->phone = $request->phone;
+
+            $user->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile updated successfully',
+                'data' => $user
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating profile',
                 'error' => $e->getMessage()
             ], 500);
         }
