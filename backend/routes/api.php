@@ -6,6 +6,8 @@ use App\Http\Controllers\API\TeacherController;
 use App\Http\Controllers\API\StudentLeaveController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Api\LeaveTypeController;
+use App\Http\Controllers\API\UserController;
+
 // Public Routes
 Route::post('/register/student', [AuthController::class, 'registerStudent']);
 Route::post('/register/teacher', [AuthController::class, 'registerTeacher']);
