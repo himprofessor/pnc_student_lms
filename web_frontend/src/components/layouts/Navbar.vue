@@ -115,12 +115,6 @@ const getProfileImageUrl = () => {
                     user.value.photo ||
                     user.value.profile_photo
 
-  console.log('=== NAVBAR IMAGE DEBUG ===')
-  console.log('user.value:', user.value)
-  console.log('user.value.img:', user.value.img)
-  console.log('user.value.img_url:', user.value.img_url)
-  console.log('imageField:', imageField)
-
   if (!imageField) {
     console.log('No image field found')
     return null
