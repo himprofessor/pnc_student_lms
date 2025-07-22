@@ -18,7 +18,7 @@
 
     <!-- User Dropdown -->
     <div class="relative" @click="toggleDropdown">
-      <div class="flex items-center space-x-2 border border-blue-500 px-3 py-1 rounded-full cursor-pointer hover:bg-blue-50 transition">
+      <div class="flex items-center space-x-2 px-3 py-1 rounded-md cursor-pointer hover:bg-blue-50 transition">
         <!-- Profile Image or Initials -->
         <div class="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center">
           <img 

@@ -112,7 +112,7 @@
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                 <p class="text-gray-900 bg-gray-100 p-3 rounded-md border">{{ user.email || 'Not provided' }}</p>
-                <p class="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+              
               </div>
 
               <!-- Role (Read-only) -->
@@ -127,7 +127,7 @@
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Student/User ID</label>
                 <p class="text-gray-900 bg-gray-100 p-3 rounded-md border">{{ user.student_id || user.id || 'Not assigned' }}</p>
-                <p class="text-xs text-gray-500 mt-1">ID cannot be changed</p>
+              
               </div>
 
               <!-- Contact Information -->
@@ -271,7 +271,7 @@
               <button 
                 type="submit" 
                 :disabled="isChangingPassword"
-                class="bg-red-600 text-white px-6 py-3 rounded-md hover:bg-red-700 disabled:opacity-50 flex items-center"
+                class="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center"
               >
                 <svg v-if="isChangingPassword" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
