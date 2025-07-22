@@ -2,9 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 import Register from './Auth/Register.vue';
 import Login from './Auth/Login.vue';
-import Dashboard from './views/Dashboard.vue';
-import RequestLeave from './views/RequestLeave.vue';
-import History from './views/History.vue';
+import DashboardPage from './views/DashboardPage.vue';
+import HistoryPage from './views/HistoryPage.vue';
+import RequestLeavePage from './views/RequestLeavePage.vue';
 
 
 const router = createRouter({
@@ -12,9 +12,9 @@ const router = createRouter({
   routes: [
     { path: '/register', component: Register },
     { path: '/login', component: Login },
-    { path: '/', component: Dashboard },
-    { path: '/request-leave', component: RequestLeave},
-    { path: '/history', component: History },
+    { path: '/', component: DashboardPage },
+    { path: '/request-leave', component: RequestLeavePage},
+    { path: '/history', component: HistoryPage },
   ],
 });
 
