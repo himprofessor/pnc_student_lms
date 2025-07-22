@@ -127,7 +127,7 @@ class StudentLeaveController extends Controller
             'contact_info' => 'nullable|string',
             'supporting_documents' => 'nullable|file|mimes:pdf,doc,docx,jpg,png|max:2048',
         ]);
-
+       
         // Handle file upload if a new document is provided
         $documentPath = $leaveRequest->supporting_documents; // Keep the existing document
         if ($request->hasFile('supporting_documents')) {
