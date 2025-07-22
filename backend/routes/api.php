@@ -4,22 +4,18 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\TeacherController;
 use App\Http\Controllers\API\StudentLeaveController;
-use App\Http\Controllers\API\UserController; // ✅ Ensure this controller exists
-
-/*
-|--------------------------------------------------------------------------
-| ✅ Public Routes (No authentication required)
-|--------------------------------------------------------------------------
-*/
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Api\LeaveTypeController;
+// Public Routes
 Route::post('/register/student', [AuthController::class, 'registerStudent']);
 Route::post('/register/teacher', [AuthController::class, 'registerTeacher']);
 Route::post('/login', [AuthController::class, 'login']);
 
-/*
-|--------------------------------------------------------------------------
-| ✅ Protected Routes (Require Login)
-|--------------------------------------------------------------------------
-*/
+// Admin Login Route
+Route::post('/admin/login', [LoginController::class, 'login']);
+//Type of leave 
+Route::get('/leave-types', [LeaveTypeController::class, 'index']);
+// Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
 
     // ✅ Logout
