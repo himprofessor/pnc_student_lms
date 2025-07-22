@@ -13,6 +13,7 @@ Route::post('/register/student', [AuthController::class, 'registerStudent']);
 Route::post('/register/teacher', [AuthController::class, 'registerTeacher']);
 Route::post('/login', [AuthController::class, 'login']);
 
+
 // Admin Login Route
 Route::post('/admin/login', [LoginController::class, 'login']);
 
