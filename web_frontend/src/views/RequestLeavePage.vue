@@ -29,21 +29,19 @@
             </svg>
           </span>
         </div>
-        <ul v-if="validationErrors.length > 0" class="list-disc list-inside text-red-600 mb-4">
-          <li v-for="(error, index) in validationErrors" :key="index">{{ error }}</li>
-        </ul>
 
         <form @submit.prevent="submitLeaveRequest">
           <div class="mb-4">
             <label for="leave-type" class="block text-sm font-medium text-gray-700 mb-1">Leave Type *</label>
             <select id="leave-type" v-model="form.leave_type_id"
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              :class="{ 'border-red-500': validationErrors.some(e => e.includes('leave type')) }">
+              :class="{ 'border-red-500': fieldErrors.leave_type_id }">
               <option value="">Select leave type</option>
               <option v-for="type in leaveTypes" :key="type.id" :value="type.id">
                 {{ type.name }}
               </option>
             </select>
+            <p v-if="fieldErrors.leave_type_id" class="mt-1 text-sm text-red-600">{{ fieldErrors.leave_type_id }}</p>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-1">
@@ -51,15 +49,15 @@
               <label for="from-date" class="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
               <input type="date" id="from-date" v-model="form.from_date"
                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                :class="{ 'border-red-500': validationErrors.some(e => e.includes('from date')) }"
-                @change="calculateDays">
+                :class="{ 'border-red-500': fieldErrors.from_date }" @change="calculateDays">
+              <p v-if="fieldErrors.from_date" class="mt-1 text-sm text-red-600">{{ fieldErrors.from_date }}</p>
             </div>
             <div>
               <label for="to-date" class="block text-sm font-medium text-gray-700 mb-1">End Date *</label>
               <input type="date" id="to-date" v-model="form.to_date"
                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                :class="{ 'border-red-500': validationErrors.some(e => e.includes('to date')) }"
-                @change="calculateDays">
+                :class="{ 'border-red-500': fieldErrors.to_date }" @change="calculateDays">
+              <p v-if="fieldErrors.to_date" class="mt-1 text-sm text-red-600">{{ fieldErrors.to_date }}</p>
             </div>
           </div>
           <div v-if="totalDays !== null" class="text-sm text-gray-500 mb-4">
@@ -70,8 +68,9 @@
             <label for="reason" class="block text-sm font-medium text-gray-700 mb-1">Reason for Leave *</label>
             <textarea id="reason" rows="4" v-model="form.reason"
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              :class="{ 'border-red-500': validationErrors.some(e => e.includes('reason')) }"
+              :class="{ 'border-red-500': fieldErrors.reason }"
               placeholder="Please provide a detailed reason for your leave request..."></textarea>
+            <p v-if="fieldErrors.reason" class="mt-1 text-sm text-red-600">{{ fieldErrors.reason }}</p>
           </div>
 
           <div class="mb-4">
@@ -80,6 +79,7 @@
             <input type="text" id="contact-info" v-model="form.contact_info"
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               placeholder="Phone number or email where you can be reached (optional)">
+            <p v-if="fieldErrors.contact_info" class="mt-1 text-sm text-red-600">{{ fieldErrors.contact_info }}</p>
           </div>
 
           <div class="mb-6">
@@ -108,6 +108,8 @@
                 </p>
               </div>
             </div>
+            <p v-if="fieldErrors.supporting_documents" class="mt-1 text-sm text-red-600">{{
+              fieldErrors.supporting_documents }}</p>
           </div>
 
           <div class="flex justify-end space-x-3">
@@ -138,7 +140,6 @@ const leaveTypes = ref([]);
 const loading = ref(false);
 const successMessage = ref('');
 const errorMessage = ref('');
-const validationErrors = ref([]);
 const totalDays = ref(null);
 
 const form = reactive({
@@ -148,6 +149,15 @@ const form = reactive({
   to_date: '',
   contact_info: '',
   supporting_documents: null,
+});
+
+const fieldErrors = reactive({
+  leave_type_id: '',
+  reason: '',
+  from_date: '',
+  to_date: '',
+  contact_info: '',
+  supporting_documents: '',
 });
 
 // Fetch leave types on component mount
@@ -218,12 +228,19 @@ const clearAlert = (type) => {
   }
 };
 
+// Clear all field errors
+const clearFieldErrors = () => {
+  Object.keys(fieldErrors).forEach(key => {
+    fieldErrors[key] = '';
+  });
+};
+
 // Submit the leave request
 const submitLeaveRequest = async () => {
   loading.value = true;
   clearAlert('success');
   clearAlert('error');
-  validationErrors.value = [];
+  clearFieldErrors();
 
   const authToken = localStorage.getItem('authToken');
   if (!authToken) {
@@ -255,7 +272,7 @@ const submitLeaveRequest = async () => {
 
     showSuccess('Leave request submitted successfully!');
     window.dispatchEvent(new CustomEvent('userDataUpdated', { detail: response.data.data }));
-    
+
     // Delay and redirect after success
     setTimeout(() => {
       router.push('/dashboard');
@@ -268,10 +285,13 @@ const submitLeaveRequest = async () => {
       const responseData = error.response.data;
 
       if (status === 422 && responseData.errors) {
+        // Map errors to individual fields
         for (const key in responseData.errors) {
-          validationErrors.value.push(responseData.errors[key][0]);
+          const fieldName = key.replace(/\./g, '_');
+          if (fieldErrors.hasOwnProperty(fieldName)) {
+            fieldErrors[fieldName] = responseData.errors[key][0];
+          }
         }
-        showError(responseData.message || 'Please fix the validation errors.');
       } else if (status === 401 || status === 403) {
         showError(responseData.message || 'Unauthorized. Please log in again.');
         router.push('/login');
@@ -297,13 +317,13 @@ const resetForm = () => {
   form.contact_info = '';
   form.supporting_documents = null;
   totalDays.value = null;
+  clearFieldErrors();
 
   const fileInput = document.getElementById('file-upload');
   if (fileInput) {
     fileInput.value = '';
   }
 
-  validationErrors.value = [];
   clearAlert('error');
   clearAlert('success');
 };
