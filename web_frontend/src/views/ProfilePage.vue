@@ -346,7 +346,7 @@ const handleImageUpload = async (event) => {
   isUploadingImage.value = true
 
   try {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('authToken')
     console.log('Token exists:', !!token)
     console.log('Token preview:', token ? token.substring(0, 20) + '...' : 'null')
 
@@ -408,6 +408,7 @@ const handleImageUpload = async (event) => {
     } else if (error.response?.status === 401) {
       showError('Unauthorized. Please login again.')
       // Redirect to login
+      localStorage.removeItem('authToken')
       localStorage.removeItem('token')
       localStorage.removeItem('user_data')
       router.push('/login')
@@ -425,7 +426,7 @@ const handleImageUpload = async (event) => {
 
 // API functions
 const fetchUserData = async () => {
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('authToken')
   if (!token) {
     router.push('/login')
     return
@@ -456,6 +457,7 @@ const fetchUserData = async () => {
     debugError.value = error.response?.data?.message || error.message
     
     if (error.response?.status === 401) {
+      localStorage.removeItem('authToken')
       localStorage.removeItem('token')
       localStorage.removeItem('user_data')
       router.push('/login')
@@ -485,7 +487,7 @@ const changePassword = async () => {
   isChangingPassword.value = true
   
   try {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('authToken')
     
     await axios.put('http://127.0.0.1:8000/api/user/password', {
       current_password: passwordForm.value.currentPassword,

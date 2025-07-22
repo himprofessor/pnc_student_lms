@@ -1,17 +1,16 @@
-// src/api.js
-import axios from 'axios';
+import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api', // Your Laravel API base URL
-});
+  baseURL: 'http://127.0.0.1:8000/api',
+})
 
-// Automatically attach token from localStorage
+// Attach token on each request
 api.interceptors.request.use(config => {
-  const token = localStorage.getItem('auth_token');
+  const token = localStorage.getItem('authToken')
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    config.headers.Authorization = `Bearer ${token}`
   }
-  return config;
-});
+  return config
+})
 
-export default api;
+export default api

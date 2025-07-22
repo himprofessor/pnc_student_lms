@@ -64,7 +64,7 @@ const isLoading = ref(false)
 const apiError = ref(null)
 const imageError = ref(false)
 
-const hasToken = computed(() => !!localStorage.getItem('token'))
+const hasToken = computed(() => !!localStorage.getItem('authToken'))
 
 const displayName = computed(() => {
   if (isLoading.value) return 'Loading...'
@@ -149,7 +149,7 @@ const handleImageError = () => {
 }
 
 const fetchUser = async () => {
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('authToken')
   
   if (!token) {
     router.push('/login')
@@ -190,7 +190,7 @@ const fetchUser = async () => {
 }
 
 const handleSignOut = async () => {
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('authToken')
   
   // Try to logout on the server first
   if (token) {
@@ -208,6 +208,7 @@ const handleSignOut = async () => {
   }
   
   // Clear local storage
+  localStorage.removeItem('authToken')
   localStorage.removeItem('token')
   localStorage.removeItem('user_data')
   

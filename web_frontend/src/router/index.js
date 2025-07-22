@@ -25,7 +25,7 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('authToken')
 
   if (token) {
     // Set Axios header on navigation (for fresh loads)
