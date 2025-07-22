@@ -8,7 +8,7 @@
         <div v-if="successMessage"
           class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
           <span class="block sm:inline">{{ successMessage }}</span>
-          <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" @click="successMessage = ''">
+          <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" @click="clearAlert('success')">
             <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 20 20">
               <title>Close</title>
@@ -20,7 +20,7 @@
         <div v-if="errorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
           role="alert">
           <span class="block sm:inline">{{ errorMessage }}</span>
-          <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" @click="errorMessage = ''">
+          <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" @click="clearAlert('error')">
             <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 20 20">
               <title>Close</title>
@@ -46,19 +46,24 @@
             </select>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-1">
             <div>
               <label for="from-date" class="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
               <input type="date" id="from-date" v-model="form.from_date"
                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                :class="{ 'border-red-500': validationErrors.some(e => e.includes('from date')) }">
+                :class="{ 'border-red-500': validationErrors.some(e => e.includes('from date')) }"
+                @change="calculateDays">
             </div>
             <div>
               <label for="to-date" class="block text-sm font-medium text-gray-700 mb-1">End Date *</label>
               <input type="date" id="to-date" v-model="form.to_date"
                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                :class="{ 'border-red-500': validationErrors.some(e => e.includes('to date')) }">
+                :class="{ 'border-red-500': validationErrors.some(e => e.includes('to date')) }"
+                @change="calculateDays">
             </div>
+          </div>
+          <div v-if="totalDays !== null" class="text-sm text-gray-500 mb-4">
+            Total Leave Days: {{ totalDays }} day
           </div>
 
           <div class="mb-4">
@@ -107,7 +112,7 @@
 
           <div class="flex justify-end space-x-3">
             <button type="button" @click="resetForm"
-              class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+              class="px-4 py-2 text-sm font-medium text-black bg-gray-300 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
               Cancel
             </button>
             <button type="submit" :disabled="loading"
@@ -134,6 +139,7 @@ const loading = ref(false);
 const successMessage = ref('');
 const errorMessage = ref('');
 const validationErrors = ref([]);
+const totalDays = ref(null);
 
 const form = reactive({
   leave_type_id: '',
@@ -156,7 +162,29 @@ const fetchLeaveTypes = async () => {
     leaveTypes.value = response.data.data;
   } catch (error) {
     console.error('Error fetching leave types:', error);
-    errorMessage.value = error.response?.data?.message || 'Failed to load leave types. Please try again.';
+    showError(error.response?.data?.message || 'Failed to load leave types. Please try again.');
+  }
+};
+
+// Calculate days between dates
+const calculateDays = () => {
+  if (form.from_date && form.to_date) {
+    const from = new Date(form.from_date);
+    const to = new Date(form.to_date);
+
+    // Swap dates if from_date is after to_date
+    if (from > to) {
+      [form.from_date, form.to_date] = [form.to_date, form.from_date];
+      return calculateDays(); // Recalculate with swapped dates
+    }
+
+    // Calculate difference in days (inclusive of both dates)
+    const diffTime = Math.abs(to - from);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+    totalDays.value = diffDays;
+  } else {
+    totalDays.value = null;
   }
 };
 
@@ -165,16 +193,41 @@ const handleFileUpload = (event) => {
   form.supporting_documents = event.target.files[0];
 };
 
+// Show success message
+const showSuccess = (message) => {
+  successMessage.value = message;
+  setTimeout(() => {
+    successMessage.value = '';
+  }, 5000);
+};
+
+// Show error message
+const showError = (message) => {
+  errorMessage.value = message;
+  setTimeout(() => {
+    errorMessage.value = '';
+  }, 5000);
+};
+
+// Clear alert message
+const clearAlert = (type) => {
+  if (type === 'success') {
+    successMessage.value = '';
+  } else if (type === 'error') {
+    errorMessage.value = '';
+  }
+};
+
 // Submit the leave request
 const submitLeaveRequest = async () => {
   loading.value = true;
-  successMessage.value = '';
-  errorMessage.value = '';
+  clearAlert('success');
+  clearAlert('error');
   validationErrors.value = [];
 
   const authToken = localStorage.getItem('authToken');
   if (!authToken) {
-    errorMessage.value = 'Authentication token not found. Please log in again.';
+    showError('Authentication token not found. Please log in again.');
     loading.value = false;
     router.push('/login');
     return;
@@ -193,11 +246,16 @@ const submitLeaveRequest = async () => {
   }
 
   try {
-    const response = await axios.post('/student/request-leave', formData);
+    const response = await axios.post('/student/request-leave', formData, {
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    });
 
-    successMessage.value = response.data.message || 'Leave request submitted successfully!';
-    resetForm();
-
+    showSuccess('Leave request submitted successfully!');
+    window.dispatchEvent(new CustomEvent('userDataUpdated', { detail: response.data.data }));
+    
     // Delay and redirect after success
     setTimeout(() => {
       router.push('/dashboard');
@@ -213,16 +271,17 @@ const submitLeaveRequest = async () => {
         for (const key in responseData.errors) {
           validationErrors.value.push(responseData.errors[key][0]);
         }
-        errorMessage.value = responseData.message || 'Please fix the validation errors.';
+        showError(responseData.message || 'Please fix the validation errors.');
       } else if (status === 401 || status === 403) {
-        errorMessage.value = responseData.message || 'Unauthorized. Please log in again.';
+        showError(responseData.message || 'Unauthorized. Please log in again.');
+        router.push('/login');
       } else {
-        errorMessage.value = responseData.message || `Error ${status}: ${error.response.statusText || 'Something went wrong.'}`;
+        showError(responseData.message || `Error ${status}: ${error.response.statusText || 'Something went wrong.'}`);
       }
     } else if (error.request) {
-      errorMessage.value = 'No response from server. Please check your network or try again later.';
+      showError('No response from server. Please check your network or try again later.');
     } else {
-      errorMessage.value = 'An unknown error occurred during the request.';
+      showError('An unknown error occurred during the request.');
     }
   } finally {
     loading.value = false;
@@ -237,6 +296,7 @@ const resetForm = () => {
   form.to_date = '';
   form.contact_info = '';
   form.supporting_documents = null;
+  totalDays.value = null;
 
   const fileInput = document.getElementById('file-upload');
   if (fileInput) {
@@ -244,7 +304,7 @@ const resetForm = () => {
   }
 
   validationErrors.value = [];
-  errorMessage.value = '';
-  successMessage.value = '';
+  clearAlert('error');
+  clearAlert('success');
 };
 </script>
