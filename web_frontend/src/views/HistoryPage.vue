@@ -161,12 +161,12 @@
       </div>
 
       <!-- Footer -->
-      <!-- <div class="mt-6 text-center">
+      <div class="mt-6 text-center">
         <button @click="showModal = false"
-          class="bg-gradient-to-r from-red-700 to-indigo-500 text-white px-6 py-2 rounded-xl font-semibold hover:scale-105 transition">
+          class="bg-gradient-to-r from-red-500 to-indigo-500 text-white px-6 py-2 rounded-xl font-semibold hover:scale-105 transition">
           Close
         </button>
-      </div> -->
+      </div>
 
     </div>
   </div>
@@ -179,6 +179,7 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
+import Swal from 'sweetalert2';
 
 const router = useRouter();
 
@@ -266,22 +267,54 @@ const filterLeaveRequests = () => {
   });
 };
 
+
 const cancelLeave = async (id) => {
-  if (confirm('Are you sure you want to cancel this leave request?')) {
-    try {
-      const token = localStorage.getItem('authToken');
-      await axios.delete(`http://127.0.0.1:8000/api/student/leave-request/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      alert('Leave request cancelled successfully.');
-      await fetchLeaveRequests();
-      filterLeaveRequests();
-    } catch (err) {
-      alert('Failed to cancel leave: ' + (err.response?.data?.message || 'Please try again.'));
-      if (err.response?.status === 401) router.push('/login');
-    }
+  const result = await Swal.fire({
+    title: 'Confirm Cancellation',
+    text: 'Are you sure you want to cancel this leave request?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, Cancel It',
+    cancelButtonText: 'No, Keep It',
+    customClass: {
+      confirmButton: 'bg-red-400 hover:bg-red-400 text-white text-sm  py-2 rounded mr-2',
+      cancelButton: 'bg-blue-400 hover:bg-blue-400 text-white text-sm py-2 rounded',
+    },
+    background: '#fff',
+    backdrop: 'rgba(0,0,0,0.4)',
+  });
+  if (!result.isConfirmed) return;
+  try {
+    const token = localStorage.getItem('authToken');
+    await axios.delete(`http://127.0.0.1:8000/api/student/leave-request/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    await Swal.fire({
+      icon: 'success',
+      title: 'Leave Cancelled',
+      text: 'Your leave request has been cancelled.',
+      iconColor: '#16a34a',
+      confirmButtonText: 'OK',
+      customClass: { confirmButton: 'bg-green-400 hover:bg-green-400 text-white text-sm py-2 rounded' },
+      background: '#fff',
+    });
+    await fetchLeaveRequests();
+    filterLeaveRequests();
+  } catch (err) {
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: `Failed to cancel leave: ${err.response?.data?.message || err.message}`,
+      iconColor: '#dc2626',
+      confirmButtonText: 'OK',
+      customClass: { confirmButton: 'bg-red-400 hover:bg-red-400 text-white text-sm py-2 rounded' },
+      background: '#fff',
+    });
+    if (err.response?.status === 401) router.push('/login');
+    console.error('Cancel leave error:', err);
   }
 };
+
 
 onMounted(() => {
   fetchLeaveRequests();
