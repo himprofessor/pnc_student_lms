@@ -1,13 +1,15 @@
 <template>
   <div>
-    <Navbar v-if="!route.meta.hideNavbar" />
+    <StudentNavbar v-if="!route.meta.hideStudentNavbar" />
+    <!-- <EducatorNavbar/> -->
     <router-view />
   </div>
 </template>
 
 <script setup>
 import { useRoute } from 'vue-router';
-import Navbar from './components/layouts/Navbar.vue';
+import StudentNavbar from './components/layouts/StudentNavbar.vue';  
+// import EducatorNavbar from './components/layouts/EducatorNavbar.vue';
 
 const route = useRoute();
 </script>
