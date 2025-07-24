@@ -1,24 +1,33 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import axios from 'axios'
 
-import Home from '../views/HomeView.vue'
+import Home from '../views/student/HomeView.vue'
 import Login from '../views/Auth/Login.vue'
 import Register from '../views/Auth/Register.vue'
-import DashboardPage from '../views/DashboardPage.vue'
-import RequestLeavePage from '../views/RequestLeavePage.vue'
-import HistoryPage from '../views/HistoryPage.vue'
-import ProfilePage from '../views/ProfilePage.vue'
-import TeacherDashboard from '../views/Educator/TeacherDashboard.vue' // Import the TeacherDashboard component
+import DashboardPage from '../views/student/DashboardPage.vue'
+import RequestLeavePage from '../views/student/RequestLeavePage.vue'
+import HistoryPage from '../views/student/HistoryPage.vue'
+import ProfilePage from '../views/student/ProfilePage.vue'
+
+import EducatorDashboard from '../views/educator/EducatorDashboard.vue'
+import EducatorHistory from '../views/educator/EducatorHistory.vue'
 
 const routes = [
-  { path: '/', component: Home, meta: { hideNavbar: true } },
-  { path: '/login', component: Login, meta: { hideNavbar: true } },
-  { path: '/register', component: Register, meta: { hideNavbar: true } },
+
+  // User Authentication
+  { path: '/', component: Home, meta: { hideStudentNavbar: true } },
+  { path: '/login', component: Login, meta: { hideStudentNavbar: true } },
+  { path: '/register', component: Register, meta: { hideStudentNavbar: true } },
+
+  // Student
   { path: '/dashboard', component: DashboardPage, meta: { requiresAuth: true } },
   { path: '/request-leave', component: RequestLeavePage, meta: { requiresAuth: true } },
   { path: '/history', component: HistoryPage, meta: { requiresAuth: true } },
   { path: '/profile', component: ProfilePage, meta: { requiresAuth: true } },
-  { path: '/educator/teacher-dashboard', component: TeacherDashboard, meta: { requiresAuth: true } }, // New route for Teacher Dashboard
+
+  // Educator
+  { path: '/educator-dashboard', component: EducatorDashboard },
+  { path: '/educator-history', component: EducatorHistory}
 ]
 
 const router = createRouter({
@@ -51,7 +60,7 @@ router.beforeEach(async (to, from, next) => {
       } catch (err) {
         console.error('Failed to fetch user:', err)
         if (err.response?.status === 401) {
-          localStorage.removeItem('authToken') // Make sure to remove the correct token name
+          localStorage.removeItem('token')
           localStorage.removeItem('user_data')
           return next('/login')
         }
