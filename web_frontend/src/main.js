@@ -7,8 +7,14 @@ import axios from 'axios';
 
 import App from './App.vue';
 import router from './router';
+import axios from "@/axios";
+
+const { data } = await axios.get("/profile");
+
+
 
 // Set the base URL for Axios
+
 axios.defaults.baseURL = 'http://127.0.0.1:8000/api'; // Your API base URL
 
 // ****** CRITICAL ADDITION: Axios Request Interceptor for Authorization header ******

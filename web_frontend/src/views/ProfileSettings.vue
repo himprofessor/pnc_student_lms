@@ -10,16 +10,36 @@
       <!-- Profile Info Card -->
       <div class="bg-white p-6 rounded-lg shadow-md mb-6">
         <div class="flex items-center space-x-4 mb-4">
-          <div
-            class="w-16 h-16 rounded-full bg-blue-500 text-white flex items-center justify-center text-2xl font-semibold"
-          >
-            {{ fullName.charAt(0) }}
+          <div class="w-16 h-16 rounded-full bg-blue-500 text-white flex items-center justify-center text-2xl font-semibold overflow-hidden">
+            <template v-if="profile.img_url">
+              <img :src="profile.img_url" alt="Profile Image" class="w-full h-full object-cover" />
+            </template>
+            <template v-else>
+              {{ profile.name.charAt(0) }}
+            </template>
           </div>
           <div>
-            <h2 class="text-lg font-semibold">{{ fullName }}</h2>
-            <p class="text-sm text-gray-600">{{ email }}</p>
-            <p class="text-sm text-gray-600">Student - ID: ST001</p>
+            <h2 class="text-lg font-semibold">{{ profile.name }}</h2>
+            <p class="text-sm text-gray-600">{{ profile.email }}</p>
+            <p class="text-sm text-gray-600">
+              {{ profile.role?.name || "Student" }}
+            </p>
           </div>
+        </div>
+
+        <!-- Upload & Delete Image Buttons -->
+        <div class="mb-4">
+          <input type="file" ref="imageInput" @change="onImageSelected" class="hidden" />
+          <button @click="selectImage" class="mr-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            Upload New Image
+          </button>
+          <button
+            @click="deleteImage"
+            :disabled="!profile.img_url"
+            class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 disabled:opacity-50"
+          >
+            Delete Image
+          </button>
         </div>
 
         <!-- Update Profile Form -->
@@ -30,25 +50,25 @@
           <input
             type="text"
             placeholder="Full Name"
-            v-model="fullName"
+            v-model="profile.name"
             class="border p-2 rounded"
           />
           <input
             type="email"
             placeholder="Email Address"
-            v-model="email"
+            v-model="profile.email"
             class="border p-2 rounded"
           />
           <input
             type="text"
             placeholder="Contact Information"
-            v-model="contactInfo"
+            v-model="profile.contact_info"
             class="border p-2 rounded"
           />
           <input
             type="text"
             placeholder="Emergency Contact"
-            v-model="emergencyContact"
+            v-model="profile.emergency_contact"
             class="border p-2 rounded"
           />
           <div class="md:col-span-2 text-right">
@@ -72,20 +92,20 @@
           <input
             type="password"
             placeholder="Current Password"
-            v-model="currentPassword"
+            v-model="passwordForm.current_password"
             class="border p-2 rounded"
           />
           <div></div>
           <input
             type="password"
             placeholder="New Password"
-            v-model="newPassword"
+            v-model="passwordForm.new_password"
             class="border p-2 rounded"
           />
           <input
             type="password"
             placeholder="Confirm New Password"
-            v-model="confirmNewPassword"
+            v-model="passwordForm.new_password_confirmation"
             class="border p-2 rounded"
           />
           <div class="md:col-span-2 text-right">
@@ -103,42 +123,118 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
+import axios from "@/axios";
 
-// ✅ Pre-filled Profile Data (already shows when you open page)
-const fullName = ref("Sela Torm");
-const email = ref("student@example.com");
-const contactInfo = ref("012345678");
-const emergencyContact = ref("098765432");
+const profile = ref({
+  name: "",
+  email: "",
+  contact_info: "",
+  emergency_contact: "",
+  img_url: null,
+  role: {},
+});
 
-// Password form state
-const currentPassword = ref("");
-const newPassword = ref("");
-const confirmNewPassword = ref("");
+const passwordForm = ref({
+  current_password: "",
+  new_password: "",
+  new_password_confirmation: "",
+});
 
-// Update profile handler
-function updateProfile() {
-  if (!fullName.value || !email.value) {
-    alert("Please fill in required fields: Full Name and Email");
-    return;
+// Load profile data on mount
+onMounted(async () => {
+  try {
+    const { data } = await axios.get("/profile");
+    profile.value = data.data;
+  } catch (error) {
+    alert("Error loading profile");
+    console.error(error);
   }
-  alert(`Profile updated successfully for: ${fullName.value}`);
-}
+});
 
-// Change password handler
-function changePassword() {
-  if (!currentPassword.value || !newPassword.value || !confirmNewPassword.value) {
-    alert("Please fill all password fields.");
-    return;
+// Update profile data
+const updateProfile = async () => {
+  try {
+    await axios.put("/profile", {
+      name: profile.value.name,
+      email: profile.value.email,
+      contact_info: profile.value.contact_info,
+      emergency_contact: profile.value.emergency_contact,
+    });
+    alert("Profile updated successfully!");
+  } catch (error) {
+    alert("Error updating profile!");
+    console.error(error);
   }
-  if (newPassword.value !== confirmNewPassword.value) {
-    alert("New password and confirm password do not match!");
-    return;
+};
+
+// Change password
+const changePassword = async () => {
+  if (
+    !passwordForm.value.current_password ||
+    !passwordForm.value.new_password ||
+    !passwordForm.value.new_password_confirmation
+  ) {
+    return alert("Please fill all password fields");
   }
-  alert("Password changed successfully!");
-}
+  try {
+    await axios.put("/profile/password", passwordForm.value);
+    alert("Password changed successfully!");
+    passwordForm.value = {
+      current_password: "",
+      new_password: "",
+      new_password_confirmation: "",
+    };
+  } catch (error) {
+    alert(error.response?.data?.message || "Error changing password!");
+    console.error(error);
+  }
+};
+
+// Image upload
+const imageFile = ref(null);
+const imageInput = ref(null);
+
+const selectImage = () => {
+  imageInput.value.click();
+};
+
+const onImageSelected = async (event) => {
+  if (!event.target.files.length) return;
+
+  imageFile.value = event.target.files[0];
+  const formData = new FormData();
+  formData.append("img", imageFile.value);
+
+  try {
+    const { data } = await axios.post("/user/upload-image", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    profile.value.img_url = data.img_url;
+    alert("Profile image uploaded successfully!");
+  } catch (error) {
+    alert("Error uploading profile image!");
+    console.error(error);
+  }
+};
+
+// Delete image
+const deleteImage = async () => {
+  if (!confirm("Are you sure you want to delete your profile image?")) return;
+
+  try {
+    await axios.delete("/user/delete-image");
+    profile.value.img_url = null;
+    alert("Profile image deleted successfully!");
+  } catch (error) {
+    alert("Error deleting profile image!");
+    console.error(error);
+  }
+};
 </script>
 
 <style scoped>
-/* Optional extra styles */
+/* Add any additional styling if needed */
 </style>
