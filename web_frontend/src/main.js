@@ -3,17 +3,13 @@ import './assets/main.css';
 
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
-import axios from 'axios';
+// import axios from 'axios';
 
 import App from './App.vue';
 import router from './router';
-import axios from "@/axios";
+// import axios from "@/axios";
 
 const { data } = await axios.get("/profile");
-
-
-
-
 
 // Set the base URL for Axios
 
