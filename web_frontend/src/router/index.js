@@ -8,6 +8,7 @@ import DashboardPage from '../views/DashboardPage.vue'
 import RequestLeavePage from '../views/RequestLeavePage.vue'
 import HistoryPage from '../views/HistoryPage.vue'
 import ProfilePage from '../views/ProfilePage.vue'
+import EducatorHistory from '../views/EducatorHistory.vue'
 
 const routes = [
   { path: '/', component: Home, meta: { hideNavbar: true } },
@@ -17,6 +18,7 @@ const routes = [
   { path: '/request-leave', component: RequestLeavePage, meta: { requiresAuth: true } },
   { path: '/history', component: HistoryPage, meta: { requiresAuth: true } },
   { path: '/profile', component: ProfilePage, meta: { requiresAuth: true } },
+  { path: '/educator-history', component: EducatorHistory, meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({
