@@ -66,12 +66,11 @@ class AuthController extends Controller
         'password' => 'required|string',
     ]);
 
-    // If validation fails, return error messages
     if ($validator->fails()) {
         return response()->json(['error' => $validator->errors()], 422);
     }
 
-    // Check if the email ends with the allowed domains
+    // Check email domain
     if (!str_ends_with($request->email, '@student.passerellesnumeriques.org') &&
         !str_ends_with($request->email, '@passerellesnumeriques.org')) {
         return response()->json(['error' => ['email' => ['Invalid email domain']]], 401);
@@ -86,10 +85,21 @@ class AuthController extends Controller
     $user = Auth::user();
     $token = $user->createToken('auth_token')->plainTextToken;
 
-    // Return token and user information
+    // Check if the user is a teacher and respond accordingly
+    if ($user->role_id == 2) { // Assuming '2' is the ID for 'Teacher'
+        return response()->json([
+            'token' => $token,
+            'message' => 'Login successful',
+            'role' => 'teacher',
+            'dashboard_url' => '/teacher-dashboard' // URL for the teacher's dashboard
+        ]);
+    }
+
     return response()->json([
         'token' => $token,
-        'user' => $user->only(['id', 'name', 'email', 'role_id']),
+        'message' => 'Login successful',
+        'role' => 'student',
+        'dashboard_url' => '/student-dashboard' // URL for the student's dashboard
     ]);
 }
     public function logout(Request $request)
