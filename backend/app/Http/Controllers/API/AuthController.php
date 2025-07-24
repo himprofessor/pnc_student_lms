@@ -58,50 +58,57 @@ class AuthController extends Controller
         return response()->json(['message' => 'Teacher account created successfully.']);
     }
 
-   public function login(Request $request)
+  public function login(Request $request)
 {
-    // Validate incoming request
+    // 1) Validate
     $validator = Validator::make($request->all(), [
-        'email' => 'required|email',
+        'email'    => 'required|email',
         'password' => 'required|string',
     ]);
 
     if ($validator->fails()) {
-        return response()->json(['error' => $validator->errors()], 422);
+        return response()->json(['errors' => $validator->errors()], 422);
     }
 
-    // Check email domain
-    if (!str_ends_with($request->email, '@student.passerellesnumeriques.org') &&
-        !str_ends_with($request->email, '@passerellesnumeriques.org')) {
-        return response()->json(['error' => ['email' => ['Invalid email domain']]], 401);
+    // 2) Check allowed domains
+    if (
+        !str_ends_with($request->email, '@student.passerellesnumeriques.org') &&
+        !str_ends_with($request->email, '@passerellesnumeriques.org')
+    ) {
+        return response()->json(['message' => 'Invalid email domain'], 401);
     }
 
-    // Attempt to authenticate the user
+    // 3) Try to auth
     if (!Auth::attempt($request->only('email', 'password'))) {
-        return response()->json(['error' => ['password' => ['Invalid credentials']]], 401);
+        return response()->json(['message' => 'Invalid credentials'], 401);
     }
 
-    // Retrieve the authenticated user
-    $user = Auth::user();
+    // 4) Build response
+    $user  = Auth::user();
     $token = $user->createToken('auth_token')->plainTextToken;
 
-    // Check if the user is a teacher and respond accordingly
-    if ($user->role_id == 2) { // Assuming '2' is the ID for 'Teacher'
-        return response()->json([
-            'token' => $token,
-            'message' => 'Login successful',
-            'role' => 'teacher',
-            'dashboard_url' => '/teacher-dashboard' // URL for the teacher's dashboard
-        ]);
-    }
+    // Map role + dashboard
+    $role = $user->role_id == 2 ? 'teacher' : 'student';
+
+    // use your existing frontend paths
+    $dashboardUrl = $role === 'teacher'
+        ? '/educator-dashboard'
+        : '/dashboard'; // student dashboard in your router is "/dashboard"
 
     return response()->json([
-        'token' => $token,
-        'message' => 'Login successful',
-        'role' => 'student',
-        'dashboard_url' => '/student-dashboard' // URL for the student's dashboard
-    ]);
+        'token'          => $token,
+        'message'        => 'Login successful',
+        'role'           => $role,
+        'dashboard_url'  => $dashboardUrl,
+        'user'           => [
+            'id'      => $user->id,
+            'name'    => $user->name,
+            'email'   => $user->email,
+            'role_id' => $user->role_id,
+        ],
+    ], 200);
 }
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
