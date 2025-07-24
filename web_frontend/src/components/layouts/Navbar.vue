@@ -32,7 +32,7 @@
 
     <!-- User Dropdown -->
     <div class="relative" @click="toggleDropdown">
-      <div class="flex items-center space-x-2 border border-blue-500 px-3 py-1 rounded-full cursor-pointer hover:bg-blue-50 transition">
+      <div class="flex items-center space-x-2 px-3 py-1 rounded-md cursor-pointer hover:bg-blue-50 transition">
         <!-- Profile Image or Initials -->
         <div class="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center">
           <img 
@@ -128,12 +128,6 @@ const getProfileImageUrl = () => {
                     user.value.image || 
                     user.value.photo ||
                     user.value.profile_photo
-
-  console.log('=== NAVBAR IMAGE DEBUG ===')
-  console.log('user.value:', user.value)
-  console.log('user.value.img:', user.value.img)
-  console.log('user.value.img_url:', user.value.img_url)
-  console.log('imageField:', imageField)
 
   if (!imageField) {
     console.log('No image field found')

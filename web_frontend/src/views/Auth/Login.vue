@@ -30,6 +30,14 @@
       </form>
       <p v-if="errorMessage" class="text-red-600 mt-4 text-center">{{ errorMessage }}</p>
     </div>
+
+    <!-- Success Alert -->
+    <div v-if="successMessage" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center">
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      {{ successMessage }}
+    </div>
   </div>
 </template>
 
@@ -43,12 +51,21 @@ const router = useRouter()
 const email = ref('')
 const password = ref('')
 const errorMessage = ref('')
+const successMessage = ref('')
 const fieldErrors = ref({})
 const isLoading = ref(false)
+
+const showSuccess = (message) => {
+  successMessage.value = message
+  setTimeout(() => {
+    successMessage.value = ''
+  }, 3000)
+}
 
 const login = async () => {
   errorMessage.value = ''
   fieldErrors.value = {}
+  successMessage.value = ''
   isLoading.value = true
 
   try {
@@ -77,9 +94,15 @@ const login = async () => {
       console.log('User data saved:', response.data.user)
     }
 
-    // Redirect to dashboard
-    console.log('Redirecting to dashboard...')
-    router.push('/dashboard')
+    // Show success message
+    showSuccess('Login successful! Redirecting to dashboard...')
+
+    // Redirect to dashboard after a short delay to show the success message
+    setTimeout(() => {
+      console.log('Redirecting to dashboard...')
+      router.push('/dashboard')
+    }, 2000)
+
   } catch (error) {
     console.error('=== LOGIN ERROR ===')
     console.error('Full error:', error)
@@ -110,3 +133,35 @@ const login = async () => {
   }
 }
 </script>
+
+<style scoped>
+/* Success alert animation */
+.fixed.top-4.right-4 {
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Button hover effects */
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  transition: all 0.2s ease-in-out;
+}
+
+/* Input focus effects */
+input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  transition: all 0.2s ease-in-out;
+}
+</style>
