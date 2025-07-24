@@ -8,6 +8,7 @@ import DashboardPage from '../views/DashboardPage.vue'
 import RequestLeavePage from '../views/RequestLeavePage.vue'
 import HistoryPage from '../views/HistoryPage.vue'
 import ProfilePage from '../views/ProfilePage.vue'
+import TeacherDashboard from '../views/Educator/TeacherDashboard.vue' // Import the TeacherDashboard component
 
 const routes = [
   { path: '/', component: Home, meta: { hideNavbar: true } },
@@ -17,6 +18,7 @@ const routes = [
   { path: '/request-leave', component: RequestLeavePage, meta: { requiresAuth: true } },
   { path: '/history', component: HistoryPage, meta: { requiresAuth: true } },
   { path: '/profile', component: ProfilePage, meta: { requiresAuth: true } },
+  { path: '/educator/teacher-dashboard', component: TeacherDashboard, meta: { requiresAuth: true } }, // New route for Teacher Dashboard
 ]
 
 const router = createRouter({
@@ -49,7 +51,7 @@ router.beforeEach(async (to, from, next) => {
       } catch (err) {
         console.error('Failed to fetch user:', err)
         if (err.response?.status === 401) {
-          localStorage.removeItem('token')
+          localStorage.removeItem('authToken') // Make sure to remove the correct token name
           localStorage.removeItem('user_data')
           return next('/login')
         }
