@@ -32,7 +32,6 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
     ];
 
     protected $appends = ['role_name', 'display_name', 'initials', 'img_url'];
@@ -102,7 +101,6 @@ class User extends Authenticatable
             if (filter_var($this->img, FILTER_VALIDATE_URL)) {
                 return $this->img;
             }
-
             return url('storage/' . $this->img);
         }
 
@@ -111,7 +109,7 @@ class User extends Authenticatable
 
     public function hasProfileImage()
     {
-        return !empty($this->img);
+        return $this->img && Storage::disk('public')->exists($this->img);
     }
 
     public function updateProfile(Request $request)
