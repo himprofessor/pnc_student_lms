@@ -54,14 +54,18 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Teacher Routes
-    Route::middleware('role:teacher')->group(function () {
-        Route::get('/teacher-area', fn() => 'Teacher Access');
-        Route::get('/leave-requests', [TeacherController::class, 'viewLeaveRequests']);
-        Route::post('/leave-requests/{id}/approve', [TeacherController::class, 'approve']);
-        Route::post('/leave-requests/{id}/reject', [TeacherController::class, 'reject']);
-        Route::get('/students', [TeacherController::class, 'studentsList']);
-    });
+  // Teacher Routes
+Route::middleware(['auth:sanctum'])->get('/teacher-dashboard', function (Request $request) {
+    $user = $request->user();
 
+    if (!$user->canAccessTeacherDashboard()) {
+        return response()->json(['error' => 'Unauthorized access'], 403);
+    }
+
+    return response()->json([
+        'message' => 'Welcome, ' . $user->name . '! You are logged in as a teacher.'
+    ]);
+});
     // Student Routes
     Route::middleware('role:3')->group(function () {
         Route::post('/student/request-leave', [StudentLeaveController::class, 'requestLeave']);
