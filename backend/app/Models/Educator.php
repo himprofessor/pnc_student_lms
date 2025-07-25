@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -8,15 +9,15 @@ class Educator extends Model
 {
     use HasFactory;
 
+    // Fillable fields for mass assignment
     protected $fillable = ['name', 'email', 'password'];
 
-    public function leaveRequests()
+    // Define the many-to-many relationship with StudentClass
+    public function classes()
     {
-        return $this->hasMany(LeaveRequest::class);
+        return $this->belongsToMany(StudentClass::class, 'class_educator', 'educator_id', 'class_id');
     }
-
-    public function students()
-    {
-        return $this->hasMany(Student::class);
-    }
+    protected $hidden = [
+        'password', 'remember_token',
+    ];
 }

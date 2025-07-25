@@ -10,62 +10,63 @@ use Illuminate\Support\Facades\Auth;
 class StudentLeaveController extends Controller
 {
     // Submit a new leave request
-    public function requestLeave(Request $request)
-    {
-        $request->validate([
+   public function requestLeave(Request $request)
+{
+    // Validate and store in $validated
+    $validated = $request->validate([
         'leave_type_id' => 'required|exists:leave_types,id',
-        'reason' => 'required|string',
-        'from_date' => 'required|date',
-        'to_date' => 'required|date|after_or_equal:from_date',
-        'contact_info' => 'nullable|string|email',
+        'reason'        => 'required|string',
+        'from_date'     => 'required|date',
+        'to_date'       => 'required|date|after_or_equal:from_date',
+        'contact_info'  => 'nullable|string|email',
         'supporting_documents' => 'nullable|file|mimes:pdf,doc,docx,jpg,png|max:2048',
     ]);
 
-
-        // Handle file upload
-        $documentPath = null;
-        if ($request->hasFile('supporting_documents')) {
-            $documentPath = $request->file('supporting_documents')->store('supporting_documents');
-        }
-
-        $leave = LeaveRequest::create([
-            'student_id' => Auth::id(),
-            'leave_type_id' => $request->leave_type_id,
-            'reason' => $request->reason,
-            'from_date' => $request->from_date,
-            'to_date' => $request->to_date,
-            'contact_info' => $request->contact_info,
-            'supporting_documents' => $documentPath,
-            'status' => 'pending',
-        ]);
-
-        return response()->json([
-            'message' => 'Leave request submitted successfully.',
-            'data' => $leave,
-        ], 201);
+    // Handle file upload
+    $documentPath = null;
+    if ($request->hasFile('supporting_documents')) {
+        $documentPath = $request->file('supporting_documents')->store('supporting_documents');
     }
+
+    // Create leave request
+    $leaveRequest = LeaveRequest::create([
+        'user_id'              => Auth::id(),
+        'leave_type_id'        => $validated['leave_type_id'],
+        'reason'               => $validated['reason'],
+        'from_date'            => $validated['from_date'],
+        'to_date'              => $validated['to_date'],
+        'contact_info'         => $validated['contact_info'] ?? null,
+        'supporting_documents' => $documentPath,
+        'status'               => 'pending',
+    ]);
+
+    return response()->json([
+        'message' => 'Leave request submitted successfully.',
+        'data'    => $leaveRequest,
+    ], 201);
+}
 
     // View logged-in student's leave requests
-    public function myLeaves()
-    {
-        $leaves = LeaveRequest::with('leaveType')->where('student_id', Auth::id())->get();
+ public function myLeaves()
+{
+    $leaves = LeaveRequest::with('leaveType')->where('user_id', Auth::id())->get();
 
-        // Transform the response to include leave type name instead of ID
-        $leaves = $leaves->map(function ($leave) {
-            return [
-                'id' => $leave->id,
-                'reason' => $leave->reason,
-                'from_date' => $leave->from_date,
-                'to_date' => $leave->to_date,
-                'contact_info' => $leave->contact_info,
-                'supporting_documents' => $leave->supporting_documents,
-                'status' => $leave->status,
-                'leave_type' => $leave->leaveType->name, // Get the leave type name
-            ];
-        });
+    // Transform the response to include leave type name instead of ID
+    $leaves = $leaves->map(function ($leave) {
+        return [
+            'id' => $leave->id,
+            'reason' => $leave->reason,
+            'from_date' => $leave->from_date,
+            'to_date' => $leave->to_date,
+            'contact_info' => $leave->contact_info,
+            'supporting_documents' => $leave->supporting_documents,
+            'status' => $leave->status,
+            'leave_type' => $leave->leaveType->name, // Get the leave type name
+        ];
+    });
 
-        return response()->json(['leaves' => $leaves]);
-    }
+    return response()->json(['leaves' => $leaves]);
+}
 
     // Dashboard summary
     public function dashboard()
@@ -151,26 +152,26 @@ class StudentLeaveController extends Controller
     }
     // Cancel a leave request
     public function deleteLeaveRequest($id)
-    {
-        // Find the leave request by ID and ensure it belongs to the authenticated student
-        $leaveRequest = LeaveRequest::where('id', $id)
-                                    ->where('student_id', Auth::id())
-                                    ->first();
+{
+    // Find the leave request by ID and ensure it belongs to the authenticated student
+    $leaveRequest = LeaveRequest::where('id', $id)
+                                ->where('user_id', Auth::id())
+                                ->first();
 
-        // Return an error response if the leave request is not found
-        if (!$leaveRequest) {
-            return response()->json(['error' => 'Leave request not found'], 404);
-        }
-
-        // Check if the status is 'pending'
-        if ($leaveRequest->status !== 'pending') {
-            return response()->json(['error' => 'Only pending requests can be deleted'], 403);
-        }
-
-        // Delete the leave request
-        $leaveRequest->delete();
-
-        // Return a success response
-        return response()->json(['message' => 'Leave request deleted successfully']);
+    // Return an error response if the leave request is not found
+    if (!$leaveRequest) {
+        return response()->json(['error' => 'Leave request not found'], 404);
     }
+
+    // Check if the status is 'pending'
+    if ($leaveRequest->status !== 'pending') {
+        return response()->json(['error' => 'Only pending requests can be deleted'], 403);
+    }
+
+    // Delete the leave request
+    $leaveRequest->delete();
+
+    // Return a success response
+    return response()->json(['message' => 'Leave request deleted successfully']);
+}
 }

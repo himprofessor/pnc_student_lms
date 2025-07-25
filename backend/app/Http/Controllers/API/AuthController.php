@@ -57,8 +57,7 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Teacher account created successfully.']);
     }
-
- public function login(Request $request)
+public function login(Request $request)
 {
     $validator = Validator::make($request->all(), [
         'email'    => 'required|email',
@@ -84,6 +83,12 @@ class AuthController extends Controller
     }
 
     $user  = Auth::user();
+
+    // Check if admin email is really admin role
+    if ($request->email === 'admin@gmail.com' && $user->role_id !== 1) {
+        return response()->json(['message' => 'Unauthorized admin access'], 403);
+    }
+
     $token = $user->createToken('auth_token')->plainTextToken;
 
     // Determine role
@@ -114,6 +119,7 @@ class AuthController extends Controller
         ],
     ], 200);
 }
+
 
 
     public function logout(Request $request)

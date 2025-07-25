@@ -80,22 +80,33 @@ class TeacherController extends Controller
 
     // Create a new teacher
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
-        ]);
+{
+    $validated = $request->validate([
+        'name'     => 'required|string|max:255',
+        'email'    => 'required|email|unique:users,email',
+        'password' => 'required|string|min:6',
+        'class_ids' => 'required|array',          // Add class IDs
+        'class_ids.*' => 'exists:classes,id'      // Ensure each class exists
+    ]);
 
-        $teacher = new User();
-        $teacher->name = $validated['name'];
-        $teacher->email = $validated['email'];
-        $teacher->password = bcrypt($validated['password']);
-        $teacher->role_id = 2; // 👈 make sure this is the correct role_id for teacher
-        $teacher->save();
+    $teacher = new User();
+    $teacher->name = $validated['name'];
+    $teacher->email = $validated['email'];
+    $teacher->password = bcrypt($validated['password']);
+    $teacher->role_id = 2; // Teacher role
+    $teacher->save();
 
-        return response()->json(['message' => 'Teacher created successfully', 'teacher' => $teacher]);
+    // Assign classes (many-to-many)
+    if (method_exists($teacher, 'classes')) {
+        $teacher->classes()->sync($validated['class_ids']);
     }
+
+    return response()->json([
+        'message' => 'Teacher created and assigned to classes successfully',
+        'teacher' => $teacher->load('classes') // Return with classes
+    ]);
+}
+
 
     // Show a single teacher
     public function show($id)

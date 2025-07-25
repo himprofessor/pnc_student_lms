@@ -177,6 +177,11 @@ class User extends Authenticatable
     {
         return $this->isTeacher() && str_ends_with($this->email, '@passerellesnumeriques.org');
     }
+    public function classes()
+    {
+        return $this->belongsToMany(ClassModel::class, 'class_teacher', 'teacher_id', 'class_id');
+    }
+
 
     /**
      * Check if the user has access to the student dashboard.

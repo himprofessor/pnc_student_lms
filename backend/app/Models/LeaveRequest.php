@@ -8,16 +8,18 @@ class LeaveRequest extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'student_id',
-        'leave_type_id',
-        'reason',
-        'from_date',
-        'to_date',
-        'contact_info',
-        'supporting_documents',
-        'status',
-    ];
+protected $fillable = [
+    'student_id',
+    'user_id',
+    'reason',
+    'contact_info',
+    'supporting_documents',
+    'from_date',
+    'to_date',
+    'status',
+    'leave_type_id'
+];
+
 
     public function leaveType()
     {

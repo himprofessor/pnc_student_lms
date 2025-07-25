@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\TeacherController;
 use App\Http\Controllers\API\StudentLeaveController;
+use App\Http\Controllers\API\AdminEducatorController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Api\LeaveTypeController;
@@ -18,14 +19,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/admin/login', [LoginController::class, 'login']);
 
 // Test route to verify API is working
-Route::get('/test', function () {
-    return response()->json([
-        'message' => 'API is working',
-        'time' => now(),
-        'status' => 'success'
-    ]);
-});
-
+ 
 //Type of leave 
 Route::get('/leave-types', [LeaveTypeController::class, 'index']);
 // Protected Routes
@@ -41,17 +35,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/user/delete-image', [UserController::class, 'deleteProfileImage']);
 
     // Admin Routes
-    Route::middleware('role:admin')->group(function () {
-        Route::get('/admin-area', fn() => 'Admin Access');
-        
-        // User management routes for admin
-        Route::get('/users', [UserController::class, 'index']);
-        Route::post('/users', [UserController::class, 'store']);
-        Route::get('/users/{id}', [UserController::class, 'show']);
-        Route::put('/users/{id}', [UserController::class, 'update']);
-        Route::delete('/users/{id}', [UserController::class, 'destroy']);
-        Route::post('/users/bulk-delete', [UserController::class, 'bulkDelete']);
-    });
+  // Admin Protected Routes
+// -----------------------
+Route::middleware(['auth:sanctum', 'role:1'])->group(function () {
+    Route::get('/educators', [AdminEducatorController::class, 'index']);
+    Route::post('/educators', [AdminEducatorController::class, 'store']);
+    
+    // You can add more routes that require the same role here
+    Route::get('/educators/{id}', [AdminEducatorController::class, 'show']);
+    Route::put('/educators/{id}', [AdminEducatorController::class, 'update']);
+    Route::delete('/educators/{id}', [AdminEducatorController::class, 'destroy']);
+});
 
     // Teacher Routes
   // Teacher Routes
