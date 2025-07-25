@@ -13,13 +13,14 @@ class StudentLeaveController extends Controller
     public function requestLeave(Request $request)
     {
         $request->validate([
-            'leave_type_id' => 'required|exists:leave_types,id', // Validate the leave type
-            'reason' => 'required|string',
-            'from_date' => 'required|date',
-            'to_date' => 'required|date|after_or_equal:from_date',
-            'contact_info' => 'nullable|string',
-            'supporting_documents' => 'nullable|file|mimes:pdf,doc,docx,jpg,png|max:2048',
-        ]);
+        'leave_type_id' => 'required|exists:leave_types,id', 
+        'reason' => 'required|string',
+        'from_date' => 'required|date|after_or_equal:today',
+        'to_date' => 'required|date|after_or_equal:from_date',
+        'contact_info' => 'nullable|string',
+        'supporting_documents' => 'nullable|file|mimes:pdf,doc,docx,jpg,png|max:2048',
+    ]);
+
 
         // Handle file upload
         $documentPath = null;
