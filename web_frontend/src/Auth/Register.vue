@@ -37,6 +37,6 @@ const registerUser = async () => {
 
 <style scoped>
 .error {
-  color: red;
+  color: rgb(236, 3, 3);
 }
 </style>
