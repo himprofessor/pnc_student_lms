@@ -5,37 +5,47 @@
       <p class="text-sm text-gray-500 mb-6">Fill out the form below to request leave from your studies</p>
 
       <div class="bg-white p-6 rounded-lg shadow border">
-        <div v-if="successMessage"
-          class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+        <div
+          v-if="successMessage"
+          class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4"
+          role="alert"
+        >
           <span class="block sm:inline">{{ successMessage }}</span>
           <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" @click="clearAlert('success')">
-            <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20">
+            <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
               <title>Close</title>
               <path
-                d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.414l-2.651 2.651a1.2 1.2 0 1 1-1.697-1.697L8.586 10l-2.651-2.651a1.2 1.2 0 0 1 1.697-1.697L10 8.586l2.651-2.651a1.2 1.2 0 0 1 0 1.697z" />
+                d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.414l-2.651 2.651a1.2 1.2 0 1 1-1.697-1.697L8.586 10l-2.651-2.651a1.2 1.2 0 0 1 1.697-1.697L10 8.586l2.651-2.651a1.2 1.2 0 0 1 0 1.697z"
+              />
             </svg>
           </span>
         </div>
-        <div v-if="errorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
-          role="alert">
+
+        <div
+          v-if="errorMessage"
+          class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+          role="alert"
+        >
           <span class="block sm:inline">{{ errorMessage }}</span>
           <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" @click="clearAlert('error')">
-            <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20">
-              <title>Close</title>
-              <path
-                d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.414l-2.651 2.651a1.2 1.2 0 1 1-1.697-1.697L8.586 10l-2.651-2.651a1.2 1.2 0 0 1 1.697-1.697L10 8.586l2.651-2.651a1.2 1.2 0 0 1 0 1.697z" />
-            </svg>
+          <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+            <title>Close</title>
+            <path
+              d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.414l-2.651 2.651a1.2 1.2 0 1 1-1.697-1.697L8.586 10l-2.651-2.651a1.2 1.2 0 0 1 1.697-1.697L10 8.586l2.651-2.651a1.2 1.2 0 0 1 0 1.697z"
+            />
+          </svg>
           </span>
         </div>
 
         <form @submit.prevent="submitLeaveRequest">
           <div class="mb-4">
             <label for="leave-type" class="block text-sm font-medium text-gray-700 mb-1">Leave Type *</label>
-            <select id="leave-type" v-model="form.leave_type_id"
+            <select
+              id="leave-type"
+              v-model="form.leave_type_id"
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              :class="{ 'border-red-500': fieldErrors.leave_type_id }">
+              :class="{ 'border-red-500': fieldErrors.leave_type_id }"
+            >
               <option value="">Select leave type</option>
               <option v-for="type in leaveTypes" :key="type.id" :value="type.id">
                 {{ type.name }}
@@ -45,40 +55,61 @@
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-1">
-            <div>
-              <label for="from-date" class="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
-              <input type="date" id="from-date" v-model="form.from_date"
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                :class="{ 'border-red-500': fieldErrors.from_date }" @change="calculateDays">
-              <p v-if="fieldErrors.from_date" class="mt-1 text-sm text-red-600">{{ fieldErrors.from_date }}</p>
-            </div>
-            <div>
-              <label for="to-date" class="block text-sm font-medium text-gray-700 mb-1">End Date *</label>
-              <input type="date" id="to-date" v-model="form.to_date"
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                :class="{ 'border-red-500': fieldErrors.to_date }" @change="calculateDays">
-              <p v-if="fieldErrors.to_date" class="mt-1 text-sm text-red-600">{{ fieldErrors.to_date }}</p>
-            </div>
+          <div>
+            <label for="from-date" class="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
+            <input
+              type="date"
+              id="from-date"
+              v-model="form.from_date"
+              :min="today"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              :class="{ 'border-red-500': fieldErrors.from_date }"
+              @change="onFromDateChange"
+            />
+            <p v-if="fieldErrors.from_date" class="mt-1 text-sm text-red-600">{{ fieldErrors.from_date }}</p>
           </div>
+
+          <div>
+            <label for="to-date" class="block text-sm font-medium text-gray-700 mb-1">End Date *</label>
+            <input
+              type="date"
+              id="to-date"
+              v-model="form.to_date"
+              :min="form.from_date || today"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              :class="{ 'border-red-500': fieldErrors.to_date }"
+              @change="calculateDays"
+            />
+            <p v-if="fieldErrors.to_date" class="mt-1 text-sm text-red-600">{{ fieldErrors.to_date }}</p>
+          </div>
+        </div>
+
           <div v-if="totalDays !== null" class="text-sm text-gray-500 mb-4">
-            Total Leave Days: {{ totalDays }} day
+            Total Leave Days: {{ totalDays }} day<span v-if="totalDays > 1">s</span>
           </div>
 
           <div class="mb-4">
             <label for="reason" class="block text-sm font-medium text-gray-700 mb-1">Reason for Leave *</label>
-            <textarea id="reason" rows="4" v-model="form.reason"
+            <textarea
+              id="reason"
+              rows="4"
+              v-model="form.reason"
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               :class="{ 'border-red-500': fieldErrors.reason }"
-              placeholder="Please provide a detailed reason for your leave request..."></textarea>
+              placeholder="Please provide a detailed reason for your leave request..."
+            ></textarea>
             <p v-if="fieldErrors.reason" class="mt-1 text-sm text-red-600">{{ fieldErrors.reason }}</p>
           </div>
 
           <div class="mb-4">
-            <label for="contact-info" class="block text-sm font-medium text-gray-700 mb-1">Contact Information During
-              Leave</label>
-            <input type="text" id="contact-info" v-model="form.contact_info"
+            <label for="contact-info" class="block text-sm font-medium text-gray-700 mb-1">Contact Information During Leave</label>
+            <input
+              type="text"
+              id="contact-info"
+              v-model="form.contact_info"
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder="Phone number or email where you can be reached (optional)">
+              placeholder="Phone number or email where you can be reached (optional)"
+            />
             <p v-if="fieldErrors.contact_info" class="mt-1 text-sm text-red-600">{{ fieldErrors.contact_info }}</p>
           </div>
 
@@ -86,17 +117,21 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">Supporting Documents</label>
             <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
               <div class="space-y-1 text-center">
-                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48"
-                  aria-hidden="true">
+                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
                   <path
                     d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
                 </svg>
                 <div class="flex text-sm text-gray-600">
-                  <label for="file-upload"
-                    class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                  <label
+                    for="file-upload"
+                    class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                  >
                     <span>Upload files</span>
-                    <input id="file-upload" name="file-upload" type="file" class="sr-only" @change="handleFileUpload">
+                    <input id="file-upload" name="file-upload" type="file" class="sr-only" @change="handleFileUpload" />
                   </label>
                   <p class="pl-1">or drag and drop</p>
                 </div>
@@ -108,17 +143,24 @@
                 </p>
               </div>
             </div>
-            <p v-if="fieldErrors.supporting_documents" class="mt-1 text-sm text-red-600">{{
-              fieldErrors.supporting_documents }}</p>
+            <p v-if="fieldErrors.supporting_documents" class="mt-1 text-sm text-red-600">
+              {{ fieldErrors.supporting_documents }}
+            </p>
           </div>
 
           <div class="flex justify-end space-x-3">
-            <button type="button" @click="resetForm"
-              class="px-4 py-2 text-sm font-medium text-black bg-gray-300 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+            <button
+              type="button"
+              @click="resetForm"
+              class="px-4 py-2 text-sm font-medium text-black bg-gray-300 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            >
               Cancel
             </button>
-            <button type="submit" :disabled="loading"
-              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+            <button
+              type="submit"
+              :disabled="loading"
+              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <span v-if="loading">Submitting...</span>
               <span v-else>Submit Request</span>
             </button>
@@ -141,6 +183,9 @@ const loading = ref(false);
 const successMessage = ref('');
 const errorMessage = ref('');
 const totalDays = ref(null);
+
+// 🔒 today (for disabling past dates)
+const today = new Date().toISOString().split('T')[0];
 
 const form = reactive({
   leave_type_id: '',
@@ -182,25 +227,56 @@ const calculateDays = () => {
     const from = new Date(form.from_date);
     const to = new Date(form.to_date);
 
-    // Swap dates if from_date is after to_date
-    if (from > to) {
-      [form.from_date, form.to_date] = [form.to_date, form.from_date];
-      return calculateDays(); // Recalculate with swapped dates
+    if (to < from) {
+      form.to_date = form.from_date;
     }
 
-    // Calculate difference in days (inclusive of both dates)
-    const diffTime = Math.abs(to - from);
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
-    totalDays.value = diffDays;
+    const diffTime = Math.abs(new Date(form.to_date) - new Date(form.from_date));
+    totalDays.value = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
   } else {
     totalDays.value = null;
   }
 };
 
+const onFromDateChange = () => {
+  // Ensure to_date cannot be earlier than from_date
+  if (form.to_date && form.to_date < form.from_date) {
+    form.to_date = form.from_date;
+  }
+  calculateDays();
+};
+
 // Handle file input change
 const handleFileUpload = (event) => {
-  form.supporting_documents = event.target.files[0];
+  const file = event.target.files[0];
+  if (!file) {
+    form.supporting_documents = null;
+    return;
+  }
+
+  const validTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'image/jpeg',
+    'image/png',
+  ];
+  const maxSize = 2 * 1024 * 1024; // 2MB
+
+  if (!validTypes.includes(file.type)) {
+    fieldErrors.supporting_documents = 'Invalid file type. Allowed: pdf, doc, docx, jpg, png.';
+    form.supporting_documents = null;
+    return;
+  }
+
+  if (file.size > maxSize) {
+    fieldErrors.supporting_documents = 'File too large. Maximum size is 2MB.';
+    form.supporting_documents = null;
+    return;
+  }
+
+  fieldErrors.supporting_documents = '';
+  form.supporting_documents = file;
 };
 
 // Show success message
@@ -230,9 +306,30 @@ const clearAlert = (type) => {
 
 // Clear all field errors
 const clearFieldErrors = () => {
-  Object.keys(fieldErrors).forEach(key => {
+  Object.keys(fieldErrors).forEach((key) => {
     fieldErrors[key] = '';
   });
+};
+
+// Simple client-side validation
+const validateForm = () => {
+  clearFieldErrors();
+  const errs = {};
+
+  if (!form.leave_type_id) errs.leave_type_id = 'Leave type is required.';
+  if (!form.reason) errs.reason = 'Reason is required.';
+  if (!form.from_date) errs.from_date = 'Start date is required.';
+  if (!form.to_date) errs.to_date = 'End date is required.';
+
+  const dToday = today;
+  if (form.from_date && form.from_date < dToday) errs.from_date = 'Start date cannot be in the past.';
+  if (form.to_date && form.to_date < dToday) errs.to_date = 'End date cannot be in the past.';
+  if (form.from_date && form.to_date && form.to_date < form.from_date)
+    errs.to_date = 'End date cannot be before start date.';
+
+  Object.assign(fieldErrors, errs);
+
+  return Object.keys(errs).length === 0;
 };
 
 // Submit the leave request
@@ -240,7 +337,12 @@ const submitLeaveRequest = async () => {
   loading.value = true;
   clearAlert('success');
   clearAlert('error');
-  clearFieldErrors();
+
+  if (!validateForm()) {
+    showError('Please fix the errors before submitting.');
+    loading.value = false;
+    return;
+  }
 
   const authToken = localStorage.getItem('authToken');
   if (!authToken) {
@@ -265,15 +367,14 @@ const submitLeaveRequest = async () => {
   try {
     const response = await axios.post('/student/request-leave', formData, {
       headers: {
-        'Authorization': `Bearer ${authToken}`,
-        'Content-Type': 'multipart/form-data'
-      }
+        Authorization: `Bearer ${authToken}`,
+        'Content-Type': 'multipart/form-data',
+      },
     });
 
     showSuccess('Leave request submitted successfully!');
     window.dispatchEvent(new CustomEvent('userDataUpdated', { detail: response.data.data }));
 
-    // Delay and redirect after success
     setTimeout(() => {
       router.push('/dashboard');
     }, 1500);
@@ -285,13 +386,13 @@ const submitLeaveRequest = async () => {
       const responseData = error.response.data;
 
       if (status === 422 && responseData.errors) {
-        // Map errors to individual fields
         for (const key in responseData.errors) {
           const fieldName = key.replace(/\./g, '_');
           if (fieldErrors.hasOwnProperty(fieldName)) {
             fieldErrors[fieldName] = responseData.errors[key][0];
           }
         }
+        showError('Please correct the highlighted errors.');
       } else if (status === 401 || status === 403) {
         showError(responseData.message || 'Unauthorized. Please log in again.');
         router.push('/login');

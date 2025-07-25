@@ -1,7 +1,22 @@
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-100">
     <div class="w-full max-w-md bg-white rounded p-8 shadow">
-      <h1 class="text-2xl font-bold text-center mb-4">Login</h1>
+
+      <!-- Welcome section with one professional graduation cap icon -->
+      <div class="flex flex-col items-center mb-6">
+        <!-- Graduation Cap Icon (simplified & professional) -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-blue-600 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 14v7m0 0H6a2 2 0 01-2-2v-5" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M18 19v-5a2 2 0 00-2-2h-1" />
+        </svg>
+        <h1 class="text-2xl font-bold text-center text-blue-700">
+          Welcome to <br />
+          PNC Leave System
+        </h1>
+      </div>
+
+ 
       <form @submit.prevent="login" class="space-y-4">
         <div>
           <input
@@ -40,6 +55,7 @@
     </div>
   </div>
 </template>
+
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'

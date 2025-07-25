@@ -95,79 +95,67 @@
       </div>
     </div>
   </div>
- <!-- View Leave Details Modal -->
-<transition name="scale">
+  <!-- View Leave Details Modal -->
+<transition name="fade">
   <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-    <div class="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl w-full max-w-lg p-8 relative animate-zoom overflow-y-auto max-h-[90vh] border border-gray-200">
-      
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 relative">
+
       <!-- Close Button -->
       <button @click="showModal = false"
-        class="absolute top-3 right-4 text-gray-500 hover:text-red-500 text-3xl font-bold transition">
+        class="absolute top-3 right-4 text-gray-400 hover:text-red-500 text-2xl font-bold">
         &times;
       </button>
 
       <!-- Header -->
-      <h2 class="text-3xl font-extrabold text-center text-gray-800 mb-6">📝 Leave Details</h2>
+      <h2 class="text-2xl font-bold text-center text-blue-700 mb-4">
+        Leave Details
+      </h2>
 
-      <!-- Leave Info -->
-      <div class="space-y-4 text-gray-700 text-[16px] leading-6">
-        <div class="flex items-center gap-2">
-          <span class="text-lg">📋</span>
-          <p><span class="font-semibold">Leave Type:</span>
-            {{ typeof selectedLeave.leave_type === 'object' ? selectedLeave.leave_type.name : selectedLeave.leave_type }}
-          </p>
+      <!-- Table-like Details -->
+      <div class="divide-y divide-gray-200">
+        <div class="flex justify-between py-2">
+          <span class="font-semibold text-gray-600">Leave Type:</span>
+          <span>{{ typeof selectedLeave.leave_type === 'object' ? selectedLeave.leave_type.name : selectedLeave.leave_type }}</span>
         </div>
-
-        <div class="flex items-center gap-2">
-          <span class="text-lg">📆</span>
-          <p><span class="font-semibold">From:</span> {{ formatDate(selectedLeave.from_date) }}</p>
+        <div class="flex justify-between py-2">
+          <span class="font-semibold text-gray-600">From:</span>
+          <span>{{ formatDate(selectedLeave.from_date) }}</span>
         </div>
-
-        <div class="flex items-center gap-2">
-          <span class="text-lg">📆</span>
-          <p><span class="font-semibold">To:</span> {{ formatDate(selectedLeave.to_date) }}</p>
+        <div class="flex justify-between py-2">
+          <span class="font-semibold text-gray-600">To:</span>
+          <span>{{ formatDate(selectedLeave.to_date) }}</span>
         </div>
-
-        <div class="flex items-center gap-2">
-          <span class="text-lg">⚙️</span>
-          <p><span class="font-semibold">Status:</span> 
-            <span
-              :class="{
-                'bg-yellow-100 text-yellow-700': selectedLeave.status === 'pending',
-                'bg-green-100 text-green-700': selectedLeave.status === 'approved',
-                'bg-red-100 text-red-700': selectedLeave.status === 'rejected'
-              }"
-              class="px-2 py-1 rounded-lg text-sm font-semibold capitalize"
-            >
-              {{ selectedLeave.status }}
-            </span>
-          </p>
+        <div class="flex justify-between py-2">
+          <span class="font-semibold text-gray-600">Status:</span>
+          <span :class="{
+            'text-yellow-600': selectedLeave.status === 'pending',
+            'text-green-600': selectedLeave.status === 'approved',
+            'text-red-600': selectedLeave.status === 'rejected'
+          }" class="capitalize">
+            {{ selectedLeave.status }}
+          </span>
         </div>
-
-        <div class="flex items-start gap-2">
-          <span class="text-lg">🗒️</span>
-          <p><span class="font-semibold">Reason:</span> {{ selectedLeave.reason }}</p>
+        <div class="flex justify-between py-2">
+          <span class="font-semibold text-gray-600">Reason:</span>
+          <span class="text-right max-w-[200px]">{{ selectedLeave.reason }}</span>
         </div>
-
-        <div class="flex items-center gap-2">
-          <span class="text-lg">📅</span>
-          <p><span class="font-semibold">Submitted:</span> {{ formatDate(selectedLeave.created_at) }}</p>
+        <div class="flex justify-between py-2">
+          <span class="font-semibold text-gray-600">Submitted:</span>
+          <span>{{ formatDate(selectedLeave.created_at) }}</span>
         </div>
-
-        <div class="flex items-center gap-2" v-if="selectedLeave.status === 'approved'">
-          <span class="text-lg">✅</span>
-          <p><span class="font-semibold">Approved At:</span> {{ formatDate(selectedLeave.approved_at || selectedLeave.updated_at) }}</p>
+        <div v-if="selectedLeave.status === 'approved'" class="flex justify-between py-2">
+          <span class="font-semibold text-gray-600">Approved At:</span>
+          <span>{{ formatDate(selectedLeave.approved_at || selectedLeave.updated_at) }}</span>
         </div>
       </div>
 
       <!-- Footer -->
       <div class="mt-6 text-center">
         <button @click="showModal = false"
-          class="bg-gradient-to-r from-red-500 to-indigo-500 text-white px-6 py-2 rounded-xl font-semibold hover:scale-105 transition">
+          class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
           Close
         </button>
       </div>
-
     </div>
   </div>
 </transition>
