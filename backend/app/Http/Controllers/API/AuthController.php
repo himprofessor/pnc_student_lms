@@ -58,40 +58,56 @@ class AuthController extends Controller
         return response()->json(['message' => 'Teacher account created successfully.']);
     }
 
-    public function login(Request $request)
-    {
-        // Validate incoming request
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
+  public function login(Request $request)
+{
+    // 1) Validate
+    $validator = Validator::make($request->all(), [
+        'email'    => 'required|email',
+        'password' => 'required|string',
+    ]);
 
-        // If validation fails, return error messages
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
-
-        // Check if the email ends with the allowed domains
-        if (!str_ends_with($request->email, '@student.passerellesnumeriques.org') &&
-            !str_ends_with($request->email, '@passerellesnumeriques.org')) {
-            return response()->json(['error' => ['email' => ['Invalid email domain']]], 401);
-        }
-      
-        // Attempt to authenticate the user
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json(['error' => ['password' => ['Invalid credentials']]], 401);
-        }
-
-        // Retrieve the authenticated user
-        $user = Auth::user();
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        // Return token and user information
-        return response()->json([
-            'token' => $token,
-            'user' => $user->only(['id', 'name', 'email', 'role_id']),
-        ]);
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
     }
+
+    // 2) Check allowed domains
+    if (
+        !str_ends_with($request->email, '@student.passerellesnumeriques.org') &&
+        !str_ends_with($request->email, '@passerellesnumeriques.org')
+    ) {
+        return response()->json(['message' => 'Invalid email domain'], 401);
+    }
+
+    // 3) Try to auth
+    if (!Auth::attempt($request->only('email', 'password'))) {
+        return response()->json(['message' => 'Invalid credentials'], 401);
+    }
+
+    // 4) Build response
+    $user  = Auth::user();
+    $token = $user->createToken('auth_token')->plainTextToken;
+
+    // Map role + dashboard
+    $role = $user->role_id == 2 ? 'teacher' : 'student';
+
+    // use your existing frontend paths
+    $dashboardUrl = $role === 'teacher'
+        ? '/educator-dashboard'
+        : '/dashboard'; // student dashboard in your router is "/dashboard"
+
+    return response()->json([
+        'token'          => $token,
+        'message'        => 'Login successful',
+        'role'           => $role,
+        'dashboard_url'  => $dashboardUrl,
+        'user'           => [
+            'id'      => $user->id,
+            'name'    => $user->name,
+            'email'   => $user->email,
+            'role_id' => $user->role_id,
+        ],
+    ], 200);
+}
 
     public function logout(Request $request)
     {
