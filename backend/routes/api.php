@@ -65,17 +65,22 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/users/bulk-delete', [UserController::class, 'bulkDelete']);
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Teacher Routes
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware('role:teacher')->group(function () {
-        Route::get('/leave-requests', [TeacherController::class, 'viewLeaveRequests']);
-        Route::post('/leave-requests/{id}/approve', [TeacherController::class, 'approve']);
-        Route::post('/leave-requests/{id}/reject', [TeacherController::class, 'reject']);
-        Route::get('/students', [TeacherController::class, 'studentsList']);
-    });
+    // Teacher Routes
+  // Teacher Routes
+Route::middleware(['auth:sanctum'])->get('/teacher-dashboard', function (Request $request) {
+    $user = $request->user();
+
+    if (!$user->canAccessTeacherDashboard()) {
+        return response()->json(['error' => 'Unauthorized access'], 403);
+    }
+
+    return response()->json([
+        'message' => 'Welcome, ' . $user->name . '! You are logged in as a teacher.'
+    ]);
+});
+// 🆕 New Route — Get authenticated teacher info
+Route::middleware(['auth:sanctum'])->get('/teacher', [TeacherController::class, 'getAuthenticatedTeacher']);
+
 
     /*
     |--------------------------------------------------------------------------

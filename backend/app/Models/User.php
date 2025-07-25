@@ -36,14 +36,10 @@ class User extends Authenticatable
 
     protected $appends = ['role_name', 'display_name', 'initials', 'img_url'];
 
-    // Relations
-
     public function role()
     {
         return $this->belongsTo(Role::class);
     }
-
-    // Role helpers
 
     public function getRoleNameAttribute()
     {
@@ -78,8 +74,6 @@ class User extends Authenticatable
         return $this->hasRole('student') || $this->hasRole(3);
     }
 
-    // Accessors
-
     public function getDisplayNameAttribute()
     {
         return $this->name ?: $this->email;
@@ -101,9 +95,6 @@ class User extends Authenticatable
         return strtoupper(substr($name, 0, 1));
     }
 
-    /**
-     * Return full URL of user image or null if no image
-     */
     public function getImgUrlAttribute()
     {
         if ($this->img) {
@@ -116,41 +107,11 @@ class User extends Authenticatable
         return null;
     }
 
-    /**
-     * Check if profile image exists physically in storage
-     */
     public function hasProfileImage()
     {
         return $this->img && Storage::disk('public')->exists($this->img);
     }
 
-    /**
-     * Update user's profile image, delete old one if exists
-     */
-    public function updateProfileImage($imagePath)
-    {
-        if ($this->hasProfileImage()) {
-            Storage::disk('public')->delete($this->img);
-        }
-        $this->img = $imagePath;
-        $this->save();
-    }
-
-    /**
-     * Remove profile image from storage and clear DB column
-     */
-    public function removeProfileImage()
-    {
-        if ($this->hasProfileImage()) {
-            Storage::disk('public')->delete($this->img);
-        }
-        $this->img = null;
-        $this->save();
-    }
-
-    /**
-     * Update profile info (except password and image) from request
-     */
     public function updateProfile(Request $request)
     {
         try {
@@ -161,7 +122,7 @@ class User extends Authenticatable
                 'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
                 'contact_info' => 'sometimes|nullable|string|max:255',
                 'emergency_contact' => 'sometimes|nullable|string|max:255',
-                'img' => 'sometimes|nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'img' => 'sometimes|nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // 2MB max
             ]);
 
             if ($validator->fails()) {
@@ -172,13 +133,15 @@ class User extends Authenticatable
                 ], 422);
             }
 
+            // Start with validated data (excluding image)
             $updateData = collect($validator->validated())->except(['img'])->toArray();
 
             // Handle image upload separately
             if ($request->hasFile('img')) {
-                if ($user->hasProfileImage()) {
+                if ($user->img && Storage::disk('public')->exists($user->img)) {
                     Storage::disk('public')->delete($user->img);
                 }
+
                 $imagePath = $request->file('img')->store('profile-images', 'public');
                 $updateData['img'] = $imagePath;
             }
@@ -206,18 +169,18 @@ class User extends Authenticatable
     }
 
     /**
-     * (Optional) format contact info display
+     * Check if the user has access to the teacher dashboard.
      */
-    public function getContactInfoFormatted()
+    public function canAccessTeacherDashboard()
     {
-        return $this->contact_info ?: 'No contact info provided';
+        return $this->isTeacher() && str_ends_with($this->email, '@passerellesnumeriques.org');
     }
 
     /**
-     * Dummy method to check if user active
+     * Check if the user has access to the student dashboard.
      */
-    public function isActive()
+    public function canAccessStudentDashboard()
     {
-        return true;
+        return $this->isStudent() && str_ends_with($this->email, '@student.passerellesnumeriques.org');
     }
 }
