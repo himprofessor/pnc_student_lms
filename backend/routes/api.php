@@ -76,6 +76,10 @@ Route::middleware(['auth:sanctum'])->get('/teacher-dashboard', function (Request
 
 
 });
+// 🆕 New Route — Get authenticated teacher info
+Route::middleware(['auth:sanctum'])->get('/teacher', [TeacherController::class, 'getAuthenticatedTeacher']);
+
+
     // Student Routes
     Route::middleware('role:3')->group(function () {
         Route::post('/student/request-leave', [StudentLeaveController::class, 'requestLeave']);

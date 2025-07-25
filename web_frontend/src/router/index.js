@@ -1,16 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import axios from 'axios'
 
-import Home from '../views/student/HomeView.vue'
-import Login from '../views/Auth/Login.vue'
-import Register from '../views/Auth/Register.vue'
-import DashboardPage from '../views/student/DashboardPage.vue'
-import RequestLeavePage from '../views/student/RequestLeavePage.vue'
-import HistoryPage from '../views/student/HistoryPage.vue'
-import ProfilePage from '../views/student/ProfilePage.vue'
+import Home from '@/views/student/HomeView.vue'
+import Login from '@/views/Auth/Login.vue'
+import Register from '@/views/Auth/Register.vue'
+import DashboardPage from '@/views/student/DashboardPage.vue'
+import RequestLeavePage from '@/views/student/RequestLeavePage.vue'
+import HistoryPage from '@/views/student/HistoryPage.vue'
+import ProfilePage from '@/views/student/ProfilePage.vue'
 
-import EducatorDashboard from '../views/Educator/EducatorDashboard.vue'
-import EducatorHistory from '../views/Educator/EducatorHistory.vue'
+import EducatorDashboard from '@/views/Educator/EducatorDashboard.vue'
+import EducatorHistory from '@/views/Educator/EducatorHistory.vue'
+import EducatorProfile from '@/views/Educator/EducatorProfile.vue'
 
 const routes = [
   { path: '/', component: Home, meta: { hideStudentNavbar: true } },
@@ -25,7 +26,8 @@ const routes = [
 
   // Teacher routes
   { path: '/educator-dashboard', component: EducatorDashboard, meta: { requiresAuth: true, role: 'teacher' } },
-  { path: '/educator-history', component: EducatorHistory, meta: { requiresAuth: true, role: 'teacher' } }
+  { path: '/educator-history', component: EducatorHistory, meta: { requiresAuth: true, role: 'teacher' } },
+  { path: '/educator-profile', component: EducatorProfile, meta: { requiresAuth: true, role: 'teacher'}}
 ]
 
 const router = createRouter({
