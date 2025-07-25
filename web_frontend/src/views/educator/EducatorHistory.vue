@@ -1,93 +1,166 @@
 <template>
-  <div class="min-h-screen bg-gray-50 text-gray-800">
+  <div class="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 text-gray-800">
     <!-- Main Content -->
     <div class="max-w-5xl mx-auto px-6 py-10">
-      <h1 class="text-2xl font-bold mb-1">Leave Requests History</h1>
-      <p class="text-gray-500 mb-6">Track all leave requests you've approved or rejected</p>
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Leave Request Dashboard</h1>
+        <p class="text-gray-600">Review and manage all processed leave applications</p>
+      </div>
 
-      <!-- Enhanced Filters -->
-      <div class="bg-white p-4 rounded-md shadow-sm mb-6">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div class="flex flex-col sm:flex-row gap-3 w-full">
-            <input v-model="search" type="text" placeholder="Search by student name or reason..."
-              class="border border-gray-300 rounded-md px-4 py-2 flex-grow" />
-            <select v-model="statusFilter"
-              class="border border-gray-300 rounded-md px-3 py-2 text-gray-600 w-full sm:w-40">
-              <option value="all">All Statuses</option>
-              <option value="Approved">Approved</option>
-              <option value="Rejected">Rejected</option>
-            </select>
-            <select v-model="typeFilter"
-              class="border border-gray-300 rounded-md px-3 py-2 text-gray-600 w-full sm:w-40">
-              <option value="all">All Types</option>
-              <option value="Sick Leave">Sick Leave</option>
-              <option value="Family Emergency">Family Emergency</option>
-              <option value="Personal Leave">Personal Leave</option>
-              <option value="Vacation">Vacation</option>
-              <option value="Paternity Leave">Paternity Leave</option>
-              <option value="Maternity Leave">Maternity Leave</option>
-              <option value="Bereavement Leave">Bereavement Leave</option>
-              <option value="Unpaid Leave">Unpaid Leave</option>
-              <option value="Compassionate Leave">Compassionate Leave</option>
-              <option value="Study Leave">Study Leave</option>
-              <option value="Public Holiday Leave">Public Holiday Leave</option>
+      <!-- Enhanced Filters Card -->
+      <div class="bg-white p-6 rounded-lg shadow-md mb-8 border border-gray-100">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+          <div class="relative flex-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input 
+              v-model="search" 
+              type="text" 
+              placeholder="Search by student name or reason..."
+              class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+            />
+          </div>
+          <span class="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+            {{ filteredRequests.length }} {{ filteredRequests.length === 1 ? 'request' : 'requests' }}
+          </span>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <select 
+              v-model="statusFilter" 
+              class="w-full border border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+            >
+              <option value="">All Statuses</option>
+              <option class="text-green-600">Approved</option>
+              <option class="text-red-600">Rejected</option>
             </select>
           </div>
-          <div class="flex items-center gap-3">
-            <div class="text-sm text-gray-600 whitespace-nowrap">{{ filteredRequests.length }} requests</div>
-            <button @click="resetFilters" class="text-sm text-blue-600 hover:underline whitespace-nowrap">
-              Reset filters
-            </button>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Leave Type</label>
+            <select 
+              v-model="typeFilter" 
+              class="w-full border border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+            >
+              <option value="">All Leave Types</option>
+              <option>Sick Leave</option>
+              <option>Family Emergency</option>
+              <option>Personal Leave</option>
+              <option>Vacation Leave</option>
+              <option>Emergency Leave</option>
+              <option>Maternity Leave</option>
+              <option>Paternity Leave</option>
+              <option>Bereavement Leave</option>
+              <option>Unpaid Leave</option>
+              <option>Compassionate Leave</option>
+              <option>Study Leave</option>
+              <option>Public Holiday Leave</option>
+            </select>
           </div>
         </div>
       </div>
 
       <!-- Leave Request List -->
-      <div class="bg-white p-6 rounded-md shadow-sm">
-
-        <div v-if="filteredRequests.length === 0" class="text-center py-10 text-gray-500">
-          No leave requests match your current filters
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+          <h2 class="text-lg font-semibold text-gray-800">Processed Requests</h2>
+          <button 
+            @click="resetFilters"
+            class="text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Reset Filters
+          </button>
         </div>
 
-        <div v-for="(request, index) in filteredRequests" :key="index" class="mb-6 border-b pb-4 last:border-b-0">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
-            <div class="flex items-center mb-1 text-gray-800 font-medium">
-              <span v-if="request.type === 'Sick Leave'" class="mr-2">🩺</span>
-              <span v-else-if="request.type === 'Family Emergency'" class="mr-2">❤️</span>
-              <span v-else class="mr-2">📅</span>
-              {{ request.type }}
-              <span class="ml-3 inline-block px-2 py-0.5 rounded-full text-xs font-medium" :class="{
-                'bg-yellow-100 text-yellow-700': request.status === 'Pending',
-                'bg-green-100 text-green-700': request.status === 'Approved',
-                'bg-red-100 text-red-700': request.status === 'Rejected',
+        <div v-if="filteredRequests.length === 0" class="text-center py-12">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p class="mt-4 text-gray-500 font-medium">No matching leave requests found</p>
+          <p class="text-sm text-gray-400">Try adjusting your search or filters</p>
+        </div>
+
+        <div v-for="(request, index) in filteredRequests" :key="index" class="px-6 py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center gap-3">
+              <div class="p-2 rounded-full" :class="{
+                'bg-blue-100 text-blue-600': request.type === 'Sick Leave',
+                'bg-purple-100 text-purple-600': request.type === 'Family Emergency',
+                'bg-green-100 text-green-600': request.type === 'Personal Leave',
+                'bg-gray-100 text-gray-600': !['Sick Leave', 'Family Emergency', 'Personal Leave'].includes(request.type)
               }">
-                {{ request.status }}
-              </span>
+                <span v-if="request.type === 'Sick Leave'" class="text-lg">🩺</span>
+                <span v-else-if="request.type === 'Family Emergency'" class="text-lg">❤️</span>
+                <span v-else class="text-lg">📅</span>
+              </div>
+              <div>
+                <h3 class="font-medium text-gray-900">{{ request.type }}</h3>
+                <p class="text-sm text-gray-500">{{ request.student }}</p>
+              </div>
             </div>
-            <div class="text-sm text-gray-500">
-              📅 {{ request.from }} - {{ request.to }}
-            </div>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" :class="{
+              'bg-green-100 text-green-800': request.status === 'Approved',
+              'bg-red-100 text-red-800': request.status === 'Rejected',
+            }">
+              {{ request.status }}
+            </span>
           </div>
 
-          <div class="text-sm text-gray-600 mb-1">
-            <span class="font-medium">Student:</span> {{ request.student }}
-          </div>
-          <div class="text-sm text-gray-700 mb-2">
-            <span class="font-medium">Reason:</span> {{ request.reason }}
-          </div>
-
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500">
-            <div>Submitted {{ request.submitted }}</div>
-            <div v-if="request.status === 'Approved'" class="mt-1 sm:mt-0">
-              ✅ Approved by you on {{ request.approvedDate }}
+          <div class="mt-3 pl-11">
+            <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-2">
+              <div class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                {{ request.from }} - {{ request.to }}
+              </div>
+              <div class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Submitted {{ request.submitted }}
+              </div>
             </div>
-            <div v-if="request.status === 'Rejected'" class="mt-1 sm:mt-0">
-              ❌ Rejected by you on {{ request.rejectedDate }}
-            </div>
-          </div>
 
-          <div v-if="request.notes" class="mt-2 p-2 bg-blue-50 text-sm text-gray-700 rounded">
-            <span class="font-medium">Your note:</span> {{ request.notes }}
+            <div class="mb-2">
+              <p class="text-sm text-gray-700"><span class="font-medium">Reason:</span> {{ request.reason }}</p>
+            </div>
+
+            <div v-if="request.status === 'Approved'" class="flex items-center text-sm text-green-600 mt-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              Approved on {{ request.approvedDate }}
+            </div>
+
+            <div v-if="request.status === 'Rejected'" class="mt-2">
+              <div class="flex items-center text-sm text-red-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Rejected on {{ request.rejectedDate || request.approvedDate }}
+              </div>
+              <div v-if="request.rejectionComment" class="mt-2 text-xs bg-red-50 p-2 rounded-md border border-red-100">
+                <p class="font-medium text-red-800">Administrator's Note:</p>
+                <p class="text-red-700">{{ request.rejectionComment }}</p>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <button class="text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                View Full Details
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -99,133 +172,103 @@
 import { ref, computed } from 'vue'
 
 const search = ref('')
-const statusFilter = ref('all')
-const typeFilter = ref('all')
-const dateFrom = ref('')
-const dateTo = ref('')
+const statusFilter = ref('')
+const typeFilter = ref('')
 
 const leaveRequests = ref([
   {
     type: 'Sick Leave',
-    from: '2024-01-15',
-    to: '2024-01-17',
+    from: 'Jan 15, 2025',
+    to: 'Jan 17, 2025',
     status: 'Approved',
-    student: 'Sela Torm (Web A)',
-    reason: 'Flu symptoms with doctor\'s note provided',
-    submitted: 'Jan 10, 2024 at 10:30 AM',
-    approvedDate: 'Jan 10, 2024 at 3:15 PM',
+    student: 'Sela Torm (Web 2025A)',
+    reason: 'Diagnosed with influenza, doctor\'s note provided',
+    submitted: 'Jan 10, 2025',
+    approvedDate: 'Jan 11, 2025'
   },
   {
     type: 'Family Emergency',
-    from: '2024-01-20',
-    to: '2024-01-22',
+    from: 'Jan 20, 2025',
+    to: 'Jan 22, 2025',
     status: 'Approved',
-    student: 'Chhorrina Thin (Web C)',
-    reason: 'Family emergency out of town',
-    submitted: 'Jan 8, 2024 at 2:45 PM',
-    approvedDate: 'Jan 9, 2024 at 9:00 AM',
-  },
-  {
-    type: 'Maternity Leave',
-    from: '2024-02-20',
-    to: '2024-02-25',
-    status: 'Rejected',
-    student: 'Tena (Web A)',
-    reason: 'New baby born',
-    submitted: 'Feb 10, 2024 at 9:30 AM',
-    approvedDate: 'Feb 11, 2024 at 1:00 PM',
+    student: 'Nangkhoeum Champhai (Web 2025B)',
+    reason: 'Immediate family member hospitalized',
+    submitted: 'Jan 8, 2025',
+    approvedDate: 'Jan 9, 2025'
   },
   {
     type: 'Personal Leave',
-    from: '2024-02-05',
-    to: '2024-02-05',
+    from: 'Feb 5, 2025',
+    to: 'Feb 6, 2025',
+    status: 'Rejected',
+    student: 'Mesa Nath (Web 2025C)',
+    reason: 'Personal travel plans',
+    submitted: 'Jan 28, 2025',
+    rejectedDate: 'Jan 30, 2025',
+    rejectionComment: "Personal leave cannot be granted during mid-term assessment period (Feb 1-15)."
+  },
+  {
+    type: 'Sick Leave',
+    from: 'Mar 10, 2025',
+    to: 'Mar 12, 2025',
+    status: 'Rejected',
+    student: 'Darin Hoy (Web 2025A)',
+    reason: 'Severe migraine headaches',
+    submitted: 'Mar 5, 2025',
+    rejectedDate: 'Mar 6, 2025',
+    rejectionComment: "Medical certificate required for sick leave exceeding one day."
+  },
+  {
+    type: 'Family Emergency',
+    from: 'Apr 2, 2025',
+    to: 'Apr 5, 2025',
     status: 'Approved',
-    student: 'Nangkhoeum Champhai (Web B)',
-    reason: 'Attending concert',
-    submitted: 'Jan 30, 2024 at 11:20 AM',
-    rejectedDate: 'Jan 31, 2024 at 10:15 AM',
+    student: 'Vanda Mann (Web 2025B)',
+    reason: 'Sibling wedding in another province',
+    submitted: 'Mar 20, 2025',
+    approvedDate: 'Mar 22, 2025'
   },
   {
-    type: 'Bereavement Leave',
-    from: '2024-01-28',
-    to: '2024-01-30',
-    status: 'Rejected',
-    student: 'Yuhai (Web B)',
-    reason: 'Family bereavement',
-    submitted: 'Jan 25, 2024 at 3:00 PM',
-    approvedDate: 'Jan 26, 2024 at 10:00 AM',
-  },
-  {
-    type: 'Public Holiday Leave',
-    from: '2024-02-05',
-    to: '2024-02-05',
+    type: 'Study Leave',
+    from: 'May 15, 2025',
+    to: 'May 16, 2025',
     status: 'Approved',
-    student: 'Mesa Nath (Web C)',
-    reason: 'I go go to my hometown',
-    submitted: 'Jan 30, 2024 at 11:20 AM',
-    rejectedDate: 'Jan 31, 2024 at 10:15 AM',
-  },
-  {
-    type: 'Vacation',
-    from: '2024-01-25',
-    to: '2024-01-30',
-    status: 'Rejected',
-    student: 'Darin Hoy (Web C)',
-    reason: 'Family vacation planned',
-    submitted: 'Jan 20, 2024 at 9:00 AM',
-    rejectedDate: 'Jan 21, 2024 at 4:00 PM',
-  },
-  {
-    type: 'Paternity Leave',
-    from: '2024-02-10',
-    to: '2024-02-15',
-    status: 'Rejected',
-    student: 'Vanda Mann (Web B)',
-    reason: 'New baby born',
-    submitted: 'Feb 1, 2024 at 8:00 AM',
-    approvedDate: 'Feb 2, 2024 at 12:00 PM',
-  },
+    student: 'Chhorrina Thin (Web 2025C)',
+    reason: 'National academic competition participation',
+    submitted: 'May 1, 2025',
+    approvedDate: 'May 2, 2025'
+  }
 ])
 
 const filteredRequests = computed(() => {
-  return leaveRequests.value.filter(request => {
-    // Search filter
+  return leaveRequests.value.filter((req) => {
     const matchesSearch =
-      request.student.toLowerCase().includes(search.value.toLowerCase()) ||
-      request.reason.toLowerCase().includes(search.value.toLowerCase())
+      req.student.toLowerCase().includes(search.value.toLowerCase()) ||
+      req.reason.toLowerCase().includes(search.value.toLowerCase())
 
-    // Status filter
-    const matchesStatus =
-      statusFilter.value === 'all' ||
-      request.status === statusFilter.value
+    const matchesStatus = statusFilter.value === '' || req.status === statusFilter.value
+    const matchesType = typeFilter.value === '' || req.type === typeFilter.value
 
-    // Type filter
-    const matchesType =
-      typeFilter.value === 'all' ||
-      request.type === typeFilter.value
-
-    // Date range filter
-    const matchesDate = (!dateFrom.value || request.from >= dateFrom.value) &&
-      (!dateTo.value || request.to <= dateTo.value)
-
-    return matchesSearch && matchesStatus && matchesType && matchesDate
+    return matchesSearch && matchesStatus && matchesType
   })
 })
 
 const resetFilters = () => {
   search.value = ''
-  statusFilter.value = 'all'
-  typeFilter.value = 'all'
-  dateFrom.value = ''
-  dateTo.value = ''
+  statusFilter.value = ''
+  typeFilter.value = ''
 }
 </script>
 
 <style scoped>
-/* Responsive adjustments */
-@media (max-width: 640px) {
-  .flex-col>* {
-    width: 100%;
-  }
+/* Smooth transitions for interactive elements */
+button, select, input {
+  transition: all 0.2s ease;
+}
+
+/* Better focus states */
+input:focus, select:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 </style>
