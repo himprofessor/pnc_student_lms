@@ -43,8 +43,10 @@ Route::middleware(['auth:sanctum', 'role:1'])->group(function () {
     
     // You can add more routes that require the same role here
     Route::get('/educators/{id}', [AdminEducatorController::class, 'show']);
-    Route::put('/educators/{id}', [AdminEducatorController::class, 'update']);
-    Route::delete('/educators/{id}', [AdminEducatorController::class, 'destroy']);
+    Route::put('/educators/{userId}', [AdminEducatorController::class, 'update']);
+
+    Route::delete('/educators/{userId}', [AdminEducatorController::class, 'destroy']);
+
 });
 
     // Teacher Routes

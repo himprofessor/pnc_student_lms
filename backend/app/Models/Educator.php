@@ -10,7 +10,8 @@ class Educator extends Model
     use HasFactory;
 
     // Fillable fields for mass assignment
-    protected $fillable = ['name', 'email', 'password'];
+    protected $fillable = ['name', 'email', 'password', 'user_id'];
+
 
     // Define the many-to-many relationship with StudentClass
     public function classes()
@@ -20,4 +21,9 @@ class Educator extends Model
     protected $hidden = [
         'password', 'remember_token',
     ];
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
 }

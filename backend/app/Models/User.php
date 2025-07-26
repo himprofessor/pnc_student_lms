@@ -41,6 +41,11 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
+      // Relationship to Educator
+    public function educator()
+    {
+        return $this->hasOne(Educator::class);
+    }
 
     public function getRoleNameAttribute()
     {
