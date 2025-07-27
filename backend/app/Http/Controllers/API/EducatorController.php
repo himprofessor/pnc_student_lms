@@ -27,10 +27,12 @@ public function getAllLeaveRequests()
             'status' => ucfirst($leave->status),
             'submitted' => $leave->created_at->format('Y-m-d'),
 
-            // Add profile image URL
-            'profile_image' => $leave->student && $leave->student->profile_image
-                ? url('storage/profile_images/' . $leave->student->profile_image)
-                : url('storage/profile_images/default.png'), // fallback default image
+            // Add profile image URL - use the img_url accessor or img field
+            'profile_image' => $leave->student && $leave->student->img_url
+                ? $leave->student->img_url
+                : ($leave->student && $leave->student->img 
+                    ? url('storage/' . $leave->student->img)
+                    : url('storage/profile-images/default.png')), // fallback default image
         ];
     }));
 }
@@ -93,6 +95,12 @@ public function getLeaveRequest($id)
             'submitted' => $leave->created_at->format('Y-m-d'),
             'approved_by' => optional($leave->approver)->name,
             'rejection_reason' => $leave->rejection_reason,
+            // Add profile image for the detail view as well
+            'profile_image' => $leave->student && $leave->student->img_url
+                ? $leave->student->img_url
+                : ($leave->student && $leave->student->img 
+                    ? url('storage/' . $leave->student->img)
+                    : url('storage/profile-images/default.png')),
         ]
     ]);
 }
