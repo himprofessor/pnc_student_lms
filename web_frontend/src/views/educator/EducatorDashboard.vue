@@ -149,12 +149,6 @@
                 <p><strong>Status:</strong> {{ detail.status }}</p>
                 <p v-if="detail.approved_by"><strong>Approved by:</strong> {{ detail.approved_by }}</p>
                 <p v-if="detail.rejection_reason"><strong>Rejection Reason:</strong> {{ detail.rejection_reason }}</p>
-
-                <div class="flex gap-2" v-if="detail.status === 'Pending'">
-                    <button @click="approve(detail.id)"
-                        class="px-4 py-2 bg-green-600 text-white rounded">Approve</button>
-                    <button @click="reject(detail.id)" class="px-4 py-2 bg-red-600 text-white rounded">Reject</button>
-                </div>
                 <button @click="showDetail = false" class="mt-2 text-gray-600 underline">Close</button>
             </div>
         </div>
