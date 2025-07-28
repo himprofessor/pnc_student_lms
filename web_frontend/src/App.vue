@@ -1,5 +1,6 @@
 <template>
   <div>
+    <AlertStyle />
     <!-- Show Student Navbar if the route role is 'student' -->
     <StudentNavbar v-if="route.meta.role === 'student'" />
 
@@ -15,6 +16,8 @@
 import { useRoute } from 'vue-router'
 import StudentNavbar from './components/layouts/StudentNavbar.vue'
 import EducatorNavbar from './components/layouts/EducatorNavbar.vue'
+import AlertStyle from './components/AlertStyle.vue'
+
 
 const route = useRoute()
 </script>
