@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\Api\EducatorController;
 use App\Http\Controllers\API\TeacherController;
 use App\Http\Controllers\API\StudentLeaveController;
 use App\Http\Controllers\API\UserController;
@@ -30,6 +31,13 @@ Route::get('/test', function () {
 Route::get('/leave-types', [LeaveTypeController::class, 'index']);
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
+    
+    // This route is accessible to authenticated users with the 'educator' role
+    Route::get('/educator/leave-requests', [EducatorController::class, 'getAllLeaveRequests']);
+    Route::get('/educator/leave-request/{id}', [EducatorController::class, 'getLeaveRequest']);
+    Route::post('/educator/leave-request/{id}/approve', [EducatorController::class, 'approveLeaveRequest']);
+    Route::post('/educator/leave-request/{id}/reject', [EducatorController::class, 'rejectLeaveRequest']);
+
     Route::post('/logout', [AuthController::class, 'logout']);
     
     // User Profile Routes (Available to ALL authenticated users)
@@ -54,14 +62,20 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Teacher Routes
-    Route::middleware('role:teacher')->group(function () {
-        Route::get('/teacher-area', fn() => 'Teacher Access');
-        Route::get('/leave-requests', [TeacherController::class, 'viewLeaveRequests']);
-        Route::post('/leave-requests/{id}/approve', [TeacherController::class, 'approve']);
-        Route::post('/leave-requests/{id}/reject', [TeacherController::class, 'reject']);
-        Route::get('/students', [TeacherController::class, 'studentsList']);
-    });
+  // Teacher Routes
+Route::middleware(['auth:sanctum'])->get('/teacher-dashboard', function (Request $request) {
+    $user = $request->user();
 
+    if (!$user->canAccessTeacherDashboard()) {
+        return response()->json(['error' => 'Unauthorized access'], 403);
+    }
+
+    return response()->json([
+        'message' => 'Welcome, ' . $user->name . '! You are logged in as a teacher.'
+    ]);
+
+
+});
     // Student Routes
     Route::middleware('role:3')->group(function () {
         Route::post('/student/request-leave', [StudentLeaveController::class, 'requestLeave']);
@@ -72,4 +86,5 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/student/leave-request/{id}', [StudentLeaveController::class, 'updateLeaveRequest']);
         Route::delete('/student/leave-request/{id}', [StudentLeaveController::class, 'deleteLeaveRequest']);
     });
+    
 });

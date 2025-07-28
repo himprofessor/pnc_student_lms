@@ -12,27 +12,27 @@ use Illuminate\Support\Facades\Validator;
 class AuthController extends Controller
 {
     public function registerStudent(Request $request)
-{
-    // Validate the incoming request
-    $validator = Validator::make($request->all(), [
-        'name' => 'required|string|max:255',
-        'email' => 'required|string|email|max:255|unique:users|ends_with:@student.passerellesnumeriques.org',
-        'password' => 'required|string|min:8',
-    ]);
+    {
+        // Validate the incoming request
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users|ends_with:@student.passerellesnumeriques.org',
+            'password' => 'required|string|min:8',
+        ]);
 
-    if ($validator->fails()) {
-        return response()->json(['error' => $validator->errors()], 400);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 400);
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'role_id' => 3, // Ensure this role ID is correct
+        ]);
+
+        return response()->json(['message' => 'Student account created successfully.']);
     }
-
-    $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => bcrypt($request->password),
-        'role_id' => 3, // Ensure this role ID is correct
-    ]);
-
-    return response()->json(['message' => 'Student account created successfully.']);
-}
 
     public function registerTeacher(Request $request)
     {
@@ -58,40 +58,57 @@ class AuthController extends Controller
         return response()->json(['message' => 'Teacher account created successfully.']);
     }
 
-   public function login(Request $request)
+  public function login(Request $request)
 {
-    // Validate incoming request
+    // 1) Validate
     $validator = Validator::make($request->all(), [
-        'email' => 'required|email',
+        'email'    => 'required|email',
         'password' => 'required|string',
     ]);
 
-    // If validation fails, return error messages
     if ($validator->fails()) {
-        return response()->json(['error' => $validator->errors()], 422);
+        return response()->json(['errors' => $validator->errors()], 422);
     }
 
-    // Check if the email ends with the allowed domains
-    if (!str_ends_with($request->email, '@student.passerellesnumeriques.org') &&
-        !str_ends_with($request->email, '@passerellesnumeriques.org')) {
-        return response()->json(['error' => ['email' => ['Invalid email domain']]], 401);
+    // 2) Check allowed domains
+    if (
+        !str_ends_with($request->email, '@student.passerellesnumeriques.org') &&
+        !str_ends_with($request->email, '@passerellesnumeriques.org')
+    ) {
+        return response()->json(['message' => 'Invalid email domain'], 401);
     }
 
-    // Attempt to authenticate the user
+    // 3) Try to auth
     if (!Auth::attempt($request->only('email', 'password'))) {
-        return response()->json(['error' => ['password' => ['Invalid credentials']]], 401);
+        return response()->json(['message' => 'Invalid credentials'], 401);
     }
 
-    // Retrieve the authenticated user
-    $user = Auth::user();
+    // 4) Build response
+    $user  = Auth::user();
     $token = $user->createToken('auth_token')->plainTextToken;
 
-    // Return token and user information
+    // Map role + dashboard
+    $role = $user->role_id == 2 ? 'teacher' : 'student';
+
+    // use your existing frontend paths
+    $dashboardUrl = $role === 'teacher'
+        ? '/educator-dashboard'
+        : '/dashboard'; // student dashboard in your router is "/dashboard"
+
     return response()->json([
-        'token' => $token,
-        'user' => $user->only(['id', 'name', 'email', 'role_id']),
-    ]);
+        'token'          => $token,
+        'message'        => 'Login successful',
+        'role'           => $role,
+        'dashboard_url'  => $dashboardUrl,
+        'user'           => [
+            'id'      => $user->id,
+            'name'    => $user->name,
+            'email'   => $user->email,
+            'role_id' => $user->role_id,
+        ],
+    ], 200);
 }
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

@@ -1,5 +1,5 @@
 <template>
-  <nav class="flex items-center justify-between px-6 py-3 shadow bg-white">
+  <header class="flex justify-between items-center py-4 px-8 bg-white shadow-sm">
     <!-- Logo -->
     <div class="flex items-center space-x-2">
       <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -9,15 +9,35 @@
       <span class="text-lg font-semibold text-gray-800">LeaveMS</span>
     </div>
 
-    <!-- Menu -->
-    <div class="flex space-x-6 items-center">
-      <router-link to="/dashboard" class="text-gray-700 hover:bg-blue-300 px-3 py-1 rounded-md transition">Dashboard</router-link>
-      <router-link to="/request-leave" class="text-gray-700 hover:bg-blue-300 px-3 py-1 rounded-md transition">Request Leave</router-link>
-      <router-link to="/history" class="text-gray-700 hover:bg-blue-300 px-3 py-1 rounded-md transition">History</router-link>
-    </div>
+    <!-- Educator Navigation -->
+    <nav>
+      <ul class="flex space-x-5">
+        <li>
+          <router-link
+            to="/educator-dashboard"
+            class="text-gray-600 font-medium pb-1.5 border-b-2 border-transparent hover:text-blue-600 transition-colors duration-200"
+            active-class="text-blue-600 border-blue-600"
+            exact-active-class="text-blue-600 border-blue-600"
+          >
+            Dashboard
+          </router-link>
+        </li>
+        <li>
+          <router-link
+            to="/educator-history"
+            class="text-gray-600 font-medium pb-1.5 border-b-2 border-transparent hover:text-blue-600 transition-colors duration-200"
+            active-class="text-blue-600 border-blue-600"
+            exact-active-class="text-blue-600 border-blue-600"
+          >
+            History
+          </router-link>
+        </li>
+      </ul>
+    </nav>
 
-    <!-- User Dropdown -->
-    <div class="relative" @click="toggleDropdown">
+     <!-- User Dropdown -->
+      
+     <div class="relative" @click="toggleDropdown">
       <div class="flex items-center space-x-2 px-3 py-1 rounded-md cursor-pointer hover:bg-blue-50 transition">
         <!-- Profile Image or Initials -->
         <div class="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center">
@@ -45,11 +65,11 @@
 
       <!-- Dropdown menu -->
       <div v-if="dropdownOpen" class="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg border border-gray-200 z-50">
-        <router-link to="/profile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-md">Profile</router-link>
+        <router-link to="/educator-profile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-md">Profile</router-link>
         <button @click="handleSignOut" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-b-md">Sign out</button>
       </div>
     </div>
-  </nav>
+  </header>
 </template>
 
 <script setup>
@@ -70,17 +90,11 @@ const displayName = computed(() => {
   if (isLoading.value) return 'Loading...'
   if (apiError.value) return 'Error'
   if (!user.value) return 'Guest'
-  
-  return user.value.name || 
-         user.value.full_name || 
-         user.value.first_name || 
-         (user.value.email ? user.value.email.split('@')[0] : null) || 
-         'User'
+  return user.value.name || user.value.full_name || user.value.first_name ||
+         (user.value.email ? user.value.email.split('@')[0] : null) || 'User'
 })
 
-const toggleDropdown = () => {
-  dropdownOpen.value = !dropdownOpen.value
-}
+const toggleDropdown = () => dropdownOpen.value = !dropdownOpen.value
 
 const getUserInitials = () => {
   if (!user.value) return 'G'
@@ -114,12 +128,6 @@ const getProfileImageUrl = () => {
                     user.value.image || 
                     user.value.photo ||
                     user.value.profile_photo
-
-  console.log('=== NAVBAR IMAGE DEBUG ===')
-  console.log('user.value:', user.value)
-  console.log('user.value.img:', user.value.img)
-  console.log('user.value.img_url:', user.value.img_url)
-  console.log('imageField:', imageField)
 
   if (!imageField) {
     console.log('No image field found')
@@ -191,58 +199,19 @@ const fetchUser = async () => {
 
 const handleSignOut = async () => {
   const token = localStorage.getItem('authToken')
-  
-  // Try to logout on the server first
   if (token) {
     try {
       await axios.post('http://127.0.0.1:8000/api/logout', {}, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       })
     } catch (error) {
       console.error('Logout API error:', error)
     }
   }
-  
-  // Clear local storage
-  localStorage.removeItem('authToken')
-  localStorage.removeItem('token')
-  localStorage.removeItem('user_data')
-  
-  // Clear user state
+  localStorage.clear()
   user.value = null
-  
-  // Redirect to login
   router.push('/login')
 }
 
-// Listen for user data updates from profile page
-const handleUserDataUpdate = (event) => {
-  if (event.detail) {
-    user.value = event.detail
-    localStorage.setItem('user_data', JSON.stringify(event.detail))
-    imageError.value = false // Reset image error when user data updates
-  }
-}
-
-onMounted(async () => {
-  // Listen for user data updates
-  window.addEventListener('userDataUpdated', handleUserDataUpdate)
-  
-  // Load from localStorage first
-  const storedUser = localStorage.getItem('user_data')
-  if (storedUser) {
-    try {
-      user.value = JSON.parse(storedUser)
-    } catch (e) {
-      localStorage.removeItem('user_data')
-    }
-  }
-  
-  // Fetch fresh data
-  await fetchUser()
-})
+onMounted(fetchUser)
 </script>

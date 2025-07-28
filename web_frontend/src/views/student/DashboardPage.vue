@@ -4,10 +4,8 @@
       <!-- Header -->
       <div class="flex justify-between items-center mb-6">
         <div>
-          <h1 class="text-2xl font-bold">Welcome back, John Doe</h1>
-          <p class="text-sm text-gray-500">
-            Manage your leave requests and track their status
-          </p>
+          <h1 class="text-2xl font-bold">Welcome back {{ user.name || user.full_name || 'User' }}</h1>
+          <p class="text-sm text-gray-500">Manage your leave requests and track their status</p>
         </div>
         <button
           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center space-x-1"
@@ -223,10 +221,33 @@ import { showAlert } from '@/stores/useAlertStore.js'
 import { CheckCircle, XCircle, AlertTriangle } from 'lucide-vue-next'
 
 
-const leaveRequests = ref([]);
-const pendingCount = ref(0);
-const approvedCount = ref(0);
-const rejectedCount = ref(0);
+
+const user = ref({})
+
+onMounted(async () => {
+  // Load from localStorage first
+  const stored = localStorage.getItem('user_data')
+  if (stored) user.value = JSON.parse(stored)
+  
+  // Fetch fresh data from API
+  try {
+    const token = localStorage.getItem('authToken')
+    if (token) {
+      const response = await axios.get('http://127.0.0.1:8000/api/user', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      user.value = response.data
+      localStorage.setItem('user_data', JSON.stringify(user.value))
+    }
+  } catch (error) {
+    console.error('Failed to fetch user:', error)
+  }
+})
+
+const leaveRequests = ref([])
+const pendingCount = ref(0)
+const approvedCount = ref(0)
+const rejectedCount = ref(0)
 
 const currentPage = ref(1);
 const pageSize = 5;

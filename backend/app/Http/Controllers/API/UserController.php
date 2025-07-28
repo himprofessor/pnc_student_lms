@@ -14,23 +14,106 @@ use Illuminate\Support\Facades\Storage;
 class UserController extends Controller
 {
     /**
+     * Update only profile image (using helper in User.php)
+     */
+    public function updateOnlyProfileImage(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            $validator = Validator::make($request->all(), [
+                'img' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation error',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $imagePath = $request->file('img')->store('profile-images', 'public');
+            $user->updateProfileImage($imagePath); // Helper method in User model
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile image updated successfully',
+                'data' => $user,
+                'img_url' => $user->img_url
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Error updating profile image: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating profile image',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete only profile image (uses helper in User.php)
+     */
+    public function deleteOnlyProfileImage(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            if (!$user->hasProfileImage()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No profile image to delete'
+                ], 404);
+            }
+
+            $user->removeProfileImage(); // Helper method in User model
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile image deleted successfully',
+                'data' => $user
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Error deleting profile image: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting profile image',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get formatted contact info (optional new endpoint)
+     */
+    public function getFormattedContactInfo(Request $request)
+    {
+        $user = $request->user();
+
+        return response()->json([
+            'success' => true,
+            'contact_info' => $user->getContactInfoFormatted(), // Helper method in User model
+        ], 200);
+    }
+
+    /**
      * Get current authenticated user
      */
     public function getCurrentUser(Request $request)
     {
         try {
             $user = $request->user();
-            
+
             if (!$user) {
                 return response()->json([
                     'success' => false,
                     'message' => 'User not found'
                 ], 404);
             }
-            
-            // Load the role relationship
+
             $user->load('role');
-            
+
             return response()->json($user);
         } catch (\Exception $e) {
             Log::error('Error in getCurrentUser: ' . $e->getMessage());
@@ -43,19 +126,19 @@ class UserController extends Controller
     }
 
     /**
-     * Update current user's profile
+     * ✅ Update current user's profile (FULL version, keep this one!)
      */
     public function updateProfile(Request $request)
     {
         try {
             $user = $request->user();
-            
+
             $validator = Validator::make($request->all(), [
                 'name' => 'sometimes|required|string|max:255',
                 'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
                 'contact_info' => 'sometimes|nullable|string|max:255',
                 'emergency_contact' => 'sometimes|nullable|string|max:255',
-                'img' => 'sometimes|nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // 2MB max
+                'img' => 'sometimes|nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
 
             if ($validator->fails()) {
@@ -65,24 +148,21 @@ class UserController extends Controller
                     'errors' => $validator->errors()
                 ], 422);
             }
-            
+
             $updateData = $validator->validated();
-            
-            // Handle image upload
+
             if ($request->hasFile('img')) {
-                // Delete old image if exists
                 if ($user->img && Storage::disk('public')->exists($user->img)) {
                     Storage::disk('public')->delete($user->img);
                 }
-                
-                // Store new image
+
                 $imagePath = $request->file('img')->store('profile-images', 'public');
                 $updateData['img'] = $imagePath;
             }
-            
+
             $user->update($updateData);
             $user->load('role');
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Profile updated successfully',
@@ -105,9 +185,9 @@ class UserController extends Controller
     {
         try {
             $user = $request->user();
-            
+
             $validator = Validator::make($request->all(), [
-                'img' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // 2MB max
+                'img' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
 
             if ($validator->fails()) {
@@ -117,18 +197,16 @@ class UserController extends Controller
                     'errors' => $validator->errors()
                 ], 422);
             }
-            
-            // Delete old image if exists
+
             if ($user->img && Storage::disk('public')->exists($user->img)) {
                 Storage::disk('public')->delete($user->img);
             }
-            
-            // Store new image
+
             $imagePath = $request->file('img')->store('profile-images', 'public');
-            
+
             $user->update(['img' => $imagePath]);
             $user->load('role');
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Profile image uploaded successfully',
@@ -152,14 +230,14 @@ class UserController extends Controller
     {
         try {
             $user = $request->user();
-            
+
             if ($user->img && Storage::disk('public')->exists($user->img)) {
                 Storage::disk('public')->delete($user->img);
             }
-            
+
             $user->update(['img' => null]);
             $user->load('role');
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Profile image deleted successfully',
@@ -189,7 +267,8 @@ class UserController extends Controller
             if ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%");
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
                 });
             }
 
@@ -199,8 +278,7 @@ class UserController extends Controller
                 'success' => true,
                 'message' => 'Users retrieved successfully',
                 'data' => $users
-            ], 200);
-
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -219,6 +297,7 @@ class UserController extends Controller
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
+                'phone' => 'nullable|string|max:20',
                 'password' => 'required|string|min:8',
                 'role_id' => 'required_without:role|exists:roles,id',
                 'role' => 'required_without:role_id|string|exists:roles,name',
@@ -235,7 +314,6 @@ class UserController extends Controller
                 ], 422);
             }
 
-            // Get role_id from role name if role is provided
             $roleId = $request->role_id;
             if ($request->has('role') && !$request->has('role_id')) {
                 $role = Role::where('name', $request->role)->first();
@@ -245,13 +323,13 @@ class UserController extends Controller
             $userData = [
                 'name' => $request->name,
                 'email' => $request->email,
+                'phone' => $request->phone,
                 'password' => Hash::make($request->password),
                 'role_id' => $roleId,
                 'contact_info' => $request->contact_info,
                 'emergency_contact' => $request->emergency_contact,
             ];
 
-            // Handle image upload
             if ($request->hasFile('img')) {
                 $imagePath = $request->file('img')->store('profile-images', 'public');
                 $userData['img'] = $imagePath;
@@ -265,7 +343,6 @@ class UserController extends Controller
                 'message' => 'User created successfully',
                 'data' => $user
             ], 201);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -276,7 +353,7 @@ class UserController extends Controller
     }
 
     /**
-     * Display the specified user
+     * Show a specific user
      */
     public function show(string $id)
     {
@@ -294,8 +371,7 @@ class UserController extends Controller
                 'success' => true,
                 'message' => 'User retrieved successfully',
                 'data' => $user
-            ], 200);
-
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -306,12 +382,11 @@ class UserController extends Controller
     }
 
     /**
-     * Update the specified user
+     * Update a user (admin or self)
      */
     public function update(Request $request, string $id = null)
     {
         try {
-            // If no ID provided, update the authenticated user (for profile updates)
             $user = $id ? User::find($id) : $request->user();
 
             if (!$user) {
@@ -321,7 +396,6 @@ class UserController extends Controller
                 ], 404);
             }
 
-            // Simple validation - only validate fields that are present
             $validator = Validator::make($request->all(), [
                 'name' => 'sometimes|required|string|max:255',
                 'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $user->id,
@@ -341,63 +415,36 @@ class UserController extends Controller
                 ], 422);
             }
 
-            // Prepare update data
             $updateData = [];
 
-            if ($request->has('name')) {
-                $updateData['name'] = $request->name;
-            }
-
-            if ($request->has('email')) {
-                $updateData['email'] = $request->email;
-            }
-
-            if ($request->filled('password')) {
-                $updateData['password'] = Hash::make($request->password);
-            }
-
-            if ($request->has('role_id')) {
-                $updateData['role_id'] = $request->role_id;
-            } elseif ($request->has('role')) {
+            if ($request->has('name')) $updateData['name'] = $request->name;
+            if ($request->has('email')) $updateData['email'] = $request->email;
+            if ($request->filled('password')) $updateData['password'] = Hash::make($request->password);
+            if ($request->has('role_id')) $updateData['role_id'] = $request->role_id;
+            elseif ($request->has('role')) {
                 $role = Role::where('name', $request->role)->first();
                 $updateData['role_id'] = $role->id;
             }
+            if ($request->has('contact_info')) $updateData['contact_info'] = $request->contact_info;
+            if ($request->has('emergency_contact')) $updateData['emergency_contact'] = $request->emergency_contact;
 
-            if ($request->has('contact_info')) {
-                $updateData['contact_info'] = $request->contact_info;
-            }
-
-            if ($request->has('emergency_contact')) {
-                $updateData['emergency_contact'] = $request->emergency_contact;
-            }
-
-            // Handle image upload
             if ($request->hasFile('img')) {
-                // Delete old image if exists
                 if ($user->img && Storage::disk('public')->exists($user->img)) {
                     Storage::disk('public')->delete($user->img);
                 }
-                
-                // Store new image
                 $imagePath = $request->file('img')->store('profile-images', 'public');
                 $updateData['img'] = $imagePath;
             }
 
-            // Update using the update method
-            if (!empty($updateData)) {
-                $user->update($updateData);
-            }
+            if (!empty($updateData)) $user->update($updateData);
 
-            // Refresh the model to get updated data
-            $user->refresh();
-            $user->load('role');
+            $user->refresh()->load('role');
 
             return response()->json([
                 'success' => true,
                 'message' => 'User updated successfully',
                 'data' => $user
-            ], 200);
-
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -435,15 +482,12 @@ class UserController extends Controller
                 ], 400);
             }
 
-            $user->update([
-                'password' => Hash::make($request->new_password)
-            ]);
+            $user->update(['password' => Hash::make($request->new_password)]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Password updated successfully'
-            ], 200);
-
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -454,7 +498,7 @@ class UserController extends Controller
     }
 
     /**
-     * Remove the specified user
+     * Delete a user
      */
     public function destroy(string $id)
     {
@@ -468,7 +512,6 @@ class UserController extends Controller
                 ], 404);
             }
 
-            // Prevent deleting the currently authenticated user
             if (auth()->id() == $id) {
                 return response()->json([
                     'success' => false,
@@ -476,7 +519,6 @@ class UserController extends Controller
                 ], 422);
             }
 
-            // Delete user's profile image if exists
             if ($user->img && Storage::disk('public')->exists($user->img)) {
                 Storage::disk('public')->delete($user->img);
             }
@@ -486,8 +528,7 @@ class UserController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'User deleted successfully'
-            ], 200);
-
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -516,12 +557,7 @@ class UserController extends Controller
                 ], 422);
             }
 
-            $ids = $request->ids;
-            
-            // Remove current user's ID from the list to prevent self-deletion
-            $ids = array_filter($ids, function($id) {
-                return $id != auth()->id();
-            });
+            $ids = array_filter($request->ids, fn($id) => $id != auth()->id());
 
             if (empty($ids)) {
                 return response()->json([
@@ -530,7 +566,6 @@ class UserController extends Controller
                 ], 422);
             }
 
-            // Delete profile images for users being deleted
             $usersToDelete = User::whereIn('id', $ids)->get();
             foreach ($usersToDelete as $user) {
                 if ($user->img && Storage::disk('public')->exists($user->img)) {
@@ -542,16 +577,14 @@ class UserController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "Successfully deleted {$deletedCount} users"
-            ], 200);
-
+                'message' => "{$deletedCount} users deleted successfully"
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error deleting users',
+                'message' => 'Error bulk deleting users',
                 'error' => $e->getMessage()
             ], 500);
         }
     }
 }
-

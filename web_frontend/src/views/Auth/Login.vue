@@ -30,83 +30,115 @@
       </form>
       <p v-if="errorMessage" class="text-red-600 mt-4 text-center">{{ errorMessage }}</p>
     </div>
+
+    <!-- Success Alert -->
+    <div v-if="successMessage" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center">
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      {{ successMessage }}
+    </div>
   </div>
 </template>
-
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios' // Use global axios with main.js interceptor
+import axios from 'axios'
 
 const router = useRouter()
 
 const email = ref('')
 const password = ref('')
 const errorMessage = ref('')
+const successMessage = ref('')
 const fieldErrors = ref({})
 const isLoading = ref(false)
 
+const showSuccess = (message) => {
+  successMessage.value = message
+  setTimeout(() => {
+    successMessage.value = ''
+  }, 3000)
+}
 const login = async () => {
   errorMessage.value = ''
   fieldErrors.value = {}
+  successMessage.value = ''
   isLoading.value = true
 
   try {
-    // Clear existing auth info
     localStorage.removeItem('authToken')
-    localStorage.removeItem('token')
     localStorage.removeItem('user_data')
+    localStorage.removeItem('role')
 
-    console.log('=== LOGIN DEBUG ===')
-    console.log('Attempting login with:', { email: email.value })
-
-    const response = await axios.post('/login', {
+    const { data } = await axios.post('/login', {
       email: email.value,
       password: password.value,
     })
 
-    console.log('Login response:', response.data)
+    const { token, user, role, dashboard_url } = data
 
-    // Save token with the key that main.js interceptor expects
-    localStorage.setItem('authToken', response.data.token)
-    console.log('Token saved as authToken:', response.data.token)
+    localStorage.setItem('authToken', token)
+    localStorage.setItem('user_data', JSON.stringify(user))
+    localStorage.setItem('role', role)
 
-    // Save user data if available
-    if (response.data.user) {
-      localStorage.setItem('user_data', JSON.stringify(response.data.user))
-      console.log('User data saved:', response.data.user)
-    }
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
-    // Redirect to dashboard
-    console.log('Redirecting to dashboard...')
-    router.push('/dashboard')
+    showSuccess('Login successful! Redirecting...')
+
+    setTimeout(() => {
+      // Redirect dynamically based on backend response
+      if (dashboard_url) {
+        router.replace(dashboard_url)
+      } else {
+        router.replace(role === 'teacher' ? '/educator-dashboard' : '/dashboard')
+      }
+    }, 1000)
   } catch (error) {
-    console.error('=== LOGIN ERROR ===')
-    console.error('Full error:', error)
-    console.error('Response status:', error.response?.status)
-    console.error('Response data:', error.response?.data)
-    
+    // Error handling remains the same
     if (error.response?.status === 422 && error.response?.data?.errors) {
-      // Handle validation errors
-      const errors = error.response.data.errors
-      if (errors.email) {
-        fieldErrors.value.email = errors.email[0]
-      }
-      if (errors.password) {
-        fieldErrors.value.password = errors.password[0]
-      }
-      errorMessage.value = error.response.data.message || 'Please correct the errors in the form.'
+      fieldErrors.value = error.response.data.errors
+      errorMessage.value = 'Please correct the errors.'
     } else if (error.response?.status === 401) {
-      errorMessage.value = error.response.data.message || 'Invalid email or password. Please try again.'
-    } else if (error.response?.data?.message) {
-      errorMessage.value = error.response.data.message
-    } else if (error.request) {
-      errorMessage.value = 'No response from server. Please check your network connection.'
+      errorMessage.value = error.response.data.message || 'Invalid email or password.'
     } else {
-      errorMessage.value = 'Login failed. Please check your credentials and try again.'
+      errorMessage.value = 'Login failed. Please try again.'
     }
   } finally {
     isLoading.value = false
   }
 }
+
 </script>
+
+<style scoped>
+/* Success alert animation */
+.fixed.top-4.right-4 {
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Button hover effects */
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  transition: all 0.2s ease-in-out;
+}
+
+/* Input focus effects */
+input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  transition: all 0.2s ease-in-out;
+}
+</style>
