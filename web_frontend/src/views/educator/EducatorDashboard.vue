@@ -143,9 +143,15 @@
                 <p><strong>Reason:</strong> {{ detail.reason }}</p>
                 <p><strong>Contact:</strong> {{ detail.contact_info }}</p>
                 <p v-if="detail.supporting_documents">
-                    <a :href="detail.supporting_documents" target="_blank" class="text-blue-600 underline">View
-                        Document</a>
-                </p>
+  <a
+    :href="getDocumentUrl(detail.supporting_documents)"
+    target="_blank"
+    class="text-blue-600 underline"
+  >
+    View Document
+  </a>
+</p>
+
                 <p><strong>Status:</strong> {{ detail.status }}</p>
                 <p v-if="detail.approved_by"><strong>Approved by:</strong> {{ detail.approved_by }}</p>
                 <p v-if="detail.rejection_reason"><strong>Rejection Reason:</strong> {{ detail.rejection_reason }}</p>
@@ -175,6 +181,13 @@ const user = ref(null)
 const isLoading = ref(false)
 const apiError = ref(null)
 const detailImageError = ref(false)
+
+
+const getDocumentUrl = (path) => {
+  if (!path) return null;
+  return `http://127.0.0.1:8000/storage/${path}`;
+};
+
 
 const formatDate = (dateStr) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' }
@@ -223,25 +236,27 @@ const fetchLeaveRequests = async () => {
 const viewDetail = async (id) => {
     try {
         const res = await axios.get(`http://127.0.0.1:8000/api/educator/leave-request/${id}`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` }
-        })
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+        });
 
-        console.log('Leave request detail response:', res.data)
+        const request = res.data.leave_request || {};
 
         detail.value = {
-            ...res.data.leave_request,
-            // Ensure the detail has the student profile image data
-            profile_image: res.data.leave_request.profile_image || res.data.leave_request.student_img || res.data.leave_request.img || null
-        }
+            ...request,
+            profile_image: request.profile_image || request.student_img || request.img || null,
+            document_url: request.document_url ?? null,
+        };
 
-        console.log('Detail with student profile image:', detail.value.profile_image)
+        console.log('Detail loaded:', detail.value);
 
-        detailImageError.value = false // Reset image error for modal
-        showDetail.value = true
+        detailImageError.value = false; // Reset image error
+        showDetail.value = true;
     } catch (err) {
-        console.error('Error loading request detail:', err)
+        console.error('Error loading request detail:', err);
     }
-}
+};
 
 const approve = async (id) => {
     await axios.post(`http://127.0.0.1:8000/api/educator/leave-request/${id}/approve`, {}, {
@@ -355,7 +370,7 @@ const getProfileImageUrl = (request) => {
     console.log('Request object:', request)
 
     // Try multiple possible field names for the image
-    let imageField = null
+    let imageField   
     
     // Check different possible locations for the image data
     if (request.profile_image) {
