@@ -11,8 +11,12 @@ import ProfilePage from '@/views/student/ProfilePage.vue'
 
 import EducatorDashboard from '@/views/Educator/EducatorDashboard.vue'
 import EducatorHistory from '@/views/Educator/EducatorHistory.vue'
-import EducatorProfile from '@/views/educator/EducatorProfile.vue'
-
+import EducatorProfile from '@/views/Educator/EducatorProfile.vue'
+// Import your view components
+import AdminDashboard from '@/views/Admin/AdminDashboard.vue';
+import AccountManager from '@/views/Admin/AccountManager.vue';
+import ManageEducators from '@/views/Admin/ManageEducators.vue';
+import ManageStudents from '@/views/Admin/ManageStudents.vue';
 const routes = [
   { path: '/', component: Home, meta: { hideStudentNavbar: true } },
   { path: '/login', component: Login, meta: { hideStudentNavbar: true } },
@@ -27,7 +31,20 @@ const routes = [
   // Teacher routes
   { path: '/educator-dashboard', component: EducatorDashboard, meta: { requiresAuth: true, role: 'teacher' } },
   { path: '/educator-history', component: EducatorHistory, meta: { requiresAuth: true, role: 'teacher' } },
-  { path: '/educator-profile', component: EducatorProfile, meta: { requiresAuth: true, role: 'teacher'}}
+  { path: '/educator-profile', component: EducatorProfile, meta: { requiresAuth: true, role: 'teacher'}},
+  //Admim management
+   // Admin routes
+    { path: '/admin/dashboard', name: 'AdminDashboard', component: AdminDashboard, meta: { requiresAuth: true, role: 'admin' } },
+    { path: '/admin/accounts', name: 'AccountManager', component: AccountManager, meta: { requiresAuth: true, role: 'admin' } },
+    { path: '/admin/educators', name: 'ManageEducators', component: ManageEducators, meta: { requiresAuth: true, role: 'admin' } },
+    { path: '/admin/students', name: 'ManageStudents', component: ManageStudents, meta: { requiresAuth: true, role: 'admin' } },
+
+    {
+        path: '/:pathMatch(.*)*', // Catch-all route for 404
+        name: 'NotFound',
+        redirect: '/admin/dashboard' // Redirect to admin dashboard for unknown routes
+    }
+   
 ]
 
 const router = createRouter({
@@ -62,5 +79,6 @@ router.beforeEach((to, from, next) => {
 
   next()
 })
+
 
 export default router
