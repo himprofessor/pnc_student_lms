@@ -1,19 +1,20 @@
-// composables/useAlertStore.js
-import { reactive } from 'vue'
+// src/composables/useAlert.js
+import { ref } from 'vue';
 
-export const alertState = reactive({
-  show: false,
+export const alertState = ref({
+  visible: false,
   type: 'info',
+  title: '',
   message: '',
-  icon: null,
-})
+});
 
-export function showAlert(type, message, icon = null) {
-  alertState.type = type
-  alertState.message = message
-  alertState.icon = icon
-  alertState.show = true
-  setTimeout(() => {
-    alertState.show = false
-  }, 3000)
-}
+export const useAlert = () => {
+  const showAlert = (type, title, message) => {
+    alertState.value = { visible: true, type, title, message };
+    setTimeout(() => {
+      alertState.value.visible = false;
+    }, 3000); // auto close
+  };
+
+  return { alertState, showAlert };
+};

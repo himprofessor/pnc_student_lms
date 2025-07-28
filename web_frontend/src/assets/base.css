@@ -84,3 +84,48 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.alert {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin: 10px 0;
+  gap: 8px;
+  font-family: sans-serif;
+  font-size: 14px;
+  position: relative;
+}
+
+.alert-success {
+  background-color: #e6ffed;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+}
+
+.alert-error {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+}
+
+.alert-warning {
+  background-color: #fff8e1;
+  color: #f57f17;
+  border: 1px solid #ffe082;
+}
+
+.alert-info {
+  background-color: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #90caf9;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  margin-left: auto;
+  font-size: 16px;
+  cursor: pointer;
+  color: inherit;
+}
