@@ -169,7 +169,7 @@
               <button 
                 type="submit"
                 :disabled="isUpdatingProfile"
-                class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center"
+                class="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center"
               >
                 <svg v-if="isUpdatingProfile" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -271,7 +271,7 @@
               <button 
                 type="submit" 
                 :disabled="isChangingPassword"
-                class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center"
+                class="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center"
               >
                 <svg v-if="isChangingPassword" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -784,7 +784,7 @@ button:hover {
 
 /* Form validation styles */
 input:invalid {
-  border-color: gray;
+  border-color: #ef4444;
 }
 
 input:valid {
