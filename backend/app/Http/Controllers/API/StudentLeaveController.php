@@ -22,9 +22,10 @@ class StudentLeaveController extends Controller
         ]);
 
         // Handle file upload
-        $documentPath = null;
+        $path = null;
         if ($request->hasFile('supporting_documents')) {
-            $documentPath = $request->file('supporting_documents')->store('supporting_documents');
+            $path = $request->file('supporting_documents')?->store('supporting_documents', 'public');
+
         }
 
         $leave = LeaveRequest::create([
@@ -34,14 +35,30 @@ class StudentLeaveController extends Controller
             'from_date' => $request->from_date,
             'to_date' => $request->to_date,
             'contact_info' => $request->contact_info,
-            'supporting_documents' => $documentPath,
+            'supporting_documents' => $path,
             'status' => 'pending',
         ]);
 
         return response()->json([
             'message' => 'Leave request submitted successfully.',
-            'data' => $leave,
+            'data' => [
+                'id' => $leave->id,
+                'student_id' => $leave->student_id,
+                'leave_type_id' => $leave->leave_type_id,
+                'reason' => $leave->reason,
+                'from_date' => $leave->from_date,
+                'to_date' => $leave->to_date,
+                'contact_info' => $leave->contact_info,
+                'status' => $leave->status,
+                'created_at' => $leave->created_at,
+                'updated_at' => $leave->updated_at,
+                'supporting_documents' => $leave->supporting_documents,
+                'document_url' => $leave->supporting_documents
+                    ? asset('storage/' . $leave->supporting_documents)
+                    : null,
+            ]
         ], 201);
+        
     }
 
     // View logged-in student's leave requests
