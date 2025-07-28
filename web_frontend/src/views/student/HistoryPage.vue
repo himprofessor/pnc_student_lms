@@ -173,12 +173,17 @@
               </span>
 
               <!-- View button -->
-                <button
+              <button
                 @click.prevent="openDetails(request)"
                 class="text-blue-600 text-sm font-medium transition hover:bg-blue-100 hover:rounded-md py-1"
               >
                 View
               </button>
+              <ConfirmDialog
+                :visible="showConfirm"
+                message="Are you sure you want to cancel this leave request?"
+                @confirm="handleConfirm"
+              />
 
               <!-- Cancel button -->
               <button
@@ -313,7 +318,8 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
-import Swal from "sweetalert2";
+import ConfirmDialog from "@/components/ConfirmDialog.vue";
+import { useAlert } from "@/stores/useAlertStore";
 
 const router = useRouter();
 
@@ -421,65 +427,37 @@ const filterLeaveRequests = () => {
   });
 };
 
-const cancelLeave = async (id) => {
-  const result = await Swal.fire({
-    title: "Confirm Cancellation",
-    text: "Are you sure you want to cancel this leave request?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Yes, Cancel It",
-    cancelButtonText: "No, Keep It",
-    customClass: {
-      confirmButton:
-        "bg-red-400 hover:bg-red-400 text-white text-sm  py-2 rounded mr-2",
-      cancelButton:
-        "bg-blue-400 hover:bg-blue-400 text-white text-sm py-2 rounded",
-    },
-    background: "#fff",
-    backdrop: "rgba(0,0,0,0.4)",
-  });
-  if (!result.isConfirmed) return;
+const { showAlert } = useAlert();
+const showConfirm = ref(false);
+const leaveRequestId = ref(null);
+
+const cancelLeave = (id) => {
+  leaveRequestId.value = id;
+  showConfirm.value = true;
+};
+
+const handleConfirm = async (confirmed) => {
+  showConfirm.value = false;
+  if (!confirmed) return;
+
   try {
     const token = localStorage.getItem("authToken");
     await axios.delete(
-      `http://127.0.0.1:8000/api/student/leave-request/${id}`,
+      `http://127.0.0.1:8000/api/student/leave-request/${leaveRequestId.value}`,
       {
         headers: { Authorization: `Bearer ${token}` },
       }
     );
-    await Swal.fire({
-      icon: "success",
-      title: "Leave Cancelled",
-      text: "Your leave request has been cancelled.",
-      iconColor: "#16a34a",
-      confirmButtonText: "OK",
-      customClass: {
-        confirmButton:
-          "bg-green-400 hover:bg-green-400 text-white text-sm py-2 rounded",
-      },
-      background: "#fff",
-    });
+
+    showAlert("success", "Success!", "Your leave request has been cancelled.");
     await fetchLeaveRequests();
-    filterLeaveRequests();
   } catch (err) {
-    await Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: `Failed to cancel leave: ${
-        err.response?.data?.message || err.message
-      }`,
-      iconColor: "#dc2626",
-      confirmButtonText: "OK",
-      customClass: {
-        confirmButton:
-          "bg-red-400 hover:bg-red-400 text-white text-sm py-2 rounded",
-      },
-      background: "#fff",
-    });
     if (err.response?.status === 401) router.push("/login");
     console.error("Cancel leave error:", err);
+    showAlert("error", "Error", "Failed to cancel leave request.");
   }
 };
+
 
 onMounted(() => {
   fetchLeaveRequests();
