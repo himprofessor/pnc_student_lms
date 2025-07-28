@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class StudentClass extends Model
 {
-    use HasFactory;
+    protected $fillable = ['name'];
 
-    protected $fillable = ['class_name']; // Add your actual class fields
+    public function students()
+    {
+        return $this->belongsToMany(User::class, 'class_student', 'student_class_id', 'user_id');
+    }
 
     public function educators()
     {

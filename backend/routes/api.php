@@ -6,6 +6,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\TeacherController;
 use App\Http\Controllers\API\StudentLeaveController;
 use App\Http\Controllers\API\AdminEducatorController;
+use App\Http\Controllers\API\AdminStudentController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Api\LeaveTypeController;
@@ -40,12 +41,16 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware(['auth:sanctum', 'role:1'])->group(function () {
     Route::get('/educators', [AdminEducatorController::class, 'index']);
     Route::post('/educators', [AdminEducatorController::class, 'store']);
-    
-    // You can add more routes that require the same role here
     Route::get('/educators/{id}', [AdminEducatorController::class, 'show']);
     Route::put('/educators/{userId}', [AdminEducatorController::class, 'update']);
-
-    Route::delete('/educators/{userId}', [AdminEducatorController::class, 'destroy']);
+    Route::delete('/educators/{userId}', [AdminEducatorController::class, 'destroy']); 
+    // New student routes
+   // Students
+    Route::get('/students', [AdminStudentController::class, 'index']);
+    Route::post('/students', [AdminStudentController::class, 'store']);
+    Route::get('/students/{id}', [AdminStudentController::class, 'show']);        // Show student details
+    Route::put('/students/{id}', [AdminStudentController::class, 'update']);      // Update student
+    Route::delete('/students/{id}', [AdminStudentController::class, 'destroy']);  // Delete student
 
 });
 

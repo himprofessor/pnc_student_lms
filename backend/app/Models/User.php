@@ -51,7 +51,10 @@ class User extends Authenticatable
     {
         return $this->role ? $this->role->name : 'No Role';
     }
-
+    public function studentClasses()
+    {
+        return $this->belongsToMany(StudentClass::class, 'class_student', 'user_id', 'student_class_id');
+    }
     public function hasRole($role)
     {
         if (is_string($role)) {
