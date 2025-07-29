@@ -23,12 +23,10 @@ class LeaveRequest extends Model
     {
         return $this->belongsTo(LeaveType::class, 'leave_type_id');
     }
-<<<<<<< HEAD
     public function educator()
     {
         return $this->belongsTo(Educator::class);
     }
-=======
 
 
     public function student()
@@ -42,5 +40,4 @@ public function approver()
     return $this->belongsTo(User::class, 'approved_by');
 }
 
->>>>>>> 2d056af20e26c677291cc559fcb4ed692c7c0b1d
 }
