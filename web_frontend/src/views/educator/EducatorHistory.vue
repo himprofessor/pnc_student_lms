@@ -525,10 +525,8 @@ const togglePin = async (request) => {
 const toggleHide = async (request) => {
   request.is_hidden = !request.is_hidden
   localStorage.setItem(`hidden_${request.id}`, request.is_hidden.toString())
-  // If we're currently showing hidden items and we unhide one, 
-  // it should disappear from view if we're in "hidden items only" mode
   if (showHidden.value && !request.is_hidden) {
-    fetchLeaveRequests() // Refresh the list
+    fetchLeaveRequests()
   }
 }
 
