@@ -2,9 +2,23 @@
   <nav class="flex items-center justify-between px-6 py-3 shadow bg-white">
     <!-- Logo -->
     <div class="flex items-center space-x-2">
-      <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422A12.042 12.042 0 0118 14.5C18 17.538 15.538 20 12.5 20S7 17.538 7 14.5c0-.697.096-1.374.273-2.017L12 14z" />
+      <svg
+        class="w-6 h-6 text-blue-600"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M12 14l9-5-9-5-9 5 9 5z"
+        />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M12 14l6.16-3.422A12.042 12.042 0 0118 14.5C18 17.538 15.538 20 12.5 20S7 17.538 7 14.5c0-.697.096-1.374.273-2.017L12 14z"
+        />
       </svg>
       <span class="text-lg font-semibold text-gray-800">LeaveMS</span>
     </div>

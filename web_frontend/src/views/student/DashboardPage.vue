@@ -4,8 +4,12 @@
       <!-- Header -->
       <div class="flex justify-between items-center mb-6">
         <div>
-          <h1 class="text-2xl font-bold">Welcome back {{ user.name || user.full_name || 'User' }}</h1>
-          <p class="text-sm text-gray-500">Manage your leave requests and track their status</p>
+          <h1 class="text-2xl font-bold">
+            Welcome back {{ user.name || user.full_name || "User" }}
+          </h1>
+          <p class="text-sm text-gray-500">
+            Manage your leave requests and track their status
+          </p>
         </div>
         <button
           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center space-x-1"
@@ -173,6 +177,11 @@
               >
                 {{ request.status }}
               </span>
+              <ConfirmDialog
+                :visible="showConfirm"
+                message="Are you sure you want to cancel this leave request?"
+                @confirm="handleConfirm"
+              />
 
               <button
                 v-if="request.status === 'pending'"
@@ -217,35 +226,34 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import axios from "axios";
-import Swal from "sweetalert2";
-
-
-const user = ref({})
+import { useAlert } from "@/stores/useAlertStore";
+import ConfirmDialog from "@/components/ConfirmDialog.vue";
+const user = ref({});
 
 onMounted(async () => {
   // Load from localStorage first
-  const stored = localStorage.getItem('user_data')
-  if (stored) user.value = JSON.parse(stored)
-  
+  const stored = localStorage.getItem("user_data");
+  if (stored) user.value = JSON.parse(stored);
+
   // Fetch fresh data from API
   try {
-    const token = localStorage.getItem('authToken')
+    const token = localStorage.getItem("authToken");
     if (token) {
-      const response = await axios.get('http://127.0.0.1:8000/api/user', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      user.value = response.data
-      localStorage.setItem('user_data', JSON.stringify(user.value))
+      const response = await axios.get("http://127.0.0.1:8000/api/user", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      user.value = response.data;
+      localStorage.setItem("user_data", JSON.stringify(user.value));
     }
   } catch (error) {
-    console.error('Failed to fetch user:', error)
+    console.error("Failed to fetch user:", error);
   }
-})
+});
 
-const leaveRequests = ref([])
-const pendingCount = ref(0)
-const approvedCount = ref(0)
-const rejectedCount = ref(0)
+const leaveRequests = ref([]);
+const pendingCount = ref(0);
+const approvedCount = ref(0);
+const rejectedCount = ref(0);
 
 const currentPage = ref(1);
 const pageSize = 5;
@@ -303,53 +311,37 @@ function goToPage(page) {
   }
 }
 
-const cancelLeaveRequest = async (id) => {
-  const result = await Swal.fire({
-    title: 'Confirm Cancellation',
-    text: 'Are you sure you want to cancel this leave request?',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Yes, Cancel It',
-    cancelButtonText: 'No, Keep It',
-    customClass: {
-      confirmButton: 'bg-red-400 hover:bg-red-400 text-white text-sm  py-2 rounded mr-2',
-      cancelButton: 'bg-blue-400 hover:bg-blue-400 text-white text-sm py-2 rounded',
-    },
-    background: '#fff',
-    backdrop: 'rgba(0,0,0,0.4)',
-  });
-  if (!result.isConfirmed) return;
-  try {
-    const token = localStorage.getItem('authToken');
-    await axios.delete(`http://127.0.0.1:8000/api/student/leave-request/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    await Swal.fire({
-      icon: 'success',
-      title: 'Leave Cancelled',
-      text: 'Your leave request has been cancelled.',
-      iconColor: '#16a34a',
-      confirmButtonText: 'OK',
-      customClass: { confirmButton: 'bg-green-400 hover:bg-green-400 text-white text-sm py-2 rounded' },
-      background: '#fff',
-    });
-    await fetchLeaveRequests();
-    filterLeaveRequests();
-  } catch (err) {
-    await Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: `Failed to cancel leave: ${err.response?.data?.message || err.message}`,
-      iconColor: '#dc2626',
-      confirmButtonText: 'OK',
-      customClass: { confirmButton: 'bg-red-400 hover:bg-red-400 text-white text-sm py-2 rounded' },
-      background: '#fff',
-    });
-    if (err.response?.status === 401) router.push('/login');
-    console.error('Cancel leave error:', err);
-  }
+const { showAlert } = useAlert();
+
+const showConfirm = ref(false);
+const leaveRequestId = ref(null);
+
+const cancelLeaveRequest = (id) => {
+  leaveRequestId.value = id;
+  showConfirm.value = true;
 };
 
+const handleConfirm = async (confirmed) => {
+  showConfirm.value = false;
+  if (!confirmed) return;
+
+  try {
+    const token = localStorage.getItem("authToken");
+    await axios.delete(
+      `http://127.0.0.1:8000/api/student/leave-request/${leaveRequestId.value}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    showAlert("success", "Success!", "Your leave request has been cancelled.");
+    await fetchLeaveRequests();
+  } catch (err) {
+    if (err.response?.status === 401) router.push("/login");
+    console.error("Cancel leave error:", err);
+    showAlert("error", "Error", "Failed to cancel leave request.");
+  }
+};
 
 onMounted(() => {
   fetchLeaveRequests();

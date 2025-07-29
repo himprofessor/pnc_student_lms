@@ -12,27 +12,27 @@ use Illuminate\Support\Facades\Validator;
 class AuthController extends Controller
 {
     public function registerStudent(Request $request)
-{
-    // Validate the incoming request
-    $validator = Validator::make($request->all(), [
-        'name' => 'required|string|max:255',
-        'email' => 'required|string|email|max:255|unique:users|ends_with:@student.passerellesnumeriques.org',
-        'password' => 'required|string|min:8',
-    ]);
+    {
+        // Validate the incoming request
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users|ends_with:@student.passerellesnumeriques.org',
+            'password' => 'required|string|min:8',
+        ]);
 
-    if ($validator->fails()) {
-        return response()->json(['error' => $validator->errors()], 400);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 400);
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'role_id' => 3, // Ensure this role ID is correct
+        ]);
+
+        return response()->json(['message' => 'Student account created successfully.']);
     }
-
-    $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => bcrypt($request->password),
-        'role_id' => 3, // Ensure this role ID is correct
-    ]);
-
-    return response()->json(['message' => 'Student account created successfully.']);
-}
 
     public function registerTeacher(Request $request)
     {
