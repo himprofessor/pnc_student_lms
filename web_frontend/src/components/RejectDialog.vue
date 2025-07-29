@@ -1,3 +1,4 @@
+<!-- RejectModal.vue -->
 <template>
   <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
@@ -28,12 +29,15 @@
 
 <script setup>
 import { ref } from 'vue'
-
+const emit = defineEmits(['submit', 'cancel'])
 const reason = ref('')
 
 const submit = () => {
-  if (!reason.value.trim()) return alert('Please enter a rejection reason')
-  // Emit the reason back to parent
+  if (!reason.value.trim()) {
+    alert('Please enter a rejection reason')
+    return
+  }
+  console.log('Emit reason:', reason.value) // ✅ Debug log
   emit('submit', reason.value)
 }
 </script>

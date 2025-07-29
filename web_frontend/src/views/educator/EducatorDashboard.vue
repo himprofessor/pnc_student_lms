@@ -1,5 +1,10 @@
 <template>
   <div class="min-h-screen bg-gray-100 text-gray-800 font-sans">
+    <RejectDialog
+      v-if="showRejectDialog"
+      @submit="handleRejectSubmit"
+      @cancel="showRejectDialog = false"
+    />
     <div class="px-6 py-6">
       <h2 class="text-2xl font-bold mb-1">Educator Dashboard</h2>
       <p class="text-gray-600">Review and manage student leave requests</p>
@@ -183,7 +188,7 @@
                 </button>
                 <button
                   v-if="request.status === 'Pending'"
-                  @click="reject(request.id)"
+                  @click="openRejectDialog(request.id)"
                   class="text-red-600 hover:underline font-semibold"
                 >
                   Reject
@@ -408,11 +413,6 @@
                   <span class="font-medium">Approved by:</span>
                   {{ detail.approved_by }}
                 </p>
-                <RejectDialog
-                  v-if="showRejectDialog"
-                  @submit="handleRejectSubmit"
-                  @cancel="showRejectDialog = false"
-                />
 
                 <!-- Display Rejection Reason -->
                 <div
@@ -679,8 +679,6 @@ const approve = async (id) => {
   showDetail.value = false;
   fetchLeaveRequests();
 };
-
-
 
 const openRejectDialog = (id) => {
   rejectLeaveId.value = id;
