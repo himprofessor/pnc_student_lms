@@ -22,9 +22,10 @@ class StudentLeaveController extends Controller
         ]);
 
         // Handle file upload
-        $documentPath = null;
+        $path = null;
         if ($request->hasFile('supporting_documents')) {
-            $documentPath = $request->file('supporting_documents')->store('supporting_documents');
+            $path = $request->file('supporting_documents')?->store('supporting_documents', 'public');
+
         }
 
         $leave = LeaveRequest::create([
@@ -34,14 +35,31 @@ class StudentLeaveController extends Controller
             'from_date' => $request->from_date,
             'to_date' => $request->to_date,
             'contact_info' => $request->contact_info,
-            'supporting_documents' => $documentPath,
+            'supporting_documents' => $path,
             'status' => 'pending',
         ]);
 
         return response()->json([
             'message' => 'Leave request submitted successfully.',
-            'data' => $leave,
+            'data' => [
+                'id' => $leave->id,
+                'student_id' => $leave->student_id,
+                'leave_type_id' => $leave->leave_type_id,
+                'reason' => $leave->reason,
+                'from_date' => $leave->from_date,
+                'to_date' => $leave->to_date,
+                'contact_info' => $leave->contact_info,
+                'status' => $leave->status,
+                'created_at' => $leave->created_at,
+                'updated_at' => $leave->updated_at,
+                'supporting_documents' => $leave->supporting_documents,
+               'document_url' => $leave->supporting_documents
+                ? url('storage/' . $leave->supporting_documents)
+                : null,
+
+            ]
         ], 201);
+        
     }
 
     // View logged-in student's leave requests
@@ -58,6 +76,9 @@ class StudentLeaveController extends Controller
                 'to_date' => $leave->to_date,
                 'contact_info' => $leave->contact_info,
                 'supporting_documents' => $leave->supporting_documents,
+                'document_url' => $leave->supporting_documents
+                    ? url('storage/' . $leave->supporting_documents)
+                    : null,
                 'status' => $leave->status,
                 'leave_type' => $leave->leaveType->name, // Get the leave type name
             ];
@@ -104,6 +125,10 @@ class StudentLeaveController extends Controller
             'to_date' => $leaveRequest->to_date,
             'contact_info' => $leaveRequest->contact_info,
             'supporting_documents' => $leaveRequest->supporting_documents,
+            'document_url' => $leaveRequest->supporting_documents
+            ? url('storage/' . $leaveRequest->supporting_documents)
+            : null,
+
             'status' => $leaveRequest->status,
             'leave_type' => $leaveRequest->leaveType->name, // Get the leave type name
         ]]);
@@ -172,4 +197,4 @@ class StudentLeaveController extends Controller
         // Return a success response
         return response()->json(['message' => 'Leave request deleted successfully']);
     }
-}
+}   

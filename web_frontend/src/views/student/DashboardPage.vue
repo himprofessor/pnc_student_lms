@@ -237,6 +237,11 @@
               >
                 {{ request.status }}
               </span>
+              <ConfirmDialog
+                :visible="showConfirm"
+                message="Are you sure you want to cancel this leave request?"
+                @confirm="handleConfirm"
+              />
 
               <button
                 v-if="request.status === 'pending'"
