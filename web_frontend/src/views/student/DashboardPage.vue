@@ -4,7 +4,7 @@
       <!-- Header -->
       <div class="flex justify-between items-center mb-6">
         <div>
-          <h1 class="text-2xl font-bold">Welcome back {{ user.name || user.full_name || 'User' }}</h1>
+          <h1 class="text-2xl font-bold">Welcome back {{ displayName }}</h1>
           <p class="text-sm text-gray-500">Manage your leave requests and track their status</p>
         </div>
         <button
@@ -26,6 +26,67 @@
           </svg>
           <span>New Leave Request</span>
         </button>
+      </div>
+
+      <!-- Notifications Section -->
+      <div class="bg-white rounded-lg shadow border mb-6">
+        <div class="border-b px-6 py-4">
+          <h2 class="text-lg font-semibold">Notifications</h2>
+          <p class="text-sm text-gray-500">Your latest notifications</p>
+        </div>
+        <div class="divide-y">
+          <div
+            v-for="notification in notifications"
+            :key="notification.id"
+            class="flex justify-between items-center px-6 py-4"
+            :class="{ 'bg-blue-50': !notification.read }"
+          >
+            <div class="flex items-center space-x-3">
+              <svg
+                v-if="notification.type === 'leave_approved'"
+                class="w-6 h-6 text-green-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <svg
+                v-if="notification.type === 'leave_rejected'"
+                class="w-6 h-6 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+              <div>
+                <div class="text-sm">{{ notification.message }}</div>
+                <div class="text-xs text-gray-500">{{ formatDate(notification.created_at) }}</div>
+              </div>
+            </div>
+            <button
+              v-if="!notification.read"
+              @click="markNotificationAsRead(notification.id)"
+              class="text-blue-600 text-xs underline"
+            >
+              Mark as Read
+            </button>
+          </div>
+          <div v-if="notifications.length === 0" class="px-6 py-4 text-sm text-gray-500">
+            No notifications found.
+          </div>
+        </div>
       </div>
 
       <!-- Summary Cards -->
@@ -160,6 +221,9 @@
                   {{ formatDate(request.to_date) }}
                 </div>
                 <div class="text-sm text-gray-500">{{ request.reason }}</div>
+                <div v-if="request.approved_by" class="text-sm text-gray-500">
+                  {{ request.status === 'pending' ? '' : request.status === 'approved' ? 'Approved' : 'Rejected' }} by {{ request.approved_by }}
+                </div>
               </div>
             </div>
             <div class="flex items-center space-x-2">
@@ -219,36 +283,23 @@ import { ref, computed, onMounted } from "vue";
 import axios from "axios";
 import Swal from "sweetalert2";
 
-
-const user = ref({})
-
-onMounted(async () => {
-  // Load from localStorage first
-  const stored = localStorage.getItem('user_data')
-  if (stored) user.value = JSON.parse(stored)
-  
-  // Fetch fresh data from API
-  try {
-    const token = localStorage.getItem('authToken')
-    if (token) {
-      const response = await axios.get('http://127.0.0.1:8000/api/user', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      user.value = response.data
-      localStorage.setItem('user_data', JSON.stringify(user.value))
-    }
-  } catch (error) {
-    console.error('Failed to fetch user:', error)
-  }
-})
-
-const leaveRequests = ref([])
-const pendingCount = ref(0)
-const approvedCount = ref(0)
-const rejectedCount = ref(0)
-
+const user = ref({});
+const notifications = ref([]);
+const leaveRequests = ref([]);
+const pendingCount = ref(0);
+const approvedCount = ref(0);
+const rejectedCount = ref(0);
 const currentPage = ref(1);
 const pageSize = 5;
+
+const displayName = computed(() => {
+  if (!user.value) return 'Guest';
+  return user.value.name ||
+         user.value.full_name ||
+         user.value.first_name ||
+         (user.value.email ? user.value.email.split('@')[0] : null) ||
+         'User';
+});
 
 const totalPages = computed(() =>
   Math.ceil(leaveRequests.value.length / pageSize)
@@ -259,6 +310,50 @@ const pagedLeaveRequests = computed(() => {
   const end = start + pageSize;
   return leaveRequests.value.slice(start, end);
 });
+
+const fetchUser = async () => {
+  const stored = localStorage.getItem('user_data');
+  if (stored) user.value = JSON.parse(stored);
+
+  try {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      const response = await axios.get('http://127.0.0.1:8000/api/user', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      user.value = response.data;
+      localStorage.setItem('user_data', JSON.stringify(user.value));
+    }
+  } catch (error) {
+    console.error('Failed to fetch user:', error);
+  }
+};
+
+const fetchNotifications = async () => {
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await axios.get('http://127.0.0.1:8000/api/notifications', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    notifications.value = response.data;
+  } catch (error) {
+    console.error('Failed to fetch notifications:', error);
+  }
+};
+
+const markNotificationAsRead = async (id) => {
+  try {
+    const token = localStorage.getItem('authToken');
+    await axios.post(`http://127.0.0.1:8000/api/notifications/${id}/read`, {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    notifications.value = notifications.value.map(n =>
+      n.id === id ? { ...n, read: true } : n
+    );
+  } catch (error) {
+    console.error('Failed to mark notification as read:', error);
+  }
+};
 
 const fetchLeaveRequests = async () => {
   try {
@@ -272,7 +367,10 @@ const fetchLeaveRequests = async () => {
       }
     );
 
-    leaveRequests.value = response.data.leaves;
+    leaveRequests.value = response.data.leaves.map(leave => ({
+      ...leave,
+      approved_by: leave.approved_by || 'N/A' // Ensure approved_by is included
+    }));
     pendingCount.value = leaveRequests.value.filter(
       (r) => r.status === "pending"
     ).length;
@@ -312,7 +410,7 @@ const cancelLeaveRequest = async (id) => {
     confirmButtonText: 'Yes, Cancel It',
     cancelButtonText: 'No, Keep It',
     customClass: {
-      confirmButton: 'bg-red-400 hover:bg-red-400 text-white text-sm  py-2 rounded mr-2',
+      confirmButton: 'bg-red-400 hover:bg-red-400 text-white text-sm py-2 rounded mr-2',
       cancelButton: 'bg-blue-400 hover:bg-blue-400 text-white text-sm py-2 rounded',
     },
     background: '#fff',
@@ -334,7 +432,6 @@ const cancelLeaveRequest = async (id) => {
       background: '#fff',
     });
     await fetchLeaveRequests();
-    filterLeaveRequests();
   } catch (err) {
     await Swal.fire({
       icon: 'error',
@@ -350,8 +447,9 @@ const cancelLeaveRequest = async (id) => {
   }
 };
 
-
 onMounted(() => {
+  fetchUser();
+  fetchNotifications();
   fetchLeaveRequests();
 });
 </script>
