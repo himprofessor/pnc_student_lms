@@ -314,136 +314,129 @@
   </div>
 </div>
 
+</div>
+<div class="max-h-96 overflow-y-auto">
+    <div v-for="notification in filteredNotifications" :key="notification.id"
+         class="border-l-4 hover:bg-gray-50 transition-all duration-200 cursor-pointer"
+         :class="{
+             'border-l-yellow-400 bg-yellow-50': notification.type === 'leave_pending' && !notification.read,
+             'border-l-green-400 bg-green-50': notification.type === 'leave_approved' && !notification.read,
+             'border-l-red-400 bg-red-50': notification.type === 'leave_rejected' && !notification.read,
+             'border-l-gray-300 bg-white': notification.read,
+             'border-l-green-300 bg-white': notification.type === 'leave_approved' && notification.read,
+             'border-l-red-300 bg-white': notification.type === 'leave_rejected' && notification.read
+         }"
+         @click="handleNotificationClick(notification)">
+        <div class="p-6">
+            <!-- Notification Header -->
+            <div class="flex items-start justify-between mb-3">
+                <div class="flex items-center space-x-3">
+                    <!-- Status Icon -->
+                    <div class="flex-shrink-0">
+                        <div v-if="notification.type === 'leave_pending'" 
+                             class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div v-else-if="notification.type === 'leave_approved'" 
+                             class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div v-else-if="notification.type === 'leave_rejected'" 
+                             class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </div>
+                    </div>
+                    <!-- Status Text -->
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-semibold text-gray-900"
+                                  :class="{
+                                      'text-yellow-700': notification.type === 'leave_pending',
+                                      'text-green-700': notification.type === 'leave_approved',
+                                      'text-red-700': notification.type === 'leave_rejected'
+                                  }">
+                                {{ notification.type === 'leave_pending' ? 'Leave Request Pending' : 
+                                   notification.type === 'leave_approved' ? 'Leave Request Approved' : 
+                                   'Leave Request Rejected' }}
+                            </span>
+                            <span v-if="!notification.read" 
+                                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                New
+                            </span>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1 flex items-center space-x-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>{{ formatDate(notification.created_at) }}</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Mark as Read Button -->
+                <button v-if="!notification.read"
+                        @click.stop="markNotificationAsRead(notification.id)"
+                        class="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors font-medium">
+                    Mark Read
+                </button>
             </div>
-                <div class="max-h-96 overflow-y-auto">
-                    <div v-for="notification in filteredNotifications" :key="notification.id"
-                         class="border-l-4 hover:bg-gray-50 transition-all duration-200 cursor-pointer"
-                         :class="{
-                           'border-l-green-400 bg-green-50': notification.type === 'leave_approved' && !notification.read,
-                           'border-l-red-400 bg-red-50': notification.type === 'leave_rejected' && !notification.read,
-                           'border-l-gray-300 bg-white': notification.read,
-                           'border-l-green-300 bg-white': notification.type === 'leave_approved' && notification.read,
-                           'border-l-red-300 bg-white': notification.type === 'leave_rejected' && notification.read
-                         }"
-                         @click="handleNotificationClick(notification)">
-                      
-                      <div class="p-6">
-                          <!-- Notification Header -->
-                          <div class="flex items-start justify-between mb-3">
-                              <div class="flex items-center space-x-3">
-                                  <!-- Status Icon -->
-                                  <div class="flex-shrink-0">
-                                      <div v-if="notification.type === 'leave_approved'" 
-                                           class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                                          <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                          </svg>
-                                      </div>
-                                      <div v-else-if="notification.type === 'leave_rejected'" 
-                                           class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                                          <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                          </svg>
-                                      </div>
-                                  </div>
-                                  
-                                  <!-- Status Text -->
-                                  <div class="flex-1">
-                                      <div class="flex items-center space-x-2">
-                                          <span class="font-semibold text-gray-900"
-                                                :class="{
-                                                  'text-green-700': notification.type === 'leave_approved',
-                                                  'text-red-700': notification.type === 'leave_rejected'
-                                                }">
-                                              {{ notification.type === 'leave_approved' ? 'Leave Request Approved' : 'Leave Request Rejected' }}
-                                          </span>
-                                          <span v-if="!notification.read" 
-                                                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                              New
-                                          </span>
-                                      </div>
-                                      <div class="text-xs text-gray-500 mt-1 flex items-center space-x-1">
-                                          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                          </svg>
-                                          <span>{{ formatDate(notification.created_at) }}</span>
-                                      </div>
-                                  </div>
-                              </div>
-                              
-                              <!-- Mark as Read Button -->
-                              <button v-if="!notification.read"
-                                      @click.stop="markNotificationAsRead(notification.id)"
-                                      class="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors font-medium">
-                                  Mark Read
-                              </button>
-                          </div>
-                          
-                          <!-- Parsed Notification Content -->
-                          <div class="space-y-3">
-                              <div class="bg-gray-50 rounded-lg p-4">
-                                  <div class="grid grid-cols-1 gap-3 text-sm">
-                                      <!-- Leave Type and Dates (parsed from message) -->
-                                      <div v-if="parseNotificationDetails(notification.message).leaveType" 
-                                           class="flex flex-wrap items-center gap-4">
-                                          <div class="flex items-center space-x-2">
-                                              <span class="font-medium text-gray-600">Leave Type:</span>
-                                              <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
-                                                  {{ parseNotificationDetails(notification.message).leaveType }}
-                                              </span>
-                                          </div>
-                                          <div v-if="parseNotificationDetails(notification.message).duration" 
-                                               class="flex items-center space-x-2">
-                                              <span class="font-medium text-gray-600">Duration:</span>
-                                              <span class="text-gray-800 font-medium">
-                                                  {{ parseNotificationDetails(notification.message).duration }}
-                                              </span>
-                                          </div>
-                                      </div>
-                                      
-                                      <!-- Approver/Rejector -->
-                                      <div v-if="parseNotificationDetails(notification.message).actionBy" 
-                                           class="flex items-center space-x-2">
-                                          <span class="font-medium text-gray-600">
-                                              {{ notification.type === 'leave_approved' ? 'Approved by:' : 'Rejected by:' }}
-                                          </span>
-                                          <span class="text-gray-800 font-medium">
-                                              {{ parseNotificationDetails(notification.message).actionBy }}
-                                          </span>
-                                      </div>
-                                      
-                                      <!-- Rejection Reason -->
-                                      <div v-if="notification.type === 'leave_rejected' && parseNotificationDetails(notification.message).reason" 
-                                           class="mt-3 ">
-                                          <div class="flex items-start space-x-2">
-                                              <svg class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                              </svg>
-                                              <div>
-                                                  <span class="font-medium text-red-800 text-xs uppercase tracking-wide">Rejection Reason:</span>
-                                                  <p class="text-red-700 text-sm mt-1 leading-relaxed">
-                                                      {{ parseNotificationDetails(notification.message).reason }}
-                                                  </p>
-                                              </div>
-                                          </div>
-                                      </div>
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
-                      
-                      <!-- Empty State -->
-                      <div v-if="notifications.length === 0" 
-                           class="px-6 py-12 text-center">
-                          <svg class="w-12 h-12 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5-5V9.09c0-2.36-1.64-4.36-4-4.36S7 6.73 7 9.09V12l-5 5h5m8 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                          </svg>
-                          <h3 class="text-lg font-medium text-gray-900 mb-2">No notifications yet</h3>
-                          <p class="text-sm text-gray-500">You'll see updates about your leave requests here</p>
-                      </div>
-                  </div>
-              </div>
-  
+            <!-- Parsed Notification Content -->
+            <div class="space-y-3">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="grid grid-cols-1 gap-3 text-sm">
+                        <!-- Leave Type and Dates (parsed from message) -->
+                        <div v-if="parseNotificationDetails(notification.message).leaveType" 
+                             class="flex flex-wrap items-center gap-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-medium text-gray-600">Leave Type:</span>
+                                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                                    {{ parseNotificationDetails(notification.message).leaveType }}
+                                </span>
+                            </div>
+                            <div v-if="parseNotificationDetails(notification.message).duration" 
+                                 class="flex items-center space-x-2">
+                                <span class="font-medium text-gray-600">Duration:</span>
+                                <span class="text-gray-800 font-medium">
+                                    {{ parseNotificationDetails(notification.message).duration }}
+                                </span>
+                            </div>
+                        </div>
+                        <!-- Approver/Rejector -->
+                        <div v-if="parseNotificationDetails(notification.message).actionBy" 
+                             class="flex items-center space-x-2">
+                            <span class="font-medium text-gray-600">
+                                {{ notification.type === 'leave_approved' ? 'Approved by:' : 'Rejected by:' }}
+                            </span>
+                            <span class="text-gray-800 font-medium">
+                                {{ parseNotificationDetails(notification.message).actionBy }}
+                            </span>
+                        </div>
+                        <!-- Rejection Reason -->
+                        <div v-if="notification.type === 'leave_rejected' && parseNotificationDetails(notification.message).reason" 
+                             class="mt-3 ">
+                            <div class="flex items-start space-x-2">
+                                <svg class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                </svg>
+                                <div>
+                                    <span class="font-medium text-red-800 text-xs uppercase tracking-wide">Rejection Reason:</span>
+                                    <p class="text-red-700 text-sm mt-1 leading-relaxed">
+                                        {{ parseNotificationDetails(notification.message).reason }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
               <!-- Pagination Controls -->
               <div class="flex justify-center items-center space-x-4 py-4">
                   <button class="px-3 py-1 border rounded disabled:opacity-50" :disabled="currentPage === 1"
@@ -527,11 +520,11 @@ const recentNotifications = computed(() => {
         .slice(0, 3);
 });
 
-// New computed property for filtered notifications
+/// New computed property for filtered notifications
 const filteredNotifications = computed(() => {
     if (!statusFilter.value || statusFilter.value === 'all') return notifications.value; // Return all if no filter or 'all' is selected
     return notifications.value.filter(notification => {
-        if (statusFilter.value === 'pending') return notification.type === 'leave_pending';
+        if (statusFilter.value === 'pending') return notification.type === 'leave_pending'; // Ensure pending requests are filtered correctly
         if (statusFilter.value === 'approved') return notification.type === 'leave_approved';
         if (statusFilter.value === 'rejected') return notification.type === 'leave_rejected';
     });
