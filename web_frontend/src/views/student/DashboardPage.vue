@@ -53,56 +53,53 @@
                 <!-- Status Summary -->
                
 
-                <!-- Recent Notifications -->
-                <div class="space-y-2">
-                  <h4 class="text-sm font-medium text-gray-700 mb-2">Recent Updates</h4>
-                  <div
-                    v-for="notification in recentNotifications"
-                    :key="notification.id"
-                    class="flex items-start space-x-3 p-2 rounded-lg"
-                    :class="{ 'bg-blue-50': !notification.read }"
-                  >
-                    <svg
-                      v-if="notification.type === 'leave_approved'"
-                      class="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <svg
-                      v-else-if="notification.type === 'leave_rejected'"
-                      class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-xs text-gray-800 truncate">{{ notification.message }}</p>
-                      <p class="text-xs text-gray-500">{{ formatDate(notification.created_at) }}</p>
-                    </div>
-                    <span
-                      v-if="!notification.read"
-                      class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1"
-                    ></span>
-                  </div>
-                  <div v-if="recentNotifications.length === 0" class="text-xs text-gray-500 text-center py-2">
-                    No recent notifications
-                  </div>
-                </div>
+                <div class="p-6">
+                                <!-- Recent Notifications -->
+                                <div class="space-y-3">
+                                    <h4 class="text-sm font-medium text-gray-700 mb-2">Recent Updates</h4>
 
-                <!-- View All Link -->
-                <div class="mt-4 pt-3 border-t">
-                  <button
-                    @click="scrollToNotifications"
-                    class="w-full text-sm text-blue-600 hover:text-blue-800 font-medium"
-                  >
-                    View All Notifications
-                  </button>
-                </div>
+                                    <div v-for="notification in recentNotifications" :key="notification.id"
+                                        class="flex items-start space-x-3 p-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                                        :class="{ 'bg-blue-50': !notification.read }"
+                                        @click="handleNotificationClick(notification)">
+                                        <svg v-if="notification.type === 'leave_approved'"
+                                            class="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <svg v-else-if="notification.type === 'leave_rejected'"
+                                            class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm text-gray-800 truncate font-semibold">{{
+                                                notification.message }}</p>
+                                            <p class="text-sm text-gray-500 font-medium">{{
+                                                formatDate(notification.created_at) }}</p>
+                                        </div>
+
+                                        <span v-if="!notification.read"
+                                            class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1"></span>
+                                    </div>
+
+                                    <div v-if="recentNotifications.length === 0"
+                                        class="text-sm text-gray-500 text-center py-2">
+                                        No recent notifications
+                                    </div>
+                                </div>
+
+                                <!-- View All Link -->
+                                <div class="mt-4 pt-3 border-t">
+                                    <button @click="scrollToNotifications"
+                                        class="w-full text-sm text-blue-600 hover:text-blue-800 font-medium">
+                                        View All Notifications
+                                    </button>
+                                </div>
+                            </div>
               </div>
             </div>
                         </div>
