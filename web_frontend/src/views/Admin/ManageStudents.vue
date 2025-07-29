@@ -1,15 +1,17 @@
-<template>
+ <template>
     <div class="container bg-white p-8 shadow-lg rounded-lg max-w-4xl w-full">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Manage Students</h1>
 
         <div v-if="statusMessage.text"
-             :class="{'bg-green-100 border-green-400 text-green-700': statusMessage.type === 'success', 'bg-red-100 border-red-400 text-red-700': statusMessage.type === 'error'}"
+             :class="statusClasses"
              class="border px-4 py-3 mb-6 rounded-md relative" role="alert">
             <span class="block sm:inline font-medium">{{ statusMessage.text }}</span>
         </div>
 
         <div v-if="isLoading" class="text-center py-8 text-gray-600">Loading students...</div>
-        <div v-else-if="students.length === 0" class="text-center py-8 text-gray-600">No students found.</div>
+        <div v-else-if="!Array.isArray(students) || students.length === 0"
+             class="text-center py-8 text-gray-600">No students found.</div>
+
         <div v-else class="overflow-x-auto">
             <table class="min-w-full bg-white border border-gray-200 rounded-lg">
                 <thead>
@@ -25,11 +27,14 @@
                         <td class="py-3 px-6 text-left whitespace-nowrap">{{ student.name }}</td>
                         <td class="py-3 px-6 text-left">{{ student.email }}</td>
                         <td class="py-3 px-6 text-left">
-                            <!-- <span v-for="(cls, index) in student.student_classes" :key="cls.id"
-                                  class="bg-purple-200 text-purple-800 py-1 px-2 rounded-full text-xs font-semibold mr-1 mb-1 inline-block">
-                                {{ cls.name }}
-                            </span> -->
-                            <span v-if="student.student_classes.length === 0" class="text-gray-500 italic">No classes assigned</span>
+                            <span v-if="Array.isArray(student.student_classes) && student.student_classes.length === 0" class="text-gray-500 italic">No classes assigned</span>
+                            <span v-else-if="Array.isArray(student.student_classes)">
+                                <span v-for="cls in student.student_classes" :key="cls.id"
+                                      class="bg-purple-200 text-purple-800 py-1 px-2 rounded-full text-xs font-semibold mr-1 mb-1 inline-block">
+                                    {{ cls.name }}
+                                </span>
+                            </span>
+                            <span v-else class="text-gray-400 italic">No class data</span>
                         </td>
                         <td class="py-3 px-6 text-center">
                             <div class="flex item-center justify-center space-x-2">
@@ -106,24 +111,20 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
-import FormInput from '@/components/FormInput.vue'; // Adjust path as needed
-import ConfirmationModal from '@/components/ConfirmationModal.vue'; // Adjust path as needed
- 
-
-// Props received from the parent component (App.vue)
-const props = defineProps({
-    classes: Array // List of all available classes
-});
+import { ref, reactive, onMounted, computed } from 'vue';
+import FormInput from '@/components/FormInput.vue';
+import ConfirmationModal from '@/components/ConfirmationModal.vue';
 
 // Reactive state for the list of students
 const students = ref([]);
+const classes = ref([]); // Assuming classes are fetched from a separate API or passed as prop
 const isLoading = ref(false); // Loading state for fetching students
 const statusMessage = reactive({ text: '', type: '' }); // Status messages for CRUD operations
 
 // --- Edit Modal State and Logic ---
 const showEditModal = ref(false);
-const currentStudent = reactive({ id: null, user_id: null, name: '', email: '', student_classes: [], class_ids: [] });
+// currentStudent now directly reflects the structure needed for the API, using user_id for identification
+const currentStudent = reactive({ id: null, name: '', email: '', student_classes: [], class_ids: [] }); // Removed user_id as it's not a direct property of the User model
 const editErrors = reactive({ name: '', email: '', password: '', confirmPassword: '', class_ids: '' });
 const isUpdating = ref(false); // Loading state for update operation
 const editPassword = ref(''); // Separate ref for new password input
@@ -131,44 +132,85 @@ const editConfirmPassword = ref(''); // Separate ref for confirm new password in
 
 // --- Delete Modal State and Logic ---
 const showDeleteModal = ref(false);
-const studentToDelete = reactive({ id: null, name: '' });
+const studentToDelete = reactive({ id: null, name: '' }); // Uses user_id for identification
 const isDeleting = ref(false); // Loading state for delete operation
+
+// Computed property for status message classes
+const statusClasses = computed(() => ({
+    'bg-green-100 border-green-400 text-green-700': statusMessage.type === 'success',
+    'bg-red-100 border-red-400 text-red-700': statusMessage.type === 'error'
+}));
 
 // Function to fetch all students
 const fetchStudents = async () => {
     isLoading.value = true;
     statusMessage.text = ''; // Clear previous status message
     try {
-        // Replace with your actual API call:
-        // const response = await fetch('http://127.0.0.1:8000/api/students');
-        // const data = await response.json();
+        const token = localStorage.getItem('authToken'); // Retrieve the token from local storage
+        const response = await fetch('http://127.0.0.1:8000/api/students', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${token}` // Include the token in the request
+            }
+        });
 
-        const response = await apiSimulator.getStudents(); // Using simulator for demonstration
-        students.value = response.data.map(stu => ({
+        if (!response.ok) {
+            const errorResponse = await response.json();
+            throw new Error(`HTTP error! status: ${response.status} - ${errorResponse.message || response.statusText}`);
+        }
+
+        const data = await response.json();
+        students.value = data.map(stu => ({
             ...stu,
+            // Ensure student_classes is an array, even if null or undefined from API
+            student_classes: Array.isArray(stu.student_classes) ? stu.student_classes : [],
             // Map existing classes to class_ids for multi-select binding
-            class_ids: stu.student_classes ? stu.student_classes.map(c => c.id) : []
+            class_ids: Array.isArray(stu.student_classes) ? stu.student_classes.map(c => c.id) : []
         }));
     } catch (error) {
         console.error('Error fetching students:', error);
-        statusMessage.text = 'Failed to load students.';
+        statusMessage.text = `Failed to load students: ${error.message}`;
         statusMessage.type = 'error';
     } finally {
         isLoading.value = false;
     }
 };
 
+// Function to fetch all classes (assuming a separate endpoint for classes)
+const fetchClasses = async () => {
+    try {
+        const token = localStorage.getItem('authToken');
+        const response = await fetch('http://127.0.0.1:8000/api/classes', {
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!response.ok) {
+            const errorResponse = await response.json();
+            throw new Error(`Failed to fetch classes: ${errorResponse.message || response.statusText}`);
+        }
+        classes.value = await response.json();
+    } catch (error) {
+        console.error('Error fetching classes:', error);
+        // Optionally display an error message to the user
+    }
+};
+
+
 // Function to open the edit modal and populate it with student data
 const openEditModal = (student) => {
-    // Copy student data to currentStudent for editing
+    console.log('openEditModal: Student object received:', student); // Added log
+    // CRITICAL CHANGE: Use student.id (the User's primary key) for API identification
     Object.assign(currentStudent, {
-        id: student.id,
-        user_id: student.user_id,
+        id: student.id, // Use student.id as it's the User model's primary key
         name: student.name,
         email: student.email,
-        student_classes: student.student_classes,
-        class_ids: student.student_classes ? student.student_classes.map(c => c.id) : []
+        student_classes: Array.isArray(student.student_classes) ? student.student_classes : [],
+        class_ids: Array.isArray(student.student_classes) ? student.student_classes.map(c => c.id) : []
     });
+    console.log('openEditModal: currentStudent after assignment:', currentStudent); // Added log
     editPassword.value = ''; // Clear password fields when opening modal
     editConfirmPassword.value = '';
     Object.keys(editErrors).forEach(key => editErrors[key] = ''); // Clear previous errors
@@ -178,19 +220,40 @@ const openEditModal = (student) => {
 // Client-side validation for the edit form
 const validateEditForm = () => {
     let isValid = true;
-    Object.keys(editErrors).forEach(key => editErrors[key] = '');
+    Object.keys(editErrors).forEach(key => editErrors[key] = ''); // Clear all errors at the start
 
-    if (!currentStudent.name.trim()) { editErrors.name = 'Name is required.'; isValid = false; }
-    if (!currentStudent.email.trim()) { editErrors.email = 'Email is required.'; isValid = false; }
-    else if (!currentStudent.email.endsWith('@student.passerellesnumeriques.org')) { editErrors.email = 'Email must end with @student.passerellesnumeriques.org.'; isValid = false; }
-    else if (!/\S+@\S+\.\S+/.test(currentStudent.email)) { editErrors.email = 'Invalid email format.'; isValid = false; }
-
-    if (editPassword.value || editConfirmPassword.value) { // Only validate password if trying to change it
-        if (editPassword.value.length < 6) { editErrors.password = 'Password must be at least 6 characters.'; isValid = false; }
-        if (editPassword.value !== editConfirmPassword.value) { editErrors.confirmPassword = 'Passwords do not match.'; isValid = false; }
+    if (!currentStudent.name.trim()) {
+        editErrors.name = 'Name is required.';
+        isValid = false;
     }
 
-    if (currentStudent.class_ids.length === 0) { editErrors.class_ids = 'At least one class must be assigned.'; isValid = false; }
+    if (!currentStudent.email.trim()) {
+        editErrors.email = 'Email is required.';
+        isValid = false;
+    } else if (!currentStudent.email.endsWith('@student.passerellesnumeriques.org')) {
+        editErrors.email = 'Email must end with @student.passerellesnumeriques.org.';
+        isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(currentStudent.email)) {
+        editErrors.email = 'Invalid email format.';
+        isValid = false;
+    }
+
+    // Only validate password if trying to change it
+    if (editPassword.value || editConfirmPassword.value) {
+        if (editPassword.value.length < 6) {
+            editErrors.password = 'Password must be at least 6 characters.';
+            isValid = false;
+        }
+        if (editPassword.value !== editConfirmPassword.value) {
+            editErrors.confirmPassword = 'Passwords do not match.';
+            isValid = false;
+        }
+    }
+
+    if (!Array.isArray(currentStudent.class_ids) || currentStudent.class_ids.length === 0) {
+        editErrors.class_ids = 'At least one class must be assigned.';
+        isValid = false;
+    }
     return isValid;
 };
 
@@ -207,37 +270,50 @@ const handleUpdateStudent = async () => {
     const payload = {
         name: currentStudent.name,
         email: currentStudent.email,
-        class_ids: currentStudent.class_ids.map(id => parseInt(id))
+        // Ensure class_ids are numbers for the backend
+        class_ids: currentStudent.class_ids.map(Number),
+        ...(editPassword.value && { password: editPassword.value }) // Include password if provided
     };
-    if (editPassword.value) {
-        payload.password = editPassword.value; // Only send password if it's being changed
-    }
 
     try {
-        // Replace with your actual API call:
-        // const response = await fetch(`http://127.0.0.1:8000/api/students/${currentStudent.user_id}`, {
-        //     method: 'PUT',
-        //     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        //     body: JSON.stringify(payload)
-        // });
-        // const result = await response.json();
+        const token = localStorage.getItem('authToken'); // Retrieve the token from local storage
 
-        const result = await apiSimulator.updateStudent(currentStudent.user_id, payload); // Using simulator
-        statusMessage.text = result.message;
+        console.log('handleUpdateStudent: Attempting to update student with ID (User ID) in URL:', currentStudent.id); // Added log
+        console.log('handleUpdateStudent: Payload for update:', payload); // Added log
+
+        const response = await fetch(`http://127.0.0.1:8000/api/students/${currentStudent.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${token}` // Include the token in the request
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errorResponse = await response.json();
+            // If Laravel sends specific validation errors, display them
+            if (response.status === 422 && errorResponse.errors) {
+                Object.assign(editErrors, errorResponse.errors); // Assign backend validation errors
+                statusMessage.text = 'Validation errors occurred. Please check the form.';
+            } else {
+                statusMessage.text = `HTTP error! status: ${response.status} - ${errorResponse.message || response.statusText}`;
+            }
+            statusMessage.type = 'error';
+            throw new Error(`HTTP error! status: ${response.status}`); // Throw to catch block
+        }
+
+        const result = await response.json();
+        statusMessage.text = result.message || 'Student updated successfully!';
         statusMessage.type = 'success';
         showEditModal.value = false; // Close modal on success
         fetchStudents(); // Refresh the list to show updated data
     } catch (error) {
-        let errorMessage = 'Failed to update student.';
-        if (error.errors) { // Handle Laravel validation errors
-            for (const key in error.errors) {
-                if (editErrors[key] !== undefined) editErrors[key] = error.errors[key][0];
-            }
-            errorMessage = 'Please correct the highlighted errors.';
-        } else if (error.message) {
-            errorMessage = error.message;
+        console.error('Error updating student:', error);
+        if (!statusMessage.text.includes('Validation errors')) { // Avoid overwriting specific validation message
+            statusMessage.text = `Failed to update student: ${error.message}`;
         }
-        statusMessage.text = errorMessage;
         statusMessage.type = 'error';
     } finally {
         isUpdating.value = false;
@@ -246,8 +322,11 @@ const handleUpdateStudent = async () => {
 
 // Function to open the delete confirmation modal
 const openDeleteModal = (student) => {
-    studentToDelete.id = student.user_id;
+    console.log('openDeleteModal: Student object received:', student); // Added log
+    // CRITICAL CHANGE: Use student.id (the User's primary key) for API identification
+    studentToDelete.id = student.id; // Use student.id as it's the User model's primary key
     studentToDelete.name = student.name;
+    console.log('openDeleteModal: studentToDelete after assignment:', studentToDelete); // Added log
     showDeleteModal.value = true;
 };
 
@@ -256,31 +335,55 @@ const handleDeleteStudent = async () => {
     isDeleting.value = true;
     statusMessage.text = '';
     try {
-        // Replace with your actual API call:
-        // const response = await fetch(`http://127.0.0.1:8000/api/students/${studentToDelete.id}`, {
-        //     method: 'DELETE',
-        //     headers: { 'Accept': 'application/json' }
-        // });
-        // const result = await response.json();
+        const token = localStorage.getItem('authToken'); // Retrieve the token from local storage
 
-        const result = await apiSimulator.deleteStudent(studentToDelete.id); // Using simulator
-        statusMessage.text = result.message;
+        console.log('handleDeleteStudent: Attempting to delete student with ID (User ID):', studentToDelete.id); // Added log
+
+        const response = await fetch(`http://127.0.0.1:8000/api/students/${studentToDelete.id}`, {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${token}` // Include the token in the request
+            }
+        });
+
+        if (!response.ok) {
+            const errorResponse = await response.json();
+            throw new Error(`HTTP error! status: ${response.status} - ${errorResponse.message || response.statusText}`);
+        }
+
+        const result = await response.json();
+        statusMessage.text = result.message || 'Student deleted successfully!';
         statusMessage.type = 'success';
         showDeleteModal.value = false; // Close modal on success
         fetchStudents(); // Refresh the list
     } catch (error) {
         console.error('Error deleting student:', error);
-        statusMessage.text = error.message || 'Failed to delete student.';
+        statusMessage.text = `Failed to delete student: ${error.message}`;
         statusMessage.type = 'error';
     } finally {
         isDeleting.value = false;
     }
 };
 
-// Fetch students when the component is mounted
-onMounted(fetchStudents);
+// Fetch students and classes when the component is mounted
+onMounted(() => {
+    fetchStudents();
+    fetchClasses();
+});
 </script>
 
 <style scoped>
 /* Scoped styles for this component */
+.container {
+max-width: 900%;
+}
+
+.btn-yellow { @apply w-8 h-8 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center hover:bg-yellow-200 transition duration-200; }
+.btn-red { @apply w-8 h-8 rounded-full bg-red-100 text-red-700 flex items-center justify-center hover:bg-red-200 transition duration-200; }
+.btn-gray { @apply px-5 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400; }
+.btn-blue { @apply px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center; }
+.spinner { @apply animate-spin -ml-1 mr-3 h-5 w-5 text-white; }
+.form-select { @apply shadow-sm appearance-none border border-gray-300 rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent; }
+.modal-overlay { @apply bg-black bg-opacity-50; }
 </style>
