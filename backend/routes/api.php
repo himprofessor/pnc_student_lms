@@ -7,6 +7,7 @@ use App\Http\Controllers\API\TeacherController;
 use App\Http\Controllers\API\StudentLeaveController;
 use App\Http\Controllers\API\AdminEducatorController;
 use App\Http\Controllers\API\AdminStudentController;
+use App\Http\Controllers\API\ClassController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Api\LeaveTypeController;
@@ -23,6 +24,9 @@ Route::post('/admin/login', [LoginController::class, 'login']);
  
 //Type of leave 
 Route::get('/leave-types', [LeaveTypeController::class, 'index']);
+//Classess of student 
+
+Route::get('/classes', [ClassController::class, 'index']);
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);

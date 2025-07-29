@@ -189,6 +189,10 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(ClassModel::class, 'class_teacher', 'teacher_id', 'class_id');
     }
+      public function student()
+    {
+        return $this->hasOne(Student::class, 'user_id', 'id');
+    }
 
 
     /**
