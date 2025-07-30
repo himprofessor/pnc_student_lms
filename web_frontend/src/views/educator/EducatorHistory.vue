@@ -1,4 +1,4 @@
-ខឿម, [7/29/2025 7:55 PM]
+
 <template>
   <div class="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 text-gray-800">
     <!-- Main Content -->
@@ -154,7 +154,7 @@
                 <span v-if="request.leave_type === 'Sick Leave'" class="text-lg">🩺</span>
                 <span v-else-if="request.leave_type === 'Family Emergency'" class="text-lg">❤️</span>
                 <span v-else-if="request.leave_type === 'Personal Leave'" class="text-lg">🧘</span>
-                <span v-else-if="request.leave_type === 'Vacation Leave'" class="text-lg">🏖</span>
+                <span v-else-if="request.leave_type === 'Vacation Leave'" class="text-lg">🏖️</span>
                 <span v-else-if="request.leave_type === 'Emergency Leave'" class="text-lg">🚨</span>
                 <span v-else-if="request.leave_type === 'Maternity Leave'" class="text-lg">🤰</span>
                 <span v-else-if="request.leave_type === 'Paternity Leave'" class="text-lg">👨</span>
@@ -258,154 +258,258 @@
       </div>
     </div>
 
-    <!-- Enhanced Detail Modal -->
-    <div v-if="showDetail" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl overflow-hidden">
+    <!-- SINGLE Detail Modal (removed duplicate) -->
+    <div v-if="showDetail"
+      class="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center p-4 backdrop-blur-sm">
+      <div class="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl">
         <!-- Modal Header -->
-        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-          <h3 class="text-xl font-bold text-gray-800">Leave Request Details</h3>
-          <button @click="showDetail = false" class="text-gray-500 hover:text-gray-700">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
+        <div class="bg-gradient-to-r from-pink-600 to-blue-500 px-6 py-4 text-white relative">
+          <button @click="closeDetailModal"
+            class="absolute top-4 right-6 text-white hover:text-gray-200 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
+
+          <div class="flex items-center space-x-4">
+            <img v-if="getDetailImageUrl() && !detailImageError" :src="getDetailImageUrl()" :alt="detail.student"
+              class="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg"
+              @error="handleDetailImageError" />
+            <div
+              class="w-16 h-16 rounded-full bg-white bg-opacity-20 flex items-center justify-center text-2xl font-bold"
+              v-else>
+              {{ detail.student ? detail.student.charAt(0).toUpperCase() : "?" }}
+            </div>
+
+            <div>
+              <h2 class="text-2xl font-bold">{{ detail.student || 'Unknown Student' }}</h2>
+              <p class="text-blue-100 text-lg">{{ detail.leave_type || 'Leave Request' }}</p>
+              <div class="flex items-center mt-2">
+                <span :class="{
+                  'bg-yellow-500': detail.status === 'Pending',
+                  'bg-green-500': detail.status === 'Approved',
+                  'bg-red-500': detail.status === 'Rejected',
+                }" class="px-3 py-1 rounded-full text-xs font-semibold text-white uppercase tracking-wide">
+                  {{ detail.status || 'Unknown' }}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Modal Content -->
-        <div class="flex flex-col md:flex-row">
-          <!-- Left Column - Request Details -->
-          <div class="p-6 md:w-2/4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Student Information -->
-              <div class="col-span-2 flex items-center space-x-4 mb-4">
-                <div v-if="detail.profile_image" class="flex-shrink-0">
-                  <img :src="detail.profile_image" alt="Profile Image"
-                    class="h-16 w-16 rounded-full object-cover border border-gray-200">
+        <div class="overflow-y-auto max-h-[calc(90vh-140px)]">
+          <div v-if="isLoadingDetail" class="flex items-center justify-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <span class="ml-3 text-gray-600">Loading details...</span>
+          </div>
+
+          <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
+            <!-- Left Column - Request Details -->
+            <div class="space-y-6">
+              <!-- Leave Duration -->
+              <div class="bg-gray-50 rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Leave Duration
+                </h3>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <p class="text-sm text-gray-500 font-medium">From Date</p>
+                    <p class="text-gray-900 font-semibold">
+                      {{ detail.from_date ? formatDate(detail.from_date) : 'Not specified' }}
+                    </p>
+                  </div>
+                  <div>
+                    <p class="text-sm text-gray-500 font-medium">To Date</p>
+                    <p class="text-gray-900 font-semibold">
+                      {{ detail.to_date ? formatDate(detail.to_date) : 'Not specified' }}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h4 class="text-lg font-semibold text-gray-900">{{ detail.student }}</h4>
-                  <p class="text-sm text-gray-500">Student</p>
-                </div>
               </div>
 
-              <!-- Leave Type -->
-              <div>
-                <p class="text-sm font-medium text-gray-500">Leave Type</p>
-                <p class="mt-1 text-sm text-gray-900">{{ detail.leave_type }}</p>
-              </div>
-
-              <!-- Status -->
-              <div>
-                <p class="text-sm font-medium text-gray-500">Status</p>
-                <span class="mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" :class="{
-                  'bg-green-100 text-green-800': detail.status === 'Approved',
-                  'bg-red-100 text-red-800': detail.status === 'Rejected',
-                }">
-                  {{ detail.status }}
-                </span>
-              </div>
-
-              <!-- Dates -->
-              <div>
-                <p class="text-sm font-medium text-gray-500">From Date</p>
-                <p class="mt-1 text-sm text-gray-900">{{ formatDate(detail.from_date) }}</p>
-              </div>
-
-              <div>
-                <p class="text-sm font-medium text-gray-500">To Date</p>
-                <p class="mt-1 text-sm text-gray-900">{{ formatDate(detail.to_date) }}</p>
-              </div>
-
-              <!-- Duration -->
-              <div class="col-span-2">
-                <p class="text-sm font-medium text-gray-500">Duration</p>
-                <p class="mt-1 text-sm text-gray-900">{{ formatDuration(`${detail.from_date} to ${detail.to_date}`) }}
+              <!-- Reason -->
+              <div class="bg-gray-50 rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                  <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Reason for Leave
+                </h3>
+                <p class="text-gray-700 leading-relaxed">
+                  {{ detail.reason || "No reason provided" }}
                 </p>
               </div>
 
               <!-- Contact Information -->
-              <div class="col-span-2">
-                <p class="text-sm font-medium text-gray-500">Contact Information</p>
-                <p class="mt-1 text-sm text-gray-900">{{ detail.contact_info }}</p>
-              </div>
-
-              <!-- Reason -->
-              <div class="col-span-2">
-                <p class="text-sm font-medium text-gray-500">Reason</p>
-                <p class="mt-1 text-sm text-gray-900 whitespace-pre-line">{{ detail.reason }}</p>
-              </div>
-
-              <!-- Additional Notes (if rejected) -->
-              <div v-if="detail.status === 'Rejected' && detail.rejection_reason" class="col-span-2">
-                <p class="text-sm font-medium text-gray-500">Rejection Reason</p>
-                <p class="mt-1 text-sm text-red-600">{{ detail.rejection_reason }}</p>
-              </div>
-
-              <!-- Approved By -->
-              <div v-if="detail.status === 'Approved'" class="col-span-2">
-                <p class="text-sm font-medium text-gray-500">Approved By</p>
-                <p class="mt-1 text-sm text-gray-900">{{ detail.approved_by || 'Administrator' }}</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right Column - Document Preview -->
-          <div class="border-t md:border-t-0 md:border-l border-gray-200 p-6 md:w-2/4 bg-gray-50">
-            <h4 class="text-lg font-semibold text-gray-900 mb-4">Supporting Documents</h4>
-
-            <div v-if="detail.supporting_documents" class="space-y-4">
-              <!-- Image Preview -->
-              <div v-if="isImage(detail.supporting_documents)"
-                class="border border-gray-200 rounded-lg overflow-hidden">
-                <img :src="detail.supporting_documents" alt="Supporting Document"
-                  class="w-full h-auto object-contain max-h-64">
-              </div>
-
-              <!-- PDF Preview Placeholder -->
-              <div v-else-if="isPDF(detail.supporting_documents)"
-                class="border border-gray-200 rounded-lg p-4 bg-white">
-                <div class="flex flex-col items-center justify-center py-8">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-red-500" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
+              <div class="bg-gray-50 rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                  <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                   </svg>
-                  <p class="mt-2 text-sm font-medium text-gray-700">PDF Document</p>
+                  Contact Information
+                </h3>
+                <p class="text-gray-700">
+                  {{ detail.contact_info || "No contact information provided" }}
+                </p>
+              </div>
+
+              <!-- Status Information -->
+              <div class="bg-gray-50 rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                  <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Status Information
+                </h3>
+                <div class="space-y-2">
+                  <p class="text-gray-700">
+                    <span class="font-medium">Current Status:</span>
+                    <span :class="{
+                      'text-yellow-700': detail.status === 'Pending',
+                      'text-green-700': detail.status === 'Approved',
+                      'text-red-700': detail.status === 'Rejected',
+                    }" class="font-semibold capitalize ml-2">
+                      {{ detail.status || 'Unknown' }}
+                    </span>
+                  </p>
+                  <p v-if="detail.approved_by" class="text-gray-700">
+                    <span class="font-medium">Approved by:</span>
+                    {{ detail.approved_by }}
+                  </p>
+
+                  <!-- Display Rejection Reason -->
+                  <div v-if="detail.rejection_reason" class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p class="font-medium text-red-800 mb-1">Rejection Reason:</p>
+                    <p class="text-red-700 text-sm">{{ detail.rejection_reason }}</p>
+                  </div>
                 </div>
               </div>
-
-              <!-- Download Button -->
-              <a :href="detail.supporting_documents" target="_blank"
-                class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none"
-                  viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Download Document
-              </a>
             </div>
 
+            <!-- Right Column - Supporting Documents -->
+            <div class="space-y-6">
+              <div class="bg-gray-50 rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">```vue:web_frontend\src\views\educator\EducatorHistory.vue
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Supporting Documents
+                </h3>
 
-            <div v-else class="text-center py-8 bg-white rounded-lg border border-gray-200">
-              <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none"
-                viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <h4 class="mt-2 text-sm font-medium text-gray-900">No documents attached</h4>
-              <p class="mt-1 text-sm text-gray-500">This leave request has no supporting documents.</p>
+                <div v-if="detail.supporting_documents && detail.supporting_documents.trim()" class="space-y-4">
+                  <!-- Document Preview -->
+                  <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white">
+                    <!-- Loading State -->
+                    <div v-if="documentLoading" class="text-center py-8">
+                      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                      <p class="text-gray-600 text-sm">Loading document...</p>
+                    </div>
+
+                    <!-- Image Preview -->
+                    <div v-else-if="isImageFile(detail.supporting_documents)" class="text-center">
+                      <img :src="getDocumentUrl(detail.supporting_documents)"
+                        :alt="getFileName(detail.supporting_documents)"
+                        class="max-w-full max-h-96 mx-auto rounded-lg shadow-md object-contain"
+                        @load="documentLoading = false" @error="handleDocumentError" />
+                    </div>
+
+                    <!-- PDF Preview -->
+                    <div v-else-if="isPdfFile(detail.supporting_documents)" class="text-center">
+                      <iframe :src="getDocumentUrl(detail.supporting_documents)" class="w-full h-96 rounded-lg border"
+                        frameborder="0" @load="documentLoading = false" @error="handleDocumentError">
+                      </iframe>
+                    </div>
+
+                    <!-- Other File Types -->
+                    <div v-else class="text-center py-8">
+                      <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <p class="text-gray-600 mb-2">Document Preview Not Available</p>
+                      <p class="text-sm text-gray-500">{{ getFileName(detail.supporting_documents) }}</p>
+                    </div>
+
+                    <!-- Document Error State -->
+                    <div v-if="documentError" class="text-center py-8">
+                      <svg class="w-16 h-16 mx-auto text-red-400 mb-4" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                      <p class="text-red-600 mb-2">Failed to Load Document</p>
+                      <p class="text-sm text-gray-500">{{ getFileName(detail.supporting_documents) }}</p>
+                    </div>
+                  </div>
+
+                  <!-- Document Actions -->
+                  <div class="flex flex-wrap gap-2">
+                    <a :href="getDocumentUrl(detail.supporting_documents)"
+                      :download="getFileName(detail.supporting_documents)"
+                      class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium">
+                      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Download
+                    </a>
+                    <button @click="openDocumentInNewTab"
+                      class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      Open in New Tab
+                    </button>
+                  </div>
+                </div>
+
+                <!-- No Documents State -->
+                <div v-else class="text-center py-12">
+                  <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <p class="text-gray-500 text-lg">No Supporting Documents</p>
+                  <p class="text-gray-400 text-sm">No documents were submitted with this request</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
 
-        <!-- Modal Footer -->
-        <div class="bg-gray-50 px-6 py-3 border-t border-gray-200 flex justify-end">
-          <button @click="showDetail = false"
-            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-            Close
-          </button>
+    <!-- Reject Dialog Modal -->
+    <div v-if="showRejectDialog" class="fixed inset-0 z-60 bg-black bg-opacity-60 flex items-center justify-center p-4">
+      <div class="bg-white rounded-lg w-full max-w-md">
+        <div class="p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Reject Leave Request</h3>
+          <p class="text-gray-600 mb-4">Please provide a reason for rejecting this request:</p>
+          <textarea v-model="rejectionReason"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            rows="4" placeholder="Enter rejection reason..."></textarea>
+          <div class="flex justify-end gap-3 mt-6">
+            <button @click="closeRejectDialog" class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
+              Cancel
+            </button>
+            <button @click="confirmReject"
+              class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+              Reject Request
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -416,6 +520,7 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 
+// Reactive variables
 const search = ref('')
 const statusFilter = ref('')
 const typeFilter = ref('')
@@ -426,34 +531,116 @@ const itemsPerPage = ref(5)
 const showHidden = ref(false)
 const showDeleteConfirm = ref(false)
 const requestToDelete = ref(null)
+const detailImageError = ref(false)
+const isLoadingDetail = ref(false)
+const documentLoading = ref(false)
+const documentError = ref(false)
+const showRejectDialog = ref(false)
+const rejectionReason = ref('')
+const requestToReject = ref(null)
 
 const leaveRequests = ref([])
 
+// Utility functions
 const formatDate = (dateStr) => {
-  const options = { year: 'numeric', month: 'long', day: 'numeric' }
-  return new Date(dateStr).toLocaleDateString('en-US', options)
+  if (!dateStr) return 'Not specified'
+  try {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' }
+    return new Date(dateStr).toLocaleDateString('en-US', options)
+  } catch (error) {
+    console.error('Date formatting error:', error)
+    return 'Invalid date'
+  }
 }
 
 const formatDuration = (range) => {
-  const [from, to] = range.split(' to ')
-  return `${formatDate(from)} to ${formatDate(to)}`
+  if (!range) return 'Not specified'
+  try {
+    const [from, to] = range.split(' to ')
+    return `${formatDate(from)} to ${formatDate(to)}`
+  } catch (error) {
+    console.error('Duration formatting error:', error)
+    return range
+  }
 }
 
-const isImage = (url) => {
-  if (!url) return false
-  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
-  return imageExtensions.some(ext => url.toLowerCase().endsWith(ext))
+// Enhanced document handling functions
+const getDocumentUrl = (path) => {
+  if (!path || typeof path !== 'string') return null
+
+  // Handle different path formats
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path
+  }
+
+  // Remove leading slash if present
+  const cleanPath = path.startsWith('/') ? path.substring(1) : path
+
+  // Construct full URL
+  return `http://127.0.0.1:8000/storage/${cleanPath}`
 }
 
-const isPDF = (url) => {
-  if (!url) return false
-  return url.toLowerCase().endsWith('.pdf')
+const isImageFile = (filename) => {
+  if (!filename || typeof filename !== 'string') return false
+  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg']
+  const lowerFilename = filename.toLowerCase()
+  return imageExtensions.some(ext => lowerFilename.endsWith(ext))
 }
 
+const isPdfFile = (filename) => {
+  if (!filename || typeof filename !== 'string') return false
+  return filename.toLowerCase().endsWith('.pdf')
+}
+
+const getFileName = (path) => {
+  if (!path || typeof path !== 'string') return 'Unknown File'
+  return path.split('/').pop() || path
+}
+
+const handleDocumentError = () => {
+  console.error('Document failed to load')
+  documentError.value = true
+  documentLoading.value = false
+}
+
+const openDocumentInNewTab = () => {
+  if (detail.value.supporting_documents) {
+    const url = getDocumentUrl(detail.value.supporting_documents)
+    if (url) {
+      window.open(url, '_blank')
+    }
+  }
+}
+
+// Profile image handling
+const getDetailImageUrl = () => {
+  if (!detail.value || detailImageError.value) return null
+
+  const imageFields = ['profile_image', 'student_img', 'img', 'avatar']
+
+  for (const field of imageFields) {
+    if (detail.value[field]) {
+      const imagePath = detail.value[field]
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath
+      }
+      return `http://127.0.0.1:8000/storage/${imagePath}`
+    }
+  }
+
+  return null
+}
+
+const handleDetailImageError = () => {
+  console.log("Detail image failed to load, using default avatar")
+  detailImageError.value = true
+}
+
+// API functions
 const fetchLeaveRequests = async () => {
   try {
     const res = await axios.get('http://127.0.0.1:8000/api/educator/leave-requests', {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` }
     })
     leaveRequests.value = res.data
       .filter(request => request.status === 'Approved' || request.status === 'Rejected')
@@ -476,19 +663,111 @@ const fetchLeaveRequests = async () => {
 
 const viewDetail = async (request) => {
   try {
+    isLoadingDetail.value = true
+    documentLoading.value = true
+    documentError.value = false
+    detailImageError.value = false
+
     const res = await axios.get(`http://127.0.0.1:8000/api/educator/leave-request/${request.id}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` }
     })
-    detail.value = res.data.leave_request
+
+    // Handle different API response structures
+    const responseData = res.data
+    let leaveRequest = {}
+
+    if (responseData.leave_request) {
+      leaveRequest = responseData.leave_request
+    } else if (responseData.data) {
+      leaveRequest = responseData.data
+    } else {
+      leaveRequest = responseData
+    }
+
+    detail.value = {
+      id: leaveRequest.id || request.id,
+      student: leaveRequest.student || leaveRequest.student_name || 'Unknown Student',
+      leave_type: leaveRequest.leave_type || 'Leave Request',
+      status: leaveRequest.status || 'Unknown',
+      from_date: leaveRequest.from_date || leaveRequest.start_date,
+      to_date: leaveRequest.to_date || leaveRequest.end_date,
+      reason: leaveRequest.reason || leaveRequest.description,
+      contact_info: leaveRequest.contact_info || leaveRequest.contact,
+      approved_by: leaveRequest.approved_by,
+      rejection_reason: leaveRequest.rejection_reason,
+      supporting_documents: leaveRequest.supporting_documents || leaveRequest.documents || leaveRequest.attachment,
+      profile_image: leaveRequest.profile_image || leaveRequest.student_img || leaveRequest.img || leaveRequest.avatar,
+      submitted: leaveRequest.submitted || leaveRequest.created_at,
+      duration: leaveRequest.duration
+    }
+
+    console.log('Detail loaded:', detail.value)
     showDetail.value = true
+
   } catch (err) {
-    console.error('Error loading request details:', err)
+    console.error('Error loading request detail:', err)
+  } finally {
+    isLoadingDetail.value = false
+    documentLoading.value = false
   }
 }
 
+// Modal functions
+const closeDetailModal = () => {
+  showDetail.value = false
+  detail.value = {}
+  detailImageError.value = false
+  documentError.value = false
+  documentLoading.value = false
+}
+
+const openRejectDialog = (requestId) => {
+  requestToReject.value = requestId
+  rejectionReason.value = ''
+  showRejectDialog.value = true
+}
+
+const closeRejectDialog = () => {
+  showRejectDialog.value = false
+  requestToReject.value = null
+  rejectionReason.value = ''
+}
+
+const confirmReject = async () => {
+  if (!rejectionReason.value.trim()) {
+    alert('Please provide a reason for rejection')
+    return
+  }
+
+  try {
+    await axios.patch(`http://127.0.0.1:8000/api/educator/leave-request/${requestToReject.value}`, {
+      status: 'Rejected',
+      rejection_reason: rejectionReason.value.trim()
+    }, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` }
+    })
+
+    // Update the detail if it's the same request
+    if (detail.value.id === requestToReject.value) {
+      detail.value.status = 'Rejected'
+      detail.value.rejection_reason = rejectionReason.value.trim()
+    }
+
+    // Refresh the list
+    await fetchLeaveRequests()
+    closeRejectDialog()
+
+  } catch (err) {
+    console.error('Error rejecting request:', err)
+    alert('Failed to reject request. Please try again.')
+  }
+}
+
+// List management functions
 const togglePin = async (request) => {
   request.is_pinned = !request.is_pinned
   localStorage.setItem(`pinned_${request.id}`, request.is_pinned.toString())
+
   // Re-sort the list
   leaveRequests.value.sort((a, b) => {
     if (a.is_pinned && !b.is_pinned) return -1
@@ -505,11 +784,9 @@ const toggleHide = async (request) => {
   }
 }
 
-
-
 const toggleHiddenVisibility = () => {
   showHidden.value = !showHidden.value
-  currentPage.value = 1 // Reset to first page when changing view mode
+  currentPage.value = 1
 }
 
 const confirmDelete = (request) => {
@@ -520,11 +797,13 @@ const confirmDelete = (request) => {
 const deleteRequest = async () => {
   try {
     await axios.delete(`http://127.0.0.1:8000/api/educator/leave-request/${requestToDelete.value.id}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` }
     })
+
     // Remove from local storage
     localStorage.removeItem(`pinned_${requestToDelete.value.id}`)
     localStorage.removeItem(`hidden_${requestToDelete.value.id}`)
+
     // Refresh the list
     await fetchLeaveRequests()
     showDeleteConfirm.value = false
@@ -533,28 +812,10 @@ const deleteRequest = async () => {
   }
 }
 
-const saveStatusChanges = async (request) => {
-  try {
-    const payload = {
-      status: request.status,
-      rejection_reason: request.status === 'Rejected' ? request.rejection_reason : null
-    }
-
-    await axios.patch(`http://127.0.0.1:8000/api/educator/leave-request/${request.id}`, payload, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    })
-
-    // Refresh the list
-    await fetchLeaveRequests()
-    showDetail.value = false
-  } catch (err) {
-    console.error('Error updating request status:', err)
-  }
-}
-
+// Computed properties
 const filteredRequests = computed(() => {
   return leaveRequests.value.filter((req) => {
-    const matchesSearch = req.student.toLowerCase().includes(search.value.toLowerCase())
+    const matchesSearch = req.student?.toLowerCase().includes(search.value.toLowerCase()) ?? false
     const matchesStatus = statusFilter.value === '' || req.status === statusFilter.value
     const matchesType = typeFilter.value === '' || req.leave_type === typeFilter.value
 
@@ -577,6 +838,7 @@ const paginatedRequests = computed(() => {
   return filteredRequests.value.slice(start, end)
 })
 
+// Pagination functions
 const nextPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value++
@@ -596,6 +858,7 @@ const resetFilters = () => {
   currentPage.value = 1
 }
 
+// Initialize
 onMounted(fetchLeaveRequests)
 </script>
 
@@ -635,5 +898,20 @@ select:focus {
 
 .pinned {
   animation: pulse 0.5s ease-in-out;
+}
+
+/* Loading animation */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 </style>
