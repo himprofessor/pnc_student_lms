@@ -839,4 +839,4 @@ onMounted(fetchLeaveRequests)
 
 <style scoped>
 /* Tailwind CSS is used */
-</style>>
+</style>

@@ -1,3 +1,4 @@
+ខឿម, [7/29/2025 7:55 PM]
 <template>
   <div class="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 text-gray-800">
     <!-- Main Content -->
@@ -35,11 +36,10 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
               </svg>
-              {{ showHidden ? 'Show All' : 'Show Hidden' }}
+              {{ showHidden ? 'Show Hidden' : 'Show All' }}
             </button>
           </div>
         </div>
-
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
@@ -108,7 +108,6 @@
             </button>
           </div>
         </div>
-
         <div v-if="filteredRequests.length === 0" class="text-center py-12">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400" fill="none"
             viewBox="0 0 24 24" stroke="currentColor">
@@ -155,7 +154,7 @@
                 <span v-if="request.leave_type === 'Sick Leave'" class="text-lg">🩺</span>
                 <span v-else-if="request.leave_type === 'Family Emergency'" class="text-lg">❤️</span>
                 <span v-else-if="request.leave_type === 'Personal Leave'" class="text-lg">🧘</span>
-                <span v-else-if="request.leave_type === 'Vacation Leave'" class="text-lg">🏖️</span>
+                <span v-else-if="request.leave_type === 'Vacation Leave'" class="text-lg">🏖</span>
                 <span v-else-if="request.leave_type === 'Emergency Leave'" class="text-lg">🚨</span>
                 <span v-else-if="request.leave_type === 'Maternity Leave'" class="text-lg">🤰</span>
                 <span v-else-if="request.leave_type === 'Paternity Leave'" class="text-lg">👨</span>
@@ -178,13 +177,6 @@
               }">
                 {{ request.status }}
               </span>
-              <button @click="confirmDelete(request)" class="text-gray-400 hover:text-red-500 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
             </div>
           </div>
 
@@ -395,6 +387,7 @@
               </a>
             </div>
 
+
             <div v-else class="text-center py-8 bg-white rounded-lg border border-gray-200">
               <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none"
                 viewBox="0 0 24 24" stroke="currentColor">
@@ -412,24 +405,6 @@
           <button @click="showDetail = false"
             class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
             Close
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteConfirm" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
-      <div class="bg-white p-6 rounded-lg w-full max-w-md">
-        <h3 class="text-xl font-bold mb-4">Confirm Deletion</h3>
-        <p class="mb-6">Are you sure you want to delete this leave request? This action cannot be undone.</p>
-        <div class="flex justify-end gap-3">
-          <button @click="showDeleteConfirm = false"
-            class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors">
-            Cancel
-          </button>
-          <button @click="deleteRequest"
-            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
-            Delete
           </button>
         </div>
       </div>
@@ -488,7 +463,6 @@ const fetchLeaveRequests = async () => {
         is_hidden: localStorage.getItem(`hidden_${request.id}`) === 'true'
       }))
       .sort((a, b) => {
-        // Pinned items first, then by submission date
         if (a.is_pinned && !b.is_pinned) return -1
         if (!a.is_pinned && b.is_pinned) return 1
         return new Date(b.submitted) - new Date(a.submitted)
@@ -514,7 +488,6 @@ const viewDetail = async (request) => {
 const togglePin = async (request) => {
   request.is_pinned = !request.is_pinned
   localStorage.setItem(`pinned_${request.id}`, request.is_pinned.toString())
-  // Re-sort the list
   leaveRequests.value.sort((a, b) => {
     if (a.is_pinned && !b.is_pinned) return -1
     if (!a.is_pinned && b.is_pinned) return 1
@@ -525,93 +498,10 @@ const togglePin = async (request) => {
 const toggleHide = async (request) => {
   request.is_hidden = !request.is_hidden
   localStorage.setItem(`hidden_${request.id}`, request.is_hidden.toString())
-  // If we're currently showing hidden items and we unhide one, 
-  // it should disappear from view if we're in "hidden items only" mode
-  if (showHidden.value && !request.is_hidden) {
-    fetchLeaveRequests() // Refresh the list
-  }
 }
 
 const toggleHiddenVisibility = () => {
   showHidden.value = !showHidden.value
-  currentPage.value = 1 // Reset to first page when changing view mode
-}
-
-const confirmDelete = (request) => {
-  requestToDelete.value = request
-  showDeleteConfirm.value = true
-}
-
-const deleteRequest = async () => {
-  try {
-    await axios.delete(`http://127.0.0.1:8000/api/educator/leave-request/${requestToDelete.value.id}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    })
-    // Remove from local storage
-    localStorage.removeItem(`pinned_${requestToDelete.value.id}`)
-    localStorage.removeItem(`hidden_${requestToDelete.value.id}`)
-    // Refresh the list
-    await fetchLeaveRequests()
-    showDeleteConfirm.value = false
-  } catch (err) {
-    console.error('Error deleting request:', err)
-  }
-}
-
-const saveStatusChanges = async (request) => {
-  try {
-    const payload = {
-      status: request.status,
-      rejection_reason: request.status === 'Rejected' ? request.rejection_reason : null
-    }
-
-    await axios.patch(`http://127.0.0.1:8000/api/educator/leave-request/${request.id}`, payload, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    })
-
-    // Refresh the list
-    await fetchLeaveRequests()
-    showDetail.value = false
-  } catch (err) {
-    console.error('Error updating request status:', err)
-  }
-}
-
-const filteredRequests = computed(() => {
-  return leaveRequests.value.filter((req) => {
-    const matchesSearch = req.student.toLowerCase().includes(search.value.toLowerCase())
-    const matchesStatus = statusFilter.value === '' || req.status === statusFilter.value
-    const matchesType = typeFilter.value === '' || req.leave_type === typeFilter.value
-
-    // Show only hidden items when showHidden is true, otherwise show only non-hidden
-    if (showHidden.value) {
-      return matchesSearch && matchesStatus && matchesType && req.is_hidden
-    } else {
-      return matchesSearch && matchesStatus && matchesType && !req.is_hidden
-    }
-  })
-})
-
-const totalPages = computed(() => {
-  return Math.ceil(filteredRequests.value.length / itemsPerPage.value)
-})
-
-const paginatedRequests = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return filteredRequests.value.slice(start, end)
-})
-
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++
-  }
-}
-
-const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--
-  }
 }
 
 const resetFilters = () => {
@@ -621,44 +511,37 @@ const resetFilters = () => {
   currentPage.value = 1
 }
 
+const filteredRequests = computed(() => {
+  return leaveRequests.value.filter(request => {
+    const matchesSearch = request.student.toLowerCase().includes(search.value.toLowerCase())
+    const matchesStatus = statusFilter.value ? request.status === statusFilter.value : true
+    const matchesType = typeFilter.value ? request.leave_type === typeFilter.value : true
+    const matchesHidden = showHidden.value || !request.is_hidden
+    return matchesSearch && matchesStatus && matchesType && matchesHidden
+  })
+})
+
+const totalPages = computed(() => Math.ceil(filteredRequests.value.length / itemsPerPage.value))
+
+const paginatedRequests = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  return filteredRequests.value.slice(start, start + itemsPerPage.value)
+})
+
+const prevPage = () => {
+  if (currentPage.value > 1) currentPage.value--
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) currentPage.value++
+}
+
 onMounted(fetchLeaveRequests)
 </script>
 
-<style scoped>
-button,
-select,
-input {
-  transition: all 0.2s ease;
-}
-
-input:focus,
-select:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-}
-
-/* Style for hidden items */
+<style>
 .hidden-item {
-  opacity: 0.6;
-  background-color: rgba(243, 244, 246, 0.5);
-}
-
-/* Animation for pinning */
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.1);
-  }
-
-  100% {
-    transform: scale(1);
-  }
-}
-
-.pinned {
-  animation: pulse 0.5s ease-in-out;
+  display: none;
 }
 </style>
+
