@@ -463,6 +463,7 @@ const fetchLeaveRequests = async () => {
         is_hidden: localStorage.getItem(`hidden_${request.id}`) === 'true'
       }))
       .sort((a, b) => {
+        // Pinned items first, then by submission date
         if (a.is_pinned && !b.is_pinned) return -1
         if (!a.is_pinned && b.is_pinned) return 1
         return new Date(b.submitted) - new Date(a.submitted)
@@ -488,6 +489,7 @@ const viewDetail = async (request) => {
 const togglePin = async (request) => {
   request.is_pinned = !request.is_pinned
   localStorage.setItem(`pinned_${request.id}`, request.is_pinned.toString())
+  // Re-sort the list
   leaveRequests.value.sort((a, b) => {
     if (a.is_pinned && !b.is_pinned) return -1
     if (!a.is_pinned && b.is_pinned) return 1
@@ -498,10 +500,93 @@ const togglePin = async (request) => {
 const toggleHide = async (request) => {
   request.is_hidden = !request.is_hidden
   localStorage.setItem(`hidden_${request.id}`, request.is_hidden.toString())
+  if (showHidden.value && !request.is_hidden) {
+    fetchLeaveRequests()
+  }
 }
+
+
 
 const toggleHiddenVisibility = () => {
   showHidden.value = !showHidden.value
+  currentPage.value = 1 // Reset to first page when changing view mode
+}
+
+const confirmDelete = (request) => {
+  requestToDelete.value = request
+  showDeleteConfirm.value = true
+}
+
+const deleteRequest = async () => {
+  try {
+    await axios.delete(`http://127.0.0.1:8000/api/educator/leave-request/${requestToDelete.value.id}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    })
+    // Remove from local storage
+    localStorage.removeItem(`pinned_${requestToDelete.value.id}`)
+    localStorage.removeItem(`hidden_${requestToDelete.value.id}`)
+    // Refresh the list
+    await fetchLeaveRequests()
+    showDeleteConfirm.value = false
+  } catch (err) {
+    console.error('Error deleting request:', err)
+  }
+}
+
+const saveStatusChanges = async (request) => {
+  try {
+    const payload = {
+      status: request.status,
+      rejection_reason: request.status === 'Rejected' ? request.rejection_reason : null
+    }
+
+    await axios.patch(`http://127.0.0.1:8000/api/educator/leave-request/${request.id}`, payload, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    })
+
+    // Refresh the list
+    await fetchLeaveRequests()
+    showDetail.value = false
+  } catch (err) {
+    console.error('Error updating request status:', err)
+  }
+}
+
+const filteredRequests = computed(() => {
+  return leaveRequests.value.filter((req) => {
+    const matchesSearch = req.student.toLowerCase().includes(search.value.toLowerCase())
+    const matchesStatus = statusFilter.value === '' || req.status === statusFilter.value
+    const matchesType = typeFilter.value === '' || req.leave_type === typeFilter.value
+
+    // Show only hidden items when showHidden is true, otherwise show only non-hidden
+    if (showHidden.value) {
+      return matchesSearch && matchesStatus && matchesType && req.is_hidden
+    } else {
+      return matchesSearch && matchesStatus && matchesType && !req.is_hidden
+    }
+  })
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(filteredRequests.value.length / itemsPerPage.value)
+})
+
+const paginatedRequests = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return filteredRequests.value.slice(start, end)
+})
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
 }
 
 const resetFilters = () => {
@@ -511,37 +596,44 @@ const resetFilters = () => {
   currentPage.value = 1
 }
 
-const filteredRequests = computed(() => {
-  return leaveRequests.value.filter(request => {
-    const matchesSearch = request.student.toLowerCase().includes(search.value.toLowerCase())
-    const matchesStatus = statusFilter.value ? request.status === statusFilter.value : true
-    const matchesType = typeFilter.value ? request.leave_type === typeFilter.value : true
-    const matchesHidden = showHidden.value || !request.is_hidden
-    return matchesSearch && matchesStatus && matchesType && matchesHidden
-  })
-})
-
-const totalPages = computed(() => Math.ceil(filteredRequests.value.length / itemsPerPage.value))
-
-const paginatedRequests = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  return filteredRequests.value.slice(start, start + itemsPerPage.value)
-})
-
-const prevPage = () => {
-  if (currentPage.value > 1) currentPage.value--
-}
-
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) currentPage.value++
-}
-
 onMounted(fetchLeaveRequests)
 </script>
 
-<style>
+<style scoped>
+button,
+select,
+input {
+  transition: all 0.2s ease;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Style for hidden items */
 .hidden-item {
-  display: none;
+  opacity: 0.6;
+  background-color: rgba(243, 244, 246, 0.5);
+}
+
+/* Animation for pinning */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.pinned {
+  animation: pulse 0.5s ease-in-out;
 }
 </style>
-
