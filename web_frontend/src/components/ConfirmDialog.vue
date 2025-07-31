@@ -30,8 +30,8 @@ function confirm(result) {
 .confirm-backdrop {
   position: fixed;
   top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
+  width: 100vw;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -39,6 +39,7 @@ function confirm(result) {
 
 .confirm-box {
   background: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 20px;
   border-radius: 10px;
   text-align: center;

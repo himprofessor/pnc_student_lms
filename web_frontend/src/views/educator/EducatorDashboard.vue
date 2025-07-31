@@ -353,7 +353,7 @@
     </div>
 
     <!-- Rejection Reason Modal -->
-    <div 
+    <div
       v-if="showRejectForm" 
       class="fixed inset-0 z-[60] bg-black bg-opacity-70 flex items-center justify-center p-4 backdrop-blur-sm"
     >
@@ -839,4 +839,4 @@ onMounted(fetchLeaveRequests)
 
 <style scoped>
 /* Tailwind CSS is used */
-</style>>
+</style>
