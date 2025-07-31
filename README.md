@@ -44,3 +44,16 @@ Once the dependencies are installed, you can start the project using the followi
 
 ```bash
 npm run dev
+
+### 2. Backend Setup
+
+Navigate to the `backend` directory:
+
+```bash
+composer install
+
+cp .env.example .env
+php artisan key:generate
+
+php artisan serve
+
