@@ -215,96 +215,115 @@
         >
           &times;
         </button>
+        <!-- Title -->
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Leave Details</h2>
 
-        <!-- Header -->
-        <h2 class="text-3xl font-extrabold text-center text-gray-800 mb-6">
-          Leave Details
-        </h2>
-
-        <!-- Leave Info -->
-        <div class="space-y-4 text-gray-700 text-[16px] leading-6">
-          <div class="flex items-center gap-2">
-            <span class="text-lg">📋</span>
-            <p>
-              <span class="font-semibold">Leave Type:</span>
-              {{
-                typeof selectedLeave.leave_type === "object"
-                  ? selectedLeave.leave_type.name
-                  : selectedLeave.leave_type
-              }}
-            </p>
+        <!-- Leave Type and Employee -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-500 mb-1"
+              >Employee</label
+            >
+            <div class="text-gray-900">{{ selectedLeave.contact_info }}</div>
           </div>
-
-          <div class="flex items-center gap-2">
-            <span class="text-lg">📆</span>
-            <p>
-              <span class="font-semibold">Start From:</span>
-              {{ formatDate(selectedLeave.from_date) }}
-            </p>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <span class="text-lg">📆</span>
-            <p>
-              <span class="font-semibold">To:</span>
-              {{ formatDate(selectedLeave.to_date) }}
-            </p>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <span class="text-lg">🔖</span>
-            <p>
-              <span class="font-semibold">Status:</span>
-              <span
-                :class="{
-                  'text-yellow-700': selectedLeave.status === 'pending',
-                  'text-green-700': selectedLeave.status === 'approved',
-                  'text-red-700': selectedLeave.status === 'rejected',
-                }"
-                class="px-2 py-1 rounded-lg text-sm font-semibold capitalize"
-              >
-                {{ selectedLeave.status }}
+          <div>
+            <label class="block text-sm font-medium text-gray-500 mb-1"
+              >Leave Type</label
+            >
+            <div class="inline-flex items-center gap-2 text-gray-900">
+              <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+              <span>
+                {{
+                  typeof selectedLeave.leave_type === "object"
+                    ? selectedLeave.leave_type.name
+                    : selectedLeave.leave_type
+                }}
               </span>
-            </p>
+            </div>
           </div>
-
-          <div class="flex items-start gap-2">
-            <span class="text-lg">🗒️</span>
-            <p>
-              <span class="font-semibold">Reason:</span>
-              {{ selectedLeave.reason }}
-            </p>
+        </div>
+        <!-- Date and Part Day -->
+        <div class="grid grid-cols-3 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-500 mb-1"
+              >Start</label
+            >
+            <div class="text-gray-900">
+              {{ formatDate(selectedLeave.from_date) }}
+            </div>
           </div>
-
-          <div class="flex items-center gap-2">
-            <span class="text-lg">📅</span>
-            <p>
-              <span class="font-semibold">Submitted:</span>
-              {{ formatDate(selectedLeave.created_at) }}
-            </p>
-          </div>
-
-          <div
-            class="flex items-center gap-2"
-            v-if="selectedLeave.status === 'approved'"
-          >
-            <span class="text-lg">✅</span>
-            <p>
-              <span class="font-semibold">Approved At:</span>
-              {{
-                formatDate(
-                  selectedLeave.approved_at || selectedLeave.updated_at
-                )
-              }}
-            </p>
+          <div>
+            <label class="block text-sm font-medium text-gray-500 mb-1"
+              >End</label
+            >
+            <div class="text-gray-900">
+              {{ formatDate(selectedLeave.to_date) }}
+            </div>
           </div>
         </div>
 
-        <!-- Footer -->
-        <div class="mt-6 text-center">
+        <!-- Status and Reason -->
+        <div class="grid grid-cols-3 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-500 mb-1"
+              >Part Day</label
+            >
+            <div class="text-gray-900">
+              {{ selectedLeave.part_day || "Full Day" }}
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-500 mb-1"
+              >Status</label
+            >
+            <span
+              class="inline-block px-2 py-1 rounded-md text-sm font-medium capitalize"
+              :class="{
+                'bg-yellow-100 text-yellow-700':
+                  selectedLeave.status === 'pending',
+                'bg-green-100 text-green-700':
+                  selectedLeave.status === 'approved',
+                'bg-red-100 text-red-700': selectedLeave.status === 'rejected',
+              }"
+            >
+              {{ selectedLeave.status }}
+            </span>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-500 mb-1"
+            >Reason</label
+          >
+          <p class="text-gray-900 whitespace-pre-line">
+            {{ selectedLeave.reason }}
+          </p>
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-500 mb-1"
+            >Submitted</label
+          >
+          <div class="text-gray-900">
+            {{ formatDate(selectedLeave.created_at) }}
+          </div>
+        </div>
+
+        <div v-if="selectedLeave.status === 'approved'" class="mb-4">
+          <label class="block text-sm font-medium text-gray-500 mb-1"
+            >Approved At</label
+          >
+          <div class="text-gray-500">
+            {{
+              formatDate(selectedLeave.approved_at || selectedLeave.updated_at)
+            }}
+          </div>
+        </div>
+        <!-- Footer Button -->
+        <div class="mt-6 text-right">
           <button
             @click="showModal = false"
-            class="bg-blue-400 from-red-500 to-indigo-500 text-white px-6 py-2 rounded-xl font-semibold hover:scale-105 transition"
+            class="bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-md transition"
           >
             Close
           </button>
@@ -457,7 +476,6 @@ const handleConfirm = async (confirmed) => {
     showAlert("error", "Error", "Failed to cancel leave request.");
   }
 };
-
 
 onMounted(() => {
   fetchLeaveRequests();
