@@ -358,7 +358,7 @@
       class="fixed inset-0 z-[60] bg-black bg-opacity-70 flex items-center justify-center p-4 backdrop-blur-sm"
     >
       <div class="bg-white rounded-xl w-full max-w-md shadow-2xl overflow-hidden transform transition-all duration-300 scale-100">
-        <div class="bg-red-600 px-6 py-4 text-white">
+        <div class="bg-blue-500 px-6 py-4 text-white">
           <div class="flex items-center justify-between">
             <div>
               <h3 class="text-lg font-semibold">Reject Leave Request</h3>
@@ -384,7 +384,7 @@
               id="rejection-reason" 
               v-model="rejectionReason" 
               rows="4" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
               placeholder="Please explain why this leave request is being rejected..."
               required
               :disabled="isSubmitting"
@@ -408,7 +408,7 @@
             </button>
             <button 
               type="submit" 
-              class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center font-medium"
+              class="px-6 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center font-medium"
               :disabled="isSubmitting || !rejectionReason.trim()"
             >
               <svg v-if="isSubmitting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
