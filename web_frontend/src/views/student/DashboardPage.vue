@@ -8,6 +8,15 @@
             <p class="text-sm text-gray-500">Manage your leave requests and track their status</p>
           </div>
           <div class="flex items-center space-x-4">
+            <!-- User Profile Placeholder (matching image style) -->
+            <div class="flex items-center space-x-2 text-gray-700 font-medium">
+              <img src="https://placehold.co/32x32/E0E7FF/4F46E5?text=U" alt="User Avatar" class="rounded-full w-8 h-8 object-cover border border-gray-200">
+              <span>{{ displayName }}</span>
+              <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+  
             <!-- Notification Icon -->
             <div class="relative">
               <button @click="toggleNotificationSummary"
@@ -29,7 +38,7 @@
                 class="absolute right-0 top-12 w-96 bg-white rounded-lg shadow-lg border z-50">
                 <div class="p-6 border-b">
                   <div class="flex justify-between items-center">
-                    <h3 class="text-lg font-semibold text-gray-800">Notification Summary</h3>
+                    <h2 class="text-lg font-semibold text-gray-800">Leave Request</h2>
                     <button @click="showNotificationSummary = false" class="text-gray-400 hover:text-gray-600">
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -178,6 +187,7 @@
   
         <!-- Summary Cards section -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <!-- Pending Card -->
           <div class="bg-white p-4 rounded-lg shadow border flex items-center space-x-3">
             <div class="text-yellow-500 text-2xl p-2 bg-yellow-100 rounded-full">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -190,6 +200,7 @@
               <div class="text-2xl font-bold">{{ pendingCount }}</div>
             </div>
           </div>
+          <!-- Approved Card -->
           <div class="bg-white p-4 rounded-lg shadow border flex items-center space-x-3">
             <div class="text-green-500 text-2xl p-2 bg-green-100 rounded-full">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,6 +213,7 @@
               <div class="text-2xl font-bold">{{ approvedCount }}</div>
             </div>
           </div>
+          <!-- Rejected Card -->
           <div class="bg-white p-4 rounded-lg shadow border flex items-center space-x-3">
             <div class="text-red-500 text-2xl p-2 bg-red-100 rounded-full">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -214,6 +226,7 @@
               <div class="text-2xl font-bold">{{ rejectedCount }}</div>
             </div>
           </div>
+          <!-- Total Card -->
           <div class="bg-white p-4 rounded-lg shadow border flex items-center space-x-3">
             <div class="text-blue-500 text-2xl p-2 bg-blue-100 rounded-full">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -231,7 +244,7 @@
         <!-- Notifications Section -->
         <div class="bg-white rounded-lg shadow border mb-6" ref="notificationsSection">
           <div class="border-b px-6 py-4">
-            <h2 class="text-lg font-semibold">Notifications</h2>
+            <h2 class="text-lg font-semibold">Leave Request</h2>
             <p class="text-sm text-gray-500">Your latest notifications</p>
             <!-- Notification Filter Buttons -->
             <div class="flex space-x-2 mt-3">
@@ -263,14 +276,20 @@
               >
                 Pending
               </button>
+              
             </div>
           </div>
           <div class="divide-y">
             <div
               v-for="notification in paginatedDisplayableNotifications"
               :key="notification.id"
-              class="flex justify-between items-center px-6 py-4"
-              :class="{ 'bg-blue-50': !notification.read }"
+              class="flex justify-between items-center px-6 py-4 border-b last:border-b-0 rounded-lg shadow-sm mb-2"
+              :class="{
+                'bg-green-50 border-green-200': notification.type === 'leave_approved',
+                'bg-red-50 border-red-200': notification.type === 'leave_rejected',
+                'bg-yellow-50 border-yellow-200': notification.type === 'leave_pending',
+                'bg-blue-50': !notification.read && notification.type !== 'leave_approved' && notification.type !== 'leave_rejected' && notification.type !== 'leave_pending'
+              }"
             >
               <div class="flex items-center space-x-3">
                 <svg
@@ -313,7 +332,7 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M8.228 9.247a4.5 4.5 0 00.952 1.789l1.644 1.644a4.5 4.5 0 001.789.952M12 16V8m-4 4h8m-4 4v4m0-4h4m-4-4H8m4 0h4m-4-4V4m0 4h4"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
                 <div>
@@ -362,7 +381,6 @@
   const notifications = ref([]);
   const leaveRequests = ref([]);
   const leaveTypes = ref([]);
-  // Removed pendingCount, approvedCount, rejectedCount as refs, they will be computed
   const currentPage = ref(1);
   const pageSize = 5;
   
@@ -373,12 +391,14 @@
   const currentNotificationFilter = ref('All');
   const pollingInterval = ref(null);
   
+  const readLeaveNotificationIds = ref(new Set()); // To store IDs of locally "read" leave requests
+  
   const displayName = computed(() => {
       if (!user.value) return 'Guest';
       return user.value.name ||
           user.value.full_name ||
           user.value.first_name ||
-          (user.value.email ? user.value.split('@')[0] : null) ||
+          (user.value.email ? user.value.email.split('@')[0] : null) ||
           'User';
   });
   
@@ -391,7 +411,7 @@
           id: `lr-${lr.id}`,
           message: `Your ${leaveTypeName} request for '${lr.reason}' from ${formatDate(lr.from_date)} to ${formatDate(lr.to_date)} is pending.`,
           type: 'leave_pending',
-          read: false,
+          read: readLeaveNotificationIds.value.has(`lr-${lr.id}`), // Check local read status
           created_at: lr.created_at,
           isLeaveRequest: true
         };
@@ -412,13 +432,13 @@
       filtered = filtered.filter(n => n.type === 'leave_rejected');
     } else if (currentNotificationFilter.value === 'Pending') {
       filtered = filtered.filter(n => n.type === 'leave_pending');
-    } 
+    } else if (currentNotificationFilter.value === 'Unread') {
+      filtered = filtered.filter(n => !n.read);
+    }
     return filtered;
   });
   
-  // --- Start Header Counts and Recent Notifications Updates ---
-  
-  // Now computed properties, deriving from allDisplayableNotifications
+  // Header Counts and Recent Notifications Updates
   const pendingCount = computed(() => {
     return allDisplayableNotifications.value.filter(n => n.type === 'leave_pending').length;
   });
@@ -431,20 +451,16 @@
     return allDisplayableNotifications.value.filter(n => n.type === 'leave_rejected').length;
   });
   
-  // unreadNotificationCount now considers all displayable notifications
   const unreadNotificationCount = computed(() => {
       return allDisplayableNotifications.value.filter(n => !n.read).length;
   });
   
-  // recentNotifications now considers all displayable notifications
   const recentNotifications = computed(() => {
       return allDisplayableNotifications.value
+          .filter(n => !n.read) // Only show unread in recent summary
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
           .slice(0, 3);
   });
-  
-  // --- End Header Counts and Recent Notifications Updates ---
-  
   
   const totalPages = computed(() =>
       Math.ceil(filteredNotifications.value.length / pageSize)
@@ -479,20 +495,18 @@
   };
   
   const handleNotificationClick = async (notification) => {
-    selectedNotification.value = notification;
-    showNotificationDetail.value = true;
-    showNotificationSummary.value = false;
-
-    if (!notification.read) { // If it's currently unread
-        if (notification.isLeaveRequest) {
-            // For transformed leave requests, mark as read locally
-            readLeaveNotificationIds.value.add(notification.id);
-        } else {
-            // For actual backend notifications, call the API
-            await markNotificationAsRead(notification.id);
-        }
-    }
-};
+      selectedNotification.value = notification;
+      showNotificationDetail.value = true;
+      showNotificationSummary.value = false;
+  
+      if (!notification.read) {
+          if (notification.isLeaveRequest) {
+              readLeaveNotificationIds.value.add(notification.id);
+          } else {
+              await markNotificationAsRead(notification.id);
+          }
+      }
+  };
   
   const closeNotificationDetail = () => {
       showNotificationDetail.value = false;
@@ -510,6 +524,13 @@
       }
   };
   
+  const refreshData = async () => {
+      console.log('Refreshing data...');
+      await fetchNotifications();
+      await fetchLeaveRequests();
+      console.log('Data refreshed.');
+  };
+  
   const fetchUser = async () => {
       const stored = localStorage.getItem('user_data');
       if (stored) user.value = JSON.parse(stored);
@@ -523,6 +544,7 @@
               user.value = response.data;
               localStorage.setItem('user_data', JSON.stringify(user.value));
           }
+          updateCounts();
       } catch (error) {
           console.error('Failed to fetch user:', error);
       }
@@ -535,6 +557,7 @@
               headers: { Authorization: `Bearer ${token}` }
           });
           notifications.value = response.data;
+          updateCounts();
       } catch (error) {
           console.error('Failed to fetch notifications:', error);
       }
@@ -549,6 +572,7 @@
           notifications.value = notifications.value.map(n =>
               n.id === id ? { ...n, read: true } : n
           );
+          updateCounts();
       } catch (error) {
           console.error('Failed to mark notification as read:', error);
       }
@@ -582,10 +606,17 @@
               ...leave,
               approved_by: leave.approved_by || 'N/A',
           }));
+          updateCounts();
       } catch (error) {
           console.error("Failed to fetch leave requests:", error);
       }
   };
+  
+  const updateCounts = () => {
+    // This function is now mostly a trigger for computed properties to re-evaluate
+    // No direct assignments needed here, as the computed properties handle it.
+  };
+  
   
   function formatDate(dateStr) {
       if (!dateStr) return "";
@@ -633,7 +664,7 @@
               customClass: { confirmButton: 'bg-green-400 hover:bg-green-400 text-white text-sm py-2 rounded' },
               background: '#fff',
           });
-          await fetchLeaveRequests();
+          await fetchLeaveRequests(); // Re-fetch to update counts and list
       } catch (err) {
           await Swal.fire({
               icon: 'error',
