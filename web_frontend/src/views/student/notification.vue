@@ -62,7 +62,9 @@
                 <div class="p-6">
                     <!-- Notification Header -->
                     <div class="flex items-start justify-between mb-3">
+                        
                         <div class="flex items-center space-x-3">
+                            
                             <!-- Status Icon -->
                             <div class="flex-shrink-0">
                                 <div v-if="notification.type === 'leave_approved'"
@@ -109,7 +111,7 @@
                                                     ? "Leave Request Rejected"
                                                     : notification.type === "leave_pending"
                                                         ? "Leave Request Pending"
-                                        : "Unknown Status"
+                                                        : "Unknown Status"
                                         }}
                                     </span>
                                     <span v-if="!notification.read"
@@ -440,7 +442,6 @@ const parseNotificationDetails = (message) => {
 
     return details;
 };
-
 // Close notification summary when clicking outside
 const handleClickOutside = (event) => {
     if (showNotificationSummary.value && !event.target.closest(".relative")) {
@@ -453,7 +454,6 @@ const handleClickOutside = (event) => {
         selectedNotification.value = null;
     }
 };
-
 // ... existing code ... (all existing functions remain unchanged)
 const fetchUser = async () => {
     const stored = localStorage.getItem("user_data");
@@ -472,7 +472,6 @@ const fetchUser = async () => {
         console.error("Failed to fetch user:", error);
     }
 };
-
 const fetchNotifications = async () => {
     try {
         const token = localStorage.getItem("authToken");
@@ -487,7 +486,6 @@ const fetchNotifications = async () => {
         console.error("Failed to fetch notifications:", error);
     }
 };
-
 const markNotificationAsRead = async (id) => {
     try {
         const token = localStorage.getItem("authToken");
@@ -505,7 +503,6 @@ const markNotificationAsRead = async (id) => {
         console.error("Failed to mark notification as read:", error);
     }
 };
-
 const fetchLeaveRequests = async () => {
     try {
         const token = localStorage.getItem("authToken");
@@ -535,7 +532,6 @@ const fetchLeaveRequests = async () => {
         console.error("Failed to fetch leave requests:", error);
     }
 };
-
 function formatDate(dateStr) {
     if (!dateStr) return "";
     const date = new Date(dateStr);
@@ -545,15 +541,11 @@ function formatDate(dateStr) {
         day: "numeric",
     });
 }
-
 function goToPage(page) {
     if (page >= 1 && page <= totalPages.value) {
         currentPage.value = page;
     }
 }
-
-
-
 onMounted(() => {
     fetchUser();
     fetchNotifications();
@@ -562,7 +554,6 @@ onMounted(() => {
     // Add click outside listener
     document.addEventListener("click", handleClickOutside);
 });
-
 // Cleanup event listener
 onUnmounted(() => {
     document.removeEventListener("click", handleClickOutside);
