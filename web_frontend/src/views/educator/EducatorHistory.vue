@@ -630,31 +630,42 @@ const handleDetailImageError = () => {
 
 // API functions
 const fetchLeaveRequests = async () => {
-  try {
-    const res = await axios.get('http://127.0.0.1:8000/api/educator/leave-requests', {
-      headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` }
-    })
+    try {
+        const res = await axios.get('http://127.0.0.1:8000/api/educator/leave-requests', {
+            headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` }
+        });
 
-    leaveRequests.value = res.data
-      .filter(request => request.status === 'Approved' || request.status === 'Rejected')
-      .map(request => ({
-        ...request,
-        is_pinned: localStorage.getItem(`pinned_${request.id}`) === 'true',
-        is_hidden: localStorage.getItem(`hidden_${request.id}`) === 'true'
-      }))
-      .sort((a, b) => {
-        // Pinned items first, then by submission date
-        if (a.is_pinned && !b.is_pinned) return -1
-        if (!a.is_pinned && b.is_pinned) return 1
-        return new Date(b.submitted) - new Date(a.submitted)
-      })
+        // Use a Promise.all to fetch details for all requests concurrently
+        const detailedRequests = await Promise.all(
+            res.data.map(async (request) => {
+                const detailRes = await axios.get(`http://127.0.0.1:8000/api/educator/leave-request/${request.id}`, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` }
+                });
 
-    currentPage.value = 1
-  } catch (err) {
-    console.error('Error loading requests:', err)
-  }
-}
+                // Merge the detail data with the original list item
+                return {
+                    ...request,
+                    ...detailRes.data.leave_request, // Assuming the detailed data is here
+                    is_pinned: localStorage.getItem(`pinned_${request.id}`) === 'true',
+                    is_hidden: localStorage.getItem(`hidden_${request.id}`) === 'true'
+                };
+            })
+        );
 
+        leaveRequests.value = detailedRequests
+            .filter(request => request.status === 'Approved' || request.status === 'Rejected')
+            .sort((a, b) => {
+                // Pinned items first, then by submission date
+                if (a.is_pinned && !b.is_pinned) return -1;
+                if (!a.is_pinned && b.is_pinned) return 1;
+                return new Date(b.submitted) - new Date(a.submitted);
+            });
+
+        currentPage.value = 1;
+    } catch (err) {
+        console.error('Error loading requests:', err);
+    }
+};
 const viewDetail = async (request) => {
   try {
     isLoadingDetail.value = true
