@@ -206,7 +206,7 @@
                 stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
-              Approved by {{ request.approved_by || 'Administrator' }}
+              Approved
             </div>
 
             <div v-if="request.status === 'Rejected'" class="mt-2">
@@ -380,10 +380,6 @@
                     }" class="font-semibold capitalize ml-2">
                       {{ detail.status || 'Unknown' }}
                     </span>
-                  </p>
-                  <p v-if="detail.approved_by" class="text-gray-700">
-                    <span class="font-medium">Approved by:</span>
-                    {{ detail.approved_by }}
                   </p>
 
                   <!-- Display Rejection Reason -->
