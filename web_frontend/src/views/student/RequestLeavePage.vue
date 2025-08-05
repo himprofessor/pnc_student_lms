@@ -331,7 +331,7 @@ const resetForm = () => {
   form.leave_type_id = '';
   form.reason = '';
   form.from_date = '';
-  form.to_date = '';
+  form.to_date = '';  
   form.contact_info = '';
   form.supporting_documents = null;
   totalDays.value = null;
