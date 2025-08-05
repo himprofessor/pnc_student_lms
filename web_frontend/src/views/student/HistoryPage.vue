@@ -149,13 +149,7 @@
                 <p class="text-xs text-gray-400 mt-1">
                   Submitted {{ formatDate(request.created_at) }}
                 </p>
-                <p
-                  v-if="request.status === 'approved'"
-                  class="text-xs text-gray-400"
-                >
-                  Approved
-                  {{ formatDate(request.approved_at || request.updated_at) }}
-                </p>
+               
               </div>
             </div>
             <div class="flex items-center gap-4">
