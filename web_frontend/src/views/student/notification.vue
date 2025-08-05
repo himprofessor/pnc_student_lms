@@ -509,23 +509,6 @@ const setStatusFilter = (status) => {
       ? "All Requests"
       : status.charAt(0).toUpperCase() + status.slice(1);
 };
-
-// Toggle notification summary
-const toggleNotificationSummary = () => {
-  showNotificationSummary.value = !showNotificationSummary.value;
-};
-
-// Scroll to notifications section
-const scrollToNotifications = () => {
-  showNotificationSummary.value = false;
-  if (notificationsSection.value) {
-    notificationsSection.value.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }
-};
-
 // Handle notification click and open detail modal
 const handleNotificationClick = async (notification) => {
   selectedNotification.value = notification;
