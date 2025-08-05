@@ -1,4 +1,4 @@
-<template>
+  <template>
     <div class="min-h-screen bg-gray-50 text-gray-800">
       <div class="px-6 py-6">
         <!-- Header -->
@@ -663,4 +663,3 @@
       }
   });
   </script>
-  
