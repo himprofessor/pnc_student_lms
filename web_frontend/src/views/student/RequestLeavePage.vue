@@ -47,21 +47,33 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-1">
             <div>
               <label for="from-date" class="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
-              <input type="date" id="from-date" v-model="form.from_date"
+              <input 
+                type="date" 
+                id="from-date" 
+                v-model="form.from_date"
+                :min="today"
                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                :class="{ 'border-red-500': fieldErrors.from_date }" @change="calculateDays">
+                :class="{ 'border-red-500': fieldErrors.from_date }" 
+                @change="calculateDays"
+              >
               <p v-if="fieldErrors.from_date" class="mt-1 text-sm text-red-600">{{ fieldErrors.from_date }}</p>
             </div>
             <div>
               <label for="to-date" class="block text-sm font-medium text-gray-700 mb-1">End Date *</label>
-              <input type="date" id="to-date" v-model="form.to_date"
+              <input 
+                type="date" 
+                id="to-date" 
+                v-model="form.to_date"
+                :min="form.from_date || today"
                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                :class="{ 'border-red-500': fieldErrors.to_date }" @change="calculateDays">
+                :class="{ 'border-red-500': fieldErrors.to_date }" 
+                @change="calculateDays"
+              >
               <p v-if="fieldErrors.to_date" class="mt-1 text-sm text-red-600">{{ fieldErrors.to_date }}</p>
             </div>
           </div>
           <div v-if="totalDays !== null" class="text-sm text-gray-500 mb-4">
-            Total Leave Days: {{ totalDays }} day
+            Total Leave Days: {{ totalDays }} day{{ totalDays !== 1 ? 's' : '' }}
           </div>
 
           <div class="mb-4">
@@ -130,7 +142,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue';
+import { ref, computed, onMounted, reactive } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 
@@ -160,6 +172,12 @@ const fieldErrors = reactive({
   supporting_documents: '',
 });
 
+// Compute today's date in YYYY-MM-DD format
+const today = computed(() => {
+  const date = new Date();
+  return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD
+});
+
 // Fetch leave types on component mount
 onMounted(() => {
   fetchLeaveTypes();
@@ -182,10 +200,10 @@ const calculateDays = () => {
     const from = new Date(form.from_date);
     const to = new Date(form.to_date);
 
-    // Swap dates if from_date is after to_date
+    // Ensure to_date is not before from_date
     if (from > to) {
-      [form.from_date, form.to_date] = [form.to_date, form.from_date];
-      return calculateDays(); // Recalculate with swapped dates
+      form.to_date = form.from_date; // Reset to_date to from_date
+      return calculateDays(); // Recalculate with corrected dates
     }
 
     // Calculate difference in days (inclusive of both dates)
