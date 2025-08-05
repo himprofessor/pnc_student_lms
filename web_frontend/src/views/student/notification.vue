@@ -459,13 +459,14 @@ const unreadNotificationCount = computed(() => {
 
 const recentNotifications = computed(() => {
   return notifications.value
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+  .slice() // ✅ Make a copy
+  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) // ✅ Sort safely
+
     .slice(0, 3);
 });
 
 // Modified computed property to include pending requests in "all"
 const filteredNotifications = computed(() => {
-  // Create pseudo-notifications for pending leave requests
   const pendingNotifications = leaveRequests.value
     .filter((r) => r.status === "pending")
     .map((r) => ({
@@ -473,24 +474,31 @@ const filteredNotifications = computed(() => {
       type: "leave_pending",
       message: `Leave request for ${r.leave_type} from ${r.from_date} to ${r.to_date} is awaiting approval.`,
       created_at: r.created_at,
-      read: true, // Nothing to mark as read for pending requests
+      read: true,
     }));
 
   switch (statusFilter.value) {
     case "approved":
-      return notifications.value.filter((n) => n.type === "leave_approved");
+      return notifications.value
+        .filter((n) => n.type === "leave_approved")
+        .slice()
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     case "rejected":
-      return notifications.value.filter((n) => n.type === "leave_rejected");
+      return notifications.value
+        .filter((n) => n.type === "leave_rejected")
+        .slice()
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     case "pending":
-      return pendingNotifications;
-    default: // "all"
-      // Combine actual notifications with pending pseudo-notifications
-      return [
-        ...notifications.value,
-        ...pendingNotifications,
-      ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Sort by date, newest first
+      return pendingNotifications.sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
+    default:
+      return [...notifications.value, ...pendingNotifications]
+        .slice()
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   }
 });
+
 
 // Set status filter and update current status display
 const setStatusFilter = (status) => {
