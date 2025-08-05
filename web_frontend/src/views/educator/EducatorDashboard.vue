@@ -575,14 +575,14 @@ const submitRejection = async () => {
 
     // Show success notification
     const successNotification = document.createElement('div')
-    successNotification.className = 'fixed top-4 right-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-md z-50'
+    successNotification.className = 'fixed top-4 right-4 bg-green-500 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-md z-50'
     successNotification.innerHTML = `
-            <div class="flex items-center">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p>Leave request rejected successfully</p>
-            </div>
+            <div v-if="successMessage" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Reject successfully 
+      </div>
         `
     document.body.appendChild(successNotification)
 
