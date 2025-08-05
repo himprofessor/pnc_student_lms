@@ -212,25 +212,31 @@
       </div>
     </div>
 
-   <transition name="scale">
+    <transition name="scale">
   <div
     v-if="showModal"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
   >
     <div
-      class="relative w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl animate-fade-in-up max-h-[90vh] flex flex-col"
+      class="relative w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl animate-fade-in-up max-h-[90vh] flex flex-col border border-white/20"
     >
-      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 px-8 py-5 border-b border-gray-200 flex items-center justify-between">
-        <h2 class="text-2xl font-extrabold text-gray-900">
-          Leave Request Details
-        </h2>
+      <!-- Header with gradient and improved close button -->
+      <div class="bg-gradient-to-r from-blue-600 to-indigo-700 px-8 py-6 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <h2 class="text-2xl font-bold text-white tracking-tight">
+            Leave Request Details
+          </h2>
+        </div>
         <button
           @click="showModal = false"
-          class="text-gray-400 hover:text-gray-600 transition-colors transform hover:scale-110"
+          class="p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-200 text-white/80 hover:text-white"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="h-7 w-7"
+            class="h-6 w-6"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -245,19 +251,45 @@
         </button>
       </div>
 
+      <!-- Content area with improved spacing and cards -->
       <div class="flex-1 overflow-y-auto p-8 space-y-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 pb-6 border-b border-gray-100">
-          <div class="space-y-2">
-            <label class="label-text">Employee</label>
-            <div class="data-text">
-              {{ selectedLeave.contact_info }}
+        <!-- Employee and Leave Type in card -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+            <label class="label-text text-gray-600">Status</label>
+            <div class="mt-2">
+              <span
+                class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold capitalize transform transition-all duration-200"
+                :class="{
+                  'bg-yellow-100 text-yellow-800': selectedLeave.status === 'pending',
+                  'bg-green-100 text-green-800': selectedLeave.status === 'approved',
+                  'bg-red-100 text-red-800': selectedLeave.status === 'rejected',
+                }"
+              >
+                <span 
+                  class="w-2 h-2 rounded-full mr-2"
+                  :class="{
+                    'bg-yellow-600': selectedLeave.status === 'pending',
+                    'bg-green-600': selectedLeave.status === 'approved',
+                    'bg-red-600': selectedLeave.status === 'rejected',
+                  }"
+                ></span>
+                {{ selectedLeave.status }}
+              </span>
             </div>
           </div>
-          <div class="space-y-2">
-            <label class="label-text">Leave Type</label>
-            <div class="flex items-center gap-3 data-text">
-              <span class="w-3 h-3 bg-blue-500 rounded-full animate-ping-slow"></span>
-              <span>
+          <div class="bg-gradient-to-br from-indigo-50 to-purple-50 p-5 rounded-xl border border-indigo-100 shadow-sm">
+            <label class="label-text text-indigo-800/80">Leave Type</label>
+            <div class="flex items-center gap-3 data-text mt-1">
+              <span 
+                class="w-3 h-3 rounded-full flex-shrink-0"
+                :class="{
+                  'bg-blue-500 animate-ping-slow': selectedLeave.status === 'pending',
+                  'bg-green-500': selectedLeave.status === 'approved',
+                  'bg-red-500': selectedLeave.status === 'rejected',
+                }"
+              ></span>
+              <span class="text-gray-900 font-medium">
                 {{
                   typeof selectedLeave.leave_type === "object"
                     ? selectedLeave.leave_type.name
@@ -268,70 +300,72 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-6 pb-6 border-b border-gray-100">
-          <div class="space-y-2">
-            <label class="label-text">Start Date</label>
-            <div class="data-text">
-              {{ formatDate(selectedLeave.from_date) }}
+        <!-- Date information in timeline style -->
+        <div class="bg-gray-50 p-6 rounded-xl border border-gray-100 shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Leave Period
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="space-y-1">
+              <label class="label-text text-gray-600">Start Date</label>
+              <div class="data-text font-medium text-gray-900">
+                {{ formatDate(selectedLeave.from_date) }}
+              </div>
             </div>
-          </div>
-          <div class="space-y-2">
-            <label class="label-text">End Date</label>
-            <div class="data-text">
-              {{ formatDate(selectedLeave.to_date) }}
+            <div class="space-y-1">
+              <label class="label-text text-gray-600">End Date</label>
+              <div class="data-text font-medium text-gray-900">
+                {{ formatDate(selectedLeave.to_date) }}
+              </div>
             </div>
-          </div>
-          <div class="space-y-2">
-            <label class="label-text">Part Day</label>
-            <div class="data-text">
-              {{ selectedLeave.part_day || "Full Day" }}
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-          <div class="space-y-2">
-            <label class="label-text">Status</label>
-            <span
-              class="inline-block px-4 py-1.5 rounded-full text-sm font-bold capitalize transform transition-all duration-200"
-              :class="{
-                'bg-yellow-100 text-yellow-700': selectedLeave.status === 'pending',
-                'bg-green-100 text-green-700': selectedLeave.status === 'approved',
-                'bg-red-100 text-red-700': selectedLeave.status === 'rejected',
-              }"
-            >
-              {{ selectedLeave.status }}
-            </span>
-          </div>
-          <div class="space-y-2">
-            <label class="label-text">Submitted On</label>
-            <div class="data-text">
+            <div class=" space-y-1">
+            <label class="label-text text-gray-600">Submitted On</label>
+            <div class="data-text mt-1 font-medium text-gray-900">
               {{ formatDate(selectedLeave.created_at) }}
             </div>
+            <div v-if="selectedLeave.status === 'approved'" class="mt-3">
+              <label class="label-text text-gray-600">Approved On</label>
+              <div class="data-text font-medium text-gray-900">
+                {{ formatDate(selectedLeave.approved_at || selectedLeave.updated_at) }}
+              </div>
+            </div>
+          </div>
           </div>
         </div>
 
-        <div class="space-y-2">
-          <label class="label-text">Reason for Leave</label>
-          <div class="data-text-reason">
-            {{ selectedLeave.reason }}
-          </div>
+        <!-- Status and submission info -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          
         </div>
-        
-        <div v-if="selectedLeave.status === 'approved'" class="space-y-2">
-          <label class="label-text">Approved On</label>
-          <div class="data-text">
-            {{ formatDate(selectedLeave.approved_at || selectedLeave.updated_at) }}
+
+        <!-- Reason with improved styling -->
+        <div class="bg-gray-50 p-6 rounded-xl border border-gray-100 shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+            </svg>
+            Reason for Leave
+          </h3>
+          <div class="data-text-reason bg-white p-4 rounded-lg border border-gray-200 text-gray-700">
+            {{ selectedLeave.reason || "No reason provided" }}
           </div>
         </div>
       </div>
 
-      <div class="sticky bottom-0 bg-gray-50 px-8 py-5 border-t border-gray-100 text-right">
+      <!-- Footer with improved button -->
+      <div class="sticky bottom-0 bg-gradient-to-r from-blue-50 to-indigo-50 px-8 py-5 border-t border-gray-100 flex justify-end space-x-4">
         <button
           @click="showModal = false"
-          class="rounded-xl bg-blue-600 px-8 py-3 font-bold text-white shadow-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
+          class="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-3 font-bold text-white shadow-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 transform hover:scale-[1.02] active:scale-95 flex items-center"
         >
           Close
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
       </div>
     </div>
