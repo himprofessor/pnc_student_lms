@@ -456,22 +456,13 @@
 
                   <!-- Document Actions -->
                   <div class="flex flex-wrap gap-2">
-                    <a :href="getDocumentUrl(detail.supporting_documents)"
-                      :download="getFileName(detail.supporting_documents)"
-                      class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium">
-                      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      Download
-                    </a>
                     <button @click="openDocumentInNewTab"
                       class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
                       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                       </svg>
-                      Open in New Tab
+                      Open New Tab
                     </button>
                   </div>
                 </div>
@@ -639,31 +630,42 @@ const handleDetailImageError = () => {
 
 // API functions
 const fetchLeaveRequests = async () => {
-  try {
-    const res = await axios.get('http://127.0.0.1:8000/api/educator/leave-requests', {
-      headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` }
-    })
+    try {
+        const res = await axios.get('http://127.0.0.1:8000/api/educator/leave-requests', {
+            headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` }
+        });
 
-    leaveRequests.value = res.data
-      .filter(request => request.status === 'Approved' || request.status === 'Rejected')
-      .map(request => ({
-        ...request,
-        is_pinned: localStorage.getItem(`pinned_${request.id}`) === 'true',
-        is_hidden: localStorage.getItem(`hidden_${request.id}`) === 'true'
-      }))
-      .sort((a, b) => {
-        // Pinned items first, then by submission date
-        if (a.is_pinned && !b.is_pinned) return -1
-        if (!a.is_pinned && b.is_pinned) return 1
-        return new Date(b.submitted) - new Date(a.submitted)
-      })
+        // Use a Promise.all to fetch details for all requests concurrently
+        const detailedRequests = await Promise.all(
+            res.data.map(async (request) => {
+                const detailRes = await axios.get(`http://127.0.0.1:8000/api/educator/leave-request/${request.id}`, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` }
+                });
 
-    currentPage.value = 1
-  } catch (err) {
-    console.error('Error loading requests:', err)
-  }
-}
+                // Merge the detail data with the original list item
+                return {
+                    ...request,
+                    ...detailRes.data.leave_request, // Assuming the detailed data is here
+                    is_pinned: localStorage.getItem(`pinned_${request.id}`) === 'true',
+                    is_hidden: localStorage.getItem(`hidden_${request.id}`) === 'true'
+                };
+            })
+        );
 
+        leaveRequests.value = detailedRequests
+            .filter(request => request.status === 'Approved' || request.status === 'Rejected')
+            .sort((a, b) => {
+                // Pinned items first, then by submission date
+                if (a.is_pinned && !b.is_pinned) return -1;
+                if (!a.is_pinned && b.is_pinned) return 1;
+                return new Date(b.submitted) - new Date(a.submitted);
+            });
+
+        currentPage.value = 1;
+    } catch (err) {
+        console.error('Error loading requests:', err);
+    }
+};
 const viewDetail = async (request) => {
   try {
     isLoadingDetail.value = true

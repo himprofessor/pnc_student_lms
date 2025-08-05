@@ -9,9 +9,9 @@ import RequestLeavePage from '@/views/student/RequestLeavePage.vue'
 import HistoryPage from '@/views/student/HistoryPage.vue'
 import ProfilePage from '@/views/student/ProfilePage.vue'
 
-import EducatorDashboard from '@/views/Educator/EducatorDashboard.vue'
-import EducatorHistory from '@/views/Educator/EducatorHistory.vue'
-import EducatorProfile from '@/views/Educator/EducatorProfile.vue'
+import EducatorDashboard from '@/views/educator/EducatorDashboard.vue'
+import EducatorHistory from '@/views/educator/EducatorHistory.vue'
+import EducatorProfile from '@/views/educator/EducatorProfile.vue'
 
 const routes = [
   { path: '/', component: Home, meta: { hideStudentNavbar: true } },
