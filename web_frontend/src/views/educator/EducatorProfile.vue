@@ -124,11 +124,11 @@
   
               <div class="space-y-4">
                 <!-- Student/User ID (Read-only) -->
-                <div>
+                <!-- <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Student/User ID</label>
                   <p class="text-gray-900 bg-gray-100 p-3 rounded-md border">{{ user.student_id || user.id || 'Not assigned' }}</p>
                 
-                </div>
+                </div> -->
   
                 <!-- Contact Information -->
                 <div>

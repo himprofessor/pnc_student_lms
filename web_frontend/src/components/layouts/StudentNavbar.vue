@@ -1,44 +1,40 @@
 <template>
   <nav class="flex items-center justify-between px-6 py-3 shadow bg-white">
     <!-- Logo -->
-    <div class="flex items-center space-x-2">
-      <svg
-        class="w-6 h-6 text-blue-600"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          d="M12 14l9-5-9-5-9 5 9 5z"
-        />
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          d="M12 14l6.16-3.422A12.042 12.042 0 0118 14.5C18 17.538 15.538 20 12.5 20S7 17.538 7 14.5c0-.697.096-1.374.273-2.017L12 14z"
-        />
+    <router-link to="/" class="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+      <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422A12.042 12.042 0 0118 14.5C18 17.538 15.538 20 12.5 20S7 17.538 7 14.5c0-.697.096-1.374.273-2.017L12 14z" />
       </svg>
       <span class="text-lg font-semibold text-gray-800">LeaveMS</span>
-    </div>
+    </router-link>
 
     <!-- Menu -->
-    <div class="flex space-x-6 items-center">
-      <router-link to="/dashboard" class="text-gray-700 hover:bg-blue-300 px-3 py-1 rounded-md transition">Dashboard</router-link>
-      <router-link to="/request-leave" class="text-gray-700 hover:bg-blue-300 px-3 py-1 rounded-md transition">Request Leave</router-link>
-      <router-link to="/history" class="text-gray-700 hover:bg-blue-300 px-3 py-1 rounded-md transition">History</router-link>
+    <div class="flex space-x-4 items-center">
+      <router-link 
+        v-for="link in navLinks"
+        :key="link.to"
+        :to="link.to" 
+        class="px-3 py-1 rounded-md transition"
+        :class="{
+          'text-blue-600 font-medium': $route.path === link.to,
+          'text-gray-700 hover:bg-blue-50': $route.path !== link.to
+        }"
+      >
+        {{ link.text }}
+      </router-link>
     </div>
 
     <!-- User Dropdown -->
-    <div class="relative" @click="toggleDropdown">
-      <div class="flex items-center space-x-2 px-3 py-1 rounded-md cursor-pointer hover:bg-blue-50 transition">
-        <!-- Profile Image or Initials -->
-        <div class="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center">
+    <div class="relative" v-click-outside="closeDropdown">
+      <div 
+        @click="toggleDropdown"
+        class="flex items-center space-x-2 px-3 py-1 rounded-md cursor-pointer hover:bg-blue-50 transition"
+      >
+        <div class="w-7 h-7 rounded-full overflow-hidden border border-gray-200 flex items-center justify-center">
           <img 
             v-if="getProfileImageUrl()" 
             :src="getProfileImageUrl()" 
-            :alt="displayName"
             class="w-full h-full object-cover"
             @error="handleImageError"
           />
@@ -52,205 +48,172 @@
         <span class="text-gray-800 font-medium text-sm">
           {{ displayName }}
         </span>
-        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <svg 
+          class="w-4 h-4 text-gray-500 transition-transform duration-200"
+          :class="{'rotate-180': dropdownOpen}"
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
           <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </div>
 
       <!-- Dropdown menu -->
-      <div v-if="dropdownOpen" class="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg border border-gray-200 z-50">
-        <router-link to="/profile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-md">Profile</router-link>
-        <button @click="handleSignOut" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-b-md">Sign out</button>
-      </div>
+      <transition
+        enter-active-class="transition ease-out duration-100"
+        enter-from-class="transform opacity-0 scale-95"
+        enter-to-class="transform opacity-100 scale-100"
+        leave-active-class="transition ease-in duration-75"
+        leave-from-class="transform opacity-100 scale-100"
+        leave-to-class="transform opacity-0 scale-95"
+      >
+        <div 
+          v-if="dropdownOpen" 
+          class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50 divide-y divide-gray-100"
+        >
+          <div class="px-4 py-3">
+            <p class="text-sm text-gray-900 font-medium">{{ displayName }}</p>
+            <p class="text-xs text-gray-500 truncate">{{ user?.email }}</p>
+          </div>
+          <div class="py-1">
+            <router-link 
+              to="/profile" 
+              @click="closeDropdown"
+              class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
+            >
+              Profile
+            </router-link>
+            <button 
+              @click="handleSignOut"
+              class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+      </transition>
     </div>
   </nav>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
+const route = useRoute()
 const dropdownOpen = ref(false)
-const user = ref(null)
-const isLoading = ref(false)
-const apiError = ref(null)
+const user = ref(JSON.parse(localStorage.getItem('user_data')) || null)
 const imageError = ref(false)
 
-const hasToken = computed(() => !!localStorage.getItem('authToken'))
+const navLinks = [
+  { to: '/dashboard', text: 'Dashboard' },
+  { to: '/request-leave', text: 'Request Leave' },
+  { to: '/history', text: 'History' }
+]
 
 const displayName = computed(() => {
-  if (isLoading.value) return 'Loading...'
-  if (apiError.value) return 'Error'
-  if (!user.value) return 'Guest'
-  
+  if (!user.value) return 'Loading...'
   return user.value.name || 
          user.value.full_name || 
          user.value.first_name || 
-         (user.value.email ? user.value.email.split('@')[0] : null) || 
-         'User'
+         (user.value.email ? user.value.email.split('@')[0] : 'User')
 })
 
 const toggleDropdown = () => {
   dropdownOpen.value = !dropdownOpen.value
 }
 
+const closeDropdown = () => {
+  dropdownOpen.value = false
+}
+
 const getUserInitials = () => {
-  if (!user.value) return 'G'
-  
-  const name = user.value.name || 
-               user.value.full_name || 
-               user.value.first_name || 
-               user.value.email || 
-               'Guest'
-  
-  if (name.includes('@')) {
-    return name.charAt(0).toUpperCase()
-  }
-  
-  const words = name.split(' ')
-  if (words.length >= 2) {
-    return (words[0].charAt(0) + words[1].charAt(0)).toUpperCase()
-  }
-  
-  return name.charAt(0).toUpperCase()
+  if (!user.value) return 'U'
+  const name = displayName.value
+  return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
 }
 
 const getProfileImageUrl = () => {
   if (!user.value || imageError.value) return null
+  const imgField = user.value.img_url || user.value.profile_image || user.value.avatar
+  if (!imgField) return null
   
-  // Check different possible image field names
-  const imageField = user.value.img_url ||
-                    user.value.img || 
-                    user.value.profile_image || 
-                    user.value.avatar || 
-                    user.value.image || 
-                    user.value.photo ||
-                    user.value.profile_photo
-
-  if (!imageField) {
-    console.log('No image field found')
-    return null
-  }
-
-  let finalUrl = ''
-
-  // If it's already a full URL, return as is
-  if (imageField.startsWith('http://') || imageField.startsWith('https://')) {
-    finalUrl = imageField
-  } else if (imageField.startsWith('/')) {
-    // If it's a relative path, construct the full URL
-    finalUrl = `http://127.0.0.1:8000${imageField}`
-  } else {
-    // If it's just a filename, assume it's in storage/app/public/profile-images
-    finalUrl = `http://127.0.0.1:8000/storage/${imageField}`
-  }
-
-  console.log('Final image URL:', finalUrl)
-  return finalUrl
+  if (imgField.startsWith('http')) return imgField
+  return `http://127.0.0.1:8000${imgField.startsWith('/') ? '' : '/'}${imgField}`
 }
 
 const handleImageError = () => {
-  console.log('Image failed to load, falling back to initials')
   imageError.value = true
 }
 
 const fetchUser = async () => {
   const token = localStorage.getItem('authToken')
-  
-  if (!token) {
-    router.push('/login')
-    return
-  }
+  if (!token) return
 
-  isLoading.value = true
-  apiError.value = null
-  imageError.value = false // Reset image error state
-  
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/user', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
+    const { data } = await axios.get('http://127.0.0.1:8000/api/user', {
+      headers: { 'Authorization': `Bearer ${token}` }
     })
-    
-    user.value = response.data
-    localStorage.setItem('user_data', JSON.stringify(response.data))
-    
-    console.log('User loaded successfully:', user.value)
-    console.log('Profile image field:', getProfileImageUrl())
-    
+    user.value = data
+    localStorage.setItem('user_data', JSON.stringify(data))
+    imageError.value = false
   } catch (error) {
-    console.error('Error fetching user:', error)
-    apiError.value = error.response?.data?.message || error.message
-    
     if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user_data')
-      router.push('/login')
+      handleSignOut()
     }
-  } finally {
-    isLoading.value = false
   }
 }
 
 const handleSignOut = async () => {
   const token = localStorage.getItem('authToken')
-  
-  // Try to logout on the server first
   if (token) {
     try {
       await axios.post('http://127.0.0.1:8000/api/logout', {}, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       })
     } catch (error) {
-      console.error('Logout API error:', error)
+      console.error('Logout error:', error)
     }
   }
-  
-  // Clear local storage
   localStorage.removeItem('authToken')
-  localStorage.removeItem('token')
   localStorage.removeItem('user_data')
-  
-  // Clear user state
   user.value = null
-  
-  // Redirect to login
   router.push('/login')
 }
 
-// Listen for user data updates from profile page
-const handleUserDataUpdate = (event) => {
+const handleUserUpdate = (event) => {
   if (event.detail) {
     user.value = event.detail
     localStorage.setItem('user_data', JSON.stringify(event.detail))
-    imageError.value = false // Reset image error when user data updates
   }
 }
 
-onMounted(async () => {
-  // Listen for user data updates
-  window.addEventListener('userDataUpdated', handleUserDataUpdate)
-  
-  // Load from localStorage first
-  const storedUser = localStorage.getItem('user_data')
-  if (storedUser) {
-    try {
-      user.value = JSON.parse(storedUser)
-    } catch (e) {
-      localStorage.removeItem('user_data')
-    }
+onMounted(() => {
+  window.addEventListener('userUpdated', handleUserUpdate)
+  if (localStorage.getItem('authToken') && !user.value) {
+    fetchUser()
   }
-  
-  // Fetch fresh data
-  await fetchUser()
 })
+
+onUnmounted(() => {
+  window.removeEventListener('userUpdated', handleUserUpdate)
+})
+
+// Click outside directive
+const vClickOutside = {
+  beforeMount(el, binding) {
+    el.clickOutsideEvent = event => {
+      if (!(el === event.target || el.contains(event.target))) {
+        binding.value()
+      }
+    }
+    document.addEventListener('click', el.clickOutsideEvent)
+  },
+  unmounted(el) {
+    document.removeEventListener('click', el.clickOutsideEvent)
+  }
+}
 </script>

@@ -238,9 +238,7 @@
                     {{ detail.status }}
                   </span>
                 </p>
-                <p v-if="detail.approved_by" class="text-gray-700">
-                  <span class="font-medium">Approved by:</span> {{ detail.approved_by }}
-                </p>
+                
                 <div v-if="detail.rejection_reason" class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
                   <p class="font-medium text-red-800 mb-1">Rejection Reason:</p>
                   <p class="text-red-700 text-sm">{{ detail.rejection_reason }}</p>
