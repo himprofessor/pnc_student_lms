@@ -129,3 +129,87 @@ body {
   cursor: pointer;
   color: inherit;
 }
+/* Leave Request List Styles */
+.notification-card {
+  background-color: #ffffff; /* Clean white background */
+  border-radius: 0.5rem; /* Rounded corners */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  padding: 1rem; /* Padding for the card */
+  margin-bottom: 1rem; /* Space between cards */
+  display: flex; /* Flexbox for layout */
+  flex-direction: column; /* Stack items vertically */
+}
+
+.notification-card.approved {
+  border-left: 4px solid #4CAF50; /* Green left border for approved */
+  background-color: #E8F5E9; /* Light green background for approved */
+}
+
+.notification-card.rejected {
+  border-left: 4px solid #F44336; /* Red left border for rejected */
+  background-color: #FFEBEE; /* Light red background for rejected */
+}
+
+.notification-status {
+  font-weight: bold; /* Bold text for status */
+}
+
+.notification-status.approved {
+  color: #4CAF50; /* Green color for approved status */
+}
+
+.notification-status.rejected {
+  color: #F44336; /* Red color for rejected status */
+}
+
+.leave-type-label {
+  background-color: #BBDEFB; /* Light blue background */
+  color: #0D47A1; /* Dark blue text */
+  border-radius: 9999px; /* Pill shape */
+  padding: 0.25rem 0.5rem; /* Padding for the label */
+  font-size: 0.75rem; /* Smaller font size */
+  font-weight: 500; /* Medium font weight */
+  display: inline-block; /* Inline block for pill shape */
+  margin-top: 0.5rem; /* Space above */
+}
+
+.duration-text {
+  font-weight: bold; /* Bold text for duration */
+  margin-top: 0.25rem; /* Space above */
+}
+
+.approval-status {
+  font-weight: bold; /* Bold text for approver/rejector */
+  margin-top: 0.25rem; /* Space above */
+}
+
+.rejection-reason {
+  display: flex; /* Flexbox for icon and text */
+  align-items: center; /* Center align items */
+  margin-top: 0.5rem; /* Space above */
+}
+
+.rejection-reason-icon {
+  color: #D32F2F; /* Red color for warning icon */
+  margin-right: 0.25rem; /* Space between icon and text */
+}
+
+.rejection-reason-label {
+  color: #D32F2F; /* Red color for label */
+  text-transform: uppercase; /* Uppercase text */
+  font-weight: bold; /* Bold text */
+  font-size: 0.75rem; /* Smaller font size */
+}
+
+.notification-date {
+  color: #757575; /* Muted text color for date */
+  font-size: 0.875rem; /* Slightly larger than smaller text */
+  margin-top: 0.25rem; /* Space above */
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .notification-card {
+      padding: 0.75rem; /* Adjust padding for smaller screens */
+  }
+}
