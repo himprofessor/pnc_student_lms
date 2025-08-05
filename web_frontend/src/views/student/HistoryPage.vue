@@ -91,8 +91,7 @@
         </select>
 
         <span class="text-gray-600 text-sm"
-          >{{ filteredLeaveRequests.length }} requests</span
-        >
+          >{{ filteredLeaveRequests.length }} requests</span>
       </div>
 
       <!-- Leave List -->
@@ -108,7 +107,7 @@
           Error: {{ error }}
         </div>
         <div
-          v-else-if="filteredLeaveRequests.length === 0"
+          v-else-if="paginatedLeaveRequests.length === 0"
           class="p-6 text-center text-gray-500"
         >
           No leave requests found.
@@ -116,7 +115,7 @@
 
         <div v-else class="divide-y">
           <div
-            v-for="request in filteredLeaveRequests"
+            v-for="request in paginatedLeaveRequests"
             :key="request.id"
             class="flex justify-between items-center px-6 py-4"
           >
@@ -149,13 +148,6 @@
                 <p class="text-sm text-gray-500 mt-1">{{ request.reason }}</p>
                 <p class="text-xs text-gray-400 mt-1">
                   Submitted {{ formatDate(request.created_at) }}
-                </p>
-                <p
-                  v-if="request.status === 'approved'"
-                  class="text-xs text-gray-400"
-                >
-                  Approved
-                  {{ formatDate(request.approved_at || request.updated_at) }}
                 </p>
               </div>
             </div>
@@ -196,43 +188,108 @@
             </div>
           </div>
         </div>
+
+        <!-- Pagination -->
+        <div class="flex justify-center items-center px-6 py-4 border-t bg-gray-50">
+          <button
+            @click="prevPage"
+            :disabled="currentPage === 1"
+            class="px-3 py-1 text-gray-600 hover:text-gray-800 disabled:text-gray-400 disabled:cursor-not-allowed"
+          >
+            Prev
+          </button>
+          <span class="mx-2 text-sm text-gray-600">
+            Page {{ currentPage }} of {{ totalPages }}
+          </span>
+          <button
+            @click="nextPage"
+            :disabled="currentPage === totalPages"
+            class="px-3 py-1 text-gray-600 hover:text-gray-800 disabled:text-gray-400 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-  <!-- View Leave Details Modal -->
-  <transition name="scale">
+
+    <transition name="scale">
+  <div
+    v-if="showModal"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+  >
     <div
-      v-if="showModal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
+      class="relative w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl animate-fade-in-up max-h-[90vh] flex flex-col border border-white/20"
     >
-      <div
-        class="bg-white/80 backdrop-blur-lg rounded-xl shadow-2xl w-full max-w-lg p-8 relative animate-zoom overflow-y-auto max-h-[90vh] border border-gray-200"
-      >
-        <!-- Close Button -->
+      <!-- Header with gradient and improved close button -->
+      <div class="bg-gradient-to-r from-blue-600 to-indigo-700 px-8 py-6 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <h2 class="text-2xl font-bold text-white tracking-tight">
+            Leave Request Details
+          </h2>
+        </div>
         <button
           @click="showModal = false"
-          class="absolute top-3 right-4 text-gray-500 hover:text-red-500 text-3xl font-bold transition"
+          class="p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-200 text-white/80 hover:text-white"
         >
-          &times;
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
         </button>
-        <!-- Title -->
-        <h2 class="text-lg font-semibold text-gray-800 mb-4">Leave Details</h2>
+      </div>
 
-        <!-- Leave Type and Employee -->
-        <div class="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1"
-              >Employee</label
-            >
-            <div class="text-gray-900">{{ selectedLeave.contact_info }}</div>
+      <!-- Content area with improved spacing and cards -->
+      <div class="flex-1 overflow-y-auto p-8 space-y-8">
+        <!-- Employee and Leave Type in card -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+            <label class="label-text text-gray-600">Status</label>
+            <div class="mt-2">
+              <span
+                class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold capitalize transform transition-all duration-200"
+                :class="{
+                  'bg-yellow-100 text-yellow-800': selectedLeave.status === 'pending',
+                  'bg-green-100 text-green-800': selectedLeave.status === 'approved',
+                  'bg-red-100 text-red-800': selectedLeave.status === 'rejected',
+                }"
+              >
+                <span 
+                  class="w-2 h-2 rounded-full mr-2"
+                  :class="{
+                    'bg-yellow-600': selectedLeave.status === 'pending',
+                    'bg-green-600': selectedLeave.status === 'approved',
+                    'bg-red-600': selectedLeave.status === 'rejected',
+                  }"
+                ></span>
+                {{ selectedLeave.status }}
+              </span>
+            </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1"
-              >Leave Type</label
-            >
-            <div class="inline-flex items-center gap-2 text-gray-900">
-              <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span>
+          <div class="bg-gradient-to-br from-indigo-50 to-purple-50 p-5 rounded-xl border border-indigo-100 shadow-sm">
+            <label class="label-text text-indigo-800/80">Leave Type</label>
+            <div class="flex items-center gap-3 data-text mt-1">
+              <span 
+                class="w-3 h-3 rounded-full flex-shrink-0"
+                :class="{
+                  'bg-blue-500 animate-ping-slow': selectedLeave.status === 'pending',
+                  'bg-green-500': selectedLeave.status === 'approved',
+                  'bg-red-500': selectedLeave.status === 'rejected',
+                }"
+              ></span>
+              <span class="text-gray-900 font-medium">
                 {{
                   typeof selectedLeave.leave_type === "object"
                     ? selectedLeave.leave_type.name
@@ -242,99 +299,83 @@
             </div>
           </div>
         </div>
-        <!-- Date and Part Day -->
-        <div class="grid grid-cols-3 gap-4 mb-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1"
-              >Start</label
-            >
-            <div class="text-gray-900">
-              {{ formatDate(selectedLeave.from_date) }}
+
+        <!-- Date information in timeline style -->
+        <div class="bg-gray-50 p-6 rounded-xl border border-gray-100 shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Leave Period
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="space-y-1">
+              <label class="label-text text-gray-600">Start Date</label>
+              <div class="data-text font-medium text-gray-900">
+                {{ formatDate(selectedLeave.from_date) }}
+              </div>
+            </div>
+            <div class="space-y-1">
+              <label class="label-text text-gray-600">End Date</label>
+              <div class="data-text font-medium text-gray-900">
+                {{ formatDate(selectedLeave.to_date) }}
+              </div>
+            </div>
+            <div class=" space-y-1">
+            <label class="label-text text-gray-600">Submitted On</label>
+            <div class="data-text mt-1 font-medium text-gray-900">
+              {{ formatDate(selectedLeave.created_at) }}
+            </div>
+            <div v-if="selectedLeave.status === 'approved'" class="mt-3">
+              <label class="label-text text-gray-600">Approved On</label>
+              <div class="data-text font-medium text-gray-900">
+                {{ formatDate(selectedLeave.approved_at || selectedLeave.updated_at) }}
+              </div>
             </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1"
-              >End</label
-            >
-            <div class="text-gray-900">
-              {{ formatDate(selectedLeave.to_date) }}
-            </div>
           </div>
         </div>
 
-        <!-- Status and Reason -->
-        <div class="grid grid-cols-3 gap-4 mb-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1"
-              >Part Day</label
-            >
-            <div class="text-gray-900">
-              {{ selectedLeave.part_day || "Full Day" }}
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1"
-              >Status</label
-            >
-            <span
-              class="inline-block px-2 py-1 rounded-md text-sm font-medium capitalize"
-              :class="{
-                'bg-yellow-100 text-yellow-700':
-                  selectedLeave.status === 'pending',
-                'bg-green-100 text-green-700':
-                  selectedLeave.status === 'approved',
-                'bg-red-100 text-red-700': selectedLeave.status === 'rejected',
-              }"
-            >
-              {{ selectedLeave.status }}
-            </span>
-          </div>
+        <!-- Status and submission info -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          
         </div>
 
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-500 mb-1"
-            >Reason</label
-          >
-          <p class="text-gray-900 whitespace-pre-line">
-            {{ selectedLeave.reason }}
-          </p>
-        </div>
-
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-500 mb-1"
-            >Submitted</label
-          >
-          <div class="text-gray-900">
-            {{ formatDate(selectedLeave.created_at) }}
+        <!-- Reason with improved styling -->
+        <div class="bg-gray-50 p-6 rounded-xl border border-gray-100 shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+            </svg>
+            Reason for Leave
+          </h3>
+          <div class="data-text-reason bg-white p-4 rounded-lg border border-gray-200 text-gray-700">
+            {{ selectedLeave.reason || "No reason provided" }}
           </div>
-        </div>
-
-        <div v-if="selectedLeave.status === 'approved'" class="mb-4">
-          <label class="block text-sm font-medium text-gray-500 mb-1"
-            >Approved At</label
-          >
-          <div class="text-gray-500">
-            {{
-              formatDate(selectedLeave.approved_at || selectedLeave.updated_at)
-            }}
-          </div>
-        </div>
-        <!-- Footer Button -->
-        <div class="mt-6 text-right">
-          <button
-            @click="showModal = false"
-            class="bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-md transition"
-          >
-            Close
-          </button>
         </div>
       </div>
+
+      <!-- Footer with improved button -->
+      <div class="sticky bottom-0 bg-gradient-to-r from-blue-50 to-indigo-50 px-8 py-5 border-t border-gray-100 flex justify-end space-x-4">
+        <button
+          @click="showModal = false"
+          class="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-3 font-bold text-white shadow-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 transform hover:scale-[1.02] active:scale-95 flex items-center"
+        >
+          Close
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
     </div>
-  </transition>
+  </div>
+</transition>
+  </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
@@ -355,6 +396,35 @@ const loadingLeaveTypes = ref(true);
 const leaveTypesError = ref(null);
 const showModal = ref(false);
 const selectedLeave = ref(null);
+
+// Pagination state
+const currentPage = ref(1);
+const itemsPerPage = 5;
+
+// Computed property for paginated leave requests
+const paginatedLeaveRequests = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  return filteredLeaveRequests.value.slice(start, end);
+});
+
+// Computed property for total pages
+const totalPages = computed(() => {
+  return Math.ceil(filteredLeaveRequests.value.length / itemsPerPage);
+});
+
+// Pagination navigation methods
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+  }
+};
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+  }
+};
 
 const openDetails = (leave) => {
   selectedLeave.value = leave;
@@ -390,6 +460,7 @@ const fetchLeaveRequests = async () => {
     );
     leaveRequests.value = Array.isArray(data.leaves) ? data.leaves : [];
     filteredLeaveRequests.value = [...leaveRequests.value];
+    currentPage.value = 1; // Reset to first page when new data is fetched
   } catch (err) {
     console.error(err);
     error.value =
@@ -402,6 +473,7 @@ const fetchLeaveRequests = async () => {
 
 const fetchLeaveTypes = async () => {
   loadingLeaveTypes.value = true;
+  leaveTypesError.value = null;
   try {
     const token = localStorage.getItem("authToken");
     const { data } = await axios.get("http://127.0.0.1:8000/api/leave-types", {
@@ -440,10 +512,12 @@ const filterLeaveRequests = () => {
       (typeof request.leave_type === "object" &&
         request.leave_type?.id == selectedLeaveType.value) ||
       (typeof request.leave_type === "string" &&
-        request.leave_type == selectedLeaveType.value);
+        request.leave_type.toLowerCase() ===
+          leaveTypes.value.find((t) => t.id == selectedLeaveType.value)?.name.toLowerCase());
 
     return matchesSearch && matchesStatus && matchesLeaveType;
   });
+  currentPage.value = 1; // Reset to first page when filtering
 };
 
 const { showAlert } = useAlert();
@@ -482,3 +556,4 @@ onMounted(() => {
   fetchLeaveTypes();
 });
 </script>
+
