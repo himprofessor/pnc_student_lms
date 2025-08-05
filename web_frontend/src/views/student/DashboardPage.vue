@@ -1,6 +1,27 @@
 <template>
   <div class="min-h-screen bg-gray-50 text-gray-800">
     <div class="px-6 py-6">
+      <!-- Success Alert -->
+      <div
+        v-if="successMessage"
+        class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center"
+      >
+        <svg
+          class="w-5 h-5 mr-2"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+        {{ successMessage }}
+      </div>
+
       <!-- Header -->
       <div class="flex justify-between items-center mb-6 px-[30px]">
         <div>
@@ -816,7 +837,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import axios from "axios";
-import Swal from "sweetalert2";
 
 const user = ref({});
 const notifications = ref([]);
@@ -826,6 +846,7 @@ const approvedCount = ref(0);
 const rejectedCount = ref(0);
 const currentPage = ref(1);
 const pageSize = 5;
+const successMessage = ref(null);
 
 // Reactive variables for current status and filter
 const currentStatus = ref("All Requests");
@@ -1090,8 +1111,6 @@ const fetchLeaveRequests = async () => {
 // Cancel leave request
 const cancelLeaveRequest = async (id) => {
   const leaveId = id.startsWith("leave-") ? id.replace("leave-", "") : id;
-  const confirmed = window.confirm("Are you sure you want to cancel this leave request?");
-  if (!confirmed) return;
   try {
     const token = localStorage.getItem("authToken");
     await axios.delete(
@@ -1100,7 +1119,10 @@ const cancelLeaveRequest = async (id) => {
         headers: { Authorization: `Bearer ${token}` },
       }
     );
-    window.alert("Your leave request has been cancelled.");
+    successMessage.value = "Your leave request has been cancelled.";
+    setTimeout(() => {
+      successMessage.value = null;
+    }, 3000); // Hide alert after 3 seconds
     await fetchLeaveRequests(); // Refresh the leave requests
     await fetchNotifications(); // Refresh notifications
   } catch (err) {
