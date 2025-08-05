@@ -91,8 +91,7 @@
         </select>
 
         <span class="text-gray-600 text-sm"
-          >{{ filteredLeaveRequests.length }} requests</span
-        >
+          >{{ filteredLeaveRequests.length }} requests</span>
       </div>
 
       <!-- Leave List -->
@@ -108,7 +107,7 @@
           Error: {{ error }}
         </div>
         <div
-          v-else-if="filteredLeaveRequests.length === 0"
+          v-else-if="paginatedLeaveRequests.length === 0"
           class="p-6 text-center text-gray-500"
         >
           No leave requests found.
@@ -116,7 +115,7 @@
 
         <div v-else class="divide-y">
           <div
-            v-for="request in filteredLeaveRequests"
+            v-for="request in paginatedLeaveRequests"
             :key="request.id"
             class="flex justify-between items-center px-6 py-4"
           >
@@ -196,145 +195,167 @@
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-  <!-- View Leave Details Modal -->
-  <transition name="scale">
-    <div
-      v-if="showModal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
-    >
-      <div
-        class="bg-white/80 backdrop-blur-lg rounded-xl shadow-2xl w-full max-w-lg p-8 relative animate-zoom overflow-y-auto max-h-[90vh] border border-gray-200"
-      >
-        <!-- Close Button -->
-        <button
-          @click="showModal = false"
-          class="absolute top-3 right-4 text-gray-500 hover:text-red-500 text-3xl font-bold transition"
-        >
-          &times;
-        </button>
-        <!-- Title -->
-        <h2 class="text-lg font-semibold text-gray-800 mb-4">Leave Details</h2>
 
-        <!-- Leave Type and Employee -->
-        <div class="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1"
-              >Employee</label
-            >
-            <div class="text-gray-900">{{ selectedLeave.contact_info }}</div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1"
-              >Leave Type</label
-            >
-            <div class="inline-flex items-center gap-2 text-gray-900">
-              <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span>
-                {{
-                  typeof selectedLeave.leave_type === "object"
-                    ? selectedLeave.leave_type.name
-                    : selectedLeave.leave_type
-                }}
-              </span>
-            </div>
-          </div>
-        </div>
-        <!-- Date and Part Day -->
-        <div class="grid grid-cols-3 gap-4 mb-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1"
-              >Start</label
-            >
-            <div class="text-gray-900">
-              {{ formatDate(selectedLeave.from_date) }}
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1"
-              >End</label
-            >
-            <div class="text-gray-900">
-              {{ formatDate(selectedLeave.to_date) }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Status and Reason -->
-        <div class="grid grid-cols-3 gap-4 mb-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1"
-              >Part Day</label
-            >
-            <div class="text-gray-900">
-              {{ selectedLeave.part_day || "Full Day" }}
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1"
-              >Status</label
-            >
-            <span
-              class="inline-block px-2 py-1 rounded-md text-sm font-medium capitalize"
-              :class="{
-                'bg-yellow-100 text-yellow-700':
-                  selectedLeave.status === 'pending',
-                'bg-green-100 text-green-700':
-                  selectedLeave.status === 'approved',
-                'bg-red-100 text-red-700': selectedLeave.status === 'rejected',
-              }"
-            >
-              {{ selectedLeave.status }}
-            </span>
-          </div>
-        </div>
-
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-500 mb-1"
-            >Reason</label
-          >
-          <p class="text-gray-900 whitespace-pre-line">
-            {{ selectedLeave.reason }}
-          </p>
-        </div>
-
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-500 mb-1"
-            >Submitted</label
-          >
-          <div class="text-gray-900">
-            {{ formatDate(selectedLeave.created_at) }}
-          </div>
-        </div>
-
-        <div v-if="selectedLeave.status === 'approved'" class="mb-4">
-          <label class="block text-sm font-medium text-gray-500 mb-1"
-            >Approved At</label
-          >
-          <div class="text-gray-500">
-            {{
-              formatDate(selectedLeave.approved_at || selectedLeave.updated_at)
-            }}
-          </div>
-        </div>
-        <!-- Footer Button -->
-        <div class="mt-6 text-right">
+        <!-- Pagination -->
+        <div class="flex justify-center items-center px-6 py-4 border-t bg-gray-50">
           <button
-            @click="showModal = false"
-            class="bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-md transition"
+            @click="prevPage"
+            :disabled="currentPage === 1"
+            class="px-3 py-1 text-gray-600 hover:text-gray-800 disabled:text-gray-400 disabled:cursor-not-allowed"
           >
-            Close
+            Prev
+          </button>
+          <span class="mx-2 text-sm text-gray-600">
+            Page {{ currentPage }} of {{ totalPages }}
+          </span>
+          <button
+            @click="nextPage"
+            :disabled="currentPage === totalPages"
+            class="px-3 py-1 text-gray-600 hover:text-gray-800 disabled:text-gray-400 disabled:cursor-not-allowed"
+          >
+            Next
           </button>
         </div>
       </div>
     </div>
-  </transition>
+
+    <!-- View Leave Details Modal -->
+    <transition name="scale">
+      <div
+        v-if="showModal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
+      >
+        <div
+          class="bg-white/80 backdrop-blur-lg rounded-xl shadow-2xl w-full max-w-lg p-8 relative animate-zoom overflow-y-auto max-h-[90vh] border border-gray-200"
+        >
+          <!-- Close Button -->
+          <button
+            @click="showModal = false"
+            class="absolute top-3 right-4 text-gray-500 hover:text-red-500 text-3xl font-bold transition"
+          >
+            &times;
+          </button>
+          <!-- Title -->
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">Leave Details</h2>
+
+          <!-- Leave Type and Employee -->
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-500 mb-1"
+                >Employee</label
+              >
+              <div class="text-gray-900">{{ selectedLeave.contact_info }}</div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-500 mb-1"
+                >Leave Type</label
+              >
+              <div class="inline-flex items-center gap-2 text-gray-900">
+                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span>
+                  {{
+                    typeof selectedLeave.leave_type === "object"
+                      ? selectedLeave.leave_type.name
+                      : selectedLeave.leave_type
+                  }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <!-- Date and Part Day -->
+          <div class="grid grid-cols-3 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-500 mb-1"
+                >Start</label
+              >
+              <div class="text-gray-900">
+                {{ formatDate(selectedLeave.from_date) }}
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-500 mb-1"
+                >End</label
+              >
+              <div class="text-gray-900">
+                {{ formatDate(selectedLeave.to_date) }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Status and Reason -->
+          <div class="grid grid-cols-3 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-500 mb-1"
+                >Part Day</label
+              >
+              <div class="text-gray-900">
+                {{ selectedLeave.part_day || "Full Day" }}
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-500 mb-1"
+                >Status</label
+              >
+              <span
+                class="inline-block px-2 py-1 rounded-md text-sm font-medium capitalize"
+                :class="{
+                  'bg-yellow-100 text-yellow-700':
+                    selectedLeave.status === 'pending',
+                  'bg-green-100 text-green-700':
+                    selectedLeave.status === 'approved',
+                  'bg-red-100 text-red-700': selectedLeave.status === 'rejected',
+                }"
+              >
+                {{ selectedLeave.status }}
+              </span>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-500 mb-1"
+              >Reason</label
+            >
+            <p class="text-gray-900 whitespace-pre-line">
+              {{ selectedLeave.reason }}
+            </p>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-500 mb-1"
+              >Submitted</label
+            >
+            <div class="text-gray-900">
+              {{ formatDate(selectedLeave.created_at) }}
+            </div>
+          </div>
+
+          <div v-if="selectedLeave.status === 'approved'" class="mb-4">
+            <label class="block text-sm font-medium text-gray-500 mb-1"
+              >Approved At</label
+            >
+            <div class="text-gray-500">
+              {{
+                formatDate(selectedLeave.approved_at || selectedLeave.updated_at)
+              }}
+            </div>
+          </div>
+          <!-- Footer Button -->
+          <div class="mt-6 text-right">
+            <button
+              @click="showModal = false"
+              class="bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-md transition"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
+  </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
@@ -355,6 +376,35 @@ const loadingLeaveTypes = ref(true);
 const leaveTypesError = ref(null);
 const showModal = ref(false);
 const selectedLeave = ref(null);
+
+// Pagination state
+const currentPage = ref(1);
+const itemsPerPage = 5;
+
+// Computed property for paginated leave requests
+const paginatedLeaveRequests = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  return filteredLeaveRequests.value.slice(start, end);
+});
+
+// Computed property for total pages
+const totalPages = computed(() => {
+  return Math.ceil(filteredLeaveRequests.value.length / itemsPerPage);
+});
+
+// Pagination navigation methods
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+  }
+};
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+  }
+};
 
 const openDetails = (leave) => {
   selectedLeave.value = leave;
@@ -390,6 +440,7 @@ const fetchLeaveRequests = async () => {
     );
     leaveRequests.value = Array.isArray(data.leaves) ? data.leaves : [];
     filteredLeaveRequests.value = [...leaveRequests.value];
+    currentPage.value = 1; // Reset to first page when new data is fetched
   } catch (err) {
     console.error(err);
     error.value =
@@ -402,6 +453,7 @@ const fetchLeaveRequests = async () => {
 
 const fetchLeaveTypes = async () => {
   loadingLeaveTypes.value = true;
+  leaveTypesError.value = null;
   try {
     const token = localStorage.getItem("authToken");
     const { data } = await axios.get("http://127.0.0.1:8000/api/leave-types", {
@@ -440,10 +492,12 @@ const filterLeaveRequests = () => {
       (typeof request.leave_type === "object" &&
         request.leave_type?.id == selectedLeaveType.value) ||
       (typeof request.leave_type === "string" &&
-        request.leave_type == selectedLeaveType.value);
+        request.leave_type.toLowerCase() ===
+          leaveTypes.value.find((t) => t.id == selectedLeaveType.value)?.name.toLowerCase());
 
     return matchesSearch && matchesStatus && matchesLeaveType;
   });
+  currentPage.value = 1; // Reset to first page when filtering
 };
 
 const { showAlert } = useAlert();
