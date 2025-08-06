@@ -124,11 +124,11 @@
   
               <div class="space-y-4">
                 <!-- Student/User ID (Read-only) -->
-                <div>
+                <!-- <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Student/User ID</label>
                   <p class="text-gray-900 bg-gray-100 p-3 rounded-md border">{{ user.student_id || user.id || 'Not assigned' }}</p>
                 
-                </div>
+                </div> -->
   
                 <!-- Contact Information -->
                 <div>
@@ -285,7 +285,7 @@
         </div>
   
         <!-- Success/Error Messages -->
-        <div v-if="successMessage" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+        <div v-if="successMessage" class="fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
           {{ successMessage }}
         </div>
         <div v-if="errorMessage" class="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
