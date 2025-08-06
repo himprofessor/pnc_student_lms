@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50 text-gray-800">
     <div class="px-6 py-6 max-w-3xl mx-auto">
-      <h1 class="text-2xl font-bold mb-2">Submit Leave Request</h1>
+      <h1 class="text-2xl font-bold mb-2 text-blue-600">Submit Leave Request</h1>
       <p class="text-sm text-gray-500 mb-6">Fill out the form below to request leave from your studies</p>
 
       <div class="bg-white p-6 rounded-lg shadow border">

@@ -25,7 +25,7 @@
       <!-- Header -->
       <div class="flex justify-between items-center mb-6 px-[30px]">
         <div>
-          <h1 class="text-2xl font-bold">Welcome back {{ displayName }}</h1>
+          <h1 class="text-2xl font-bold text-blue-600">Welcome back {{ displayName }}</h1>
           <p class="text-sm text-gray-500">
             Manage your leave requests and track their status
           </p>
