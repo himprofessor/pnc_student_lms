@@ -135,8 +135,8 @@ const showSuccess = (message) => {
     } else if (error.response?.status === 401) {
       // Handle unauthorized (invalid credentials)
       fieldErrors.value = {
-        email: 'Invalid email or password',
-        password: 'Invalid email or password'
+        email: 'Invalid email',
+        password: 'Invalid password'
       }
     } else {
       // Handle other errors
