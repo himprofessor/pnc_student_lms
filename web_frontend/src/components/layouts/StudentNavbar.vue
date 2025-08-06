@@ -1,169 +1,272 @@
 <template>
-  <nav class="flex items-center justify-between px-6 py-3 shadow bg-white">
-    <!-- Logo -->
-    <router-link to="/" class="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-      <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422A12.042 12.042 0 0118 14.5C18 17.538 15.538 20 12.5 20S7 17.538 7 14.5c0-.697.096-1.374.273-2.017L12 14z" />
-      </svg>
-      <span class="text-lg font-semibold text-gray-800">LeaveMS</span>
-    </router-link>
-
-    <!-- Menu -->
-    <div class="flex space-x-4 items-center">
-      <router-link 
-        v-for="link in navLinks"
-        :key="link.to"
-        :to="link.to" 
-        class="px-3 py-1 rounded-md transition"
-        :class="{
-          'text-blue-600 font-medium': $route.path === link.to,
-          'text-gray-700 hover:bg-blue-50': $route.path !== link.to
-        }"
-      >
-        {{ link.text }}
-      </router-link>
-    </div>
-
-    <!-- User Dropdown -->
-    <div class="relative" v-click-outside="closeDropdown">
-      <div 
-        @click="toggleDropdown"
-        class="flex items-center space-x-2 px-3 py-1 rounded-md cursor-pointer hover:bg-blue-50 transition"
-      >
-        <div class="w-7 h-7 rounded-full overflow-hidden border border-gray-200 flex items-center justify-center">
-          <img 
-            v-if="getProfileImageUrl()" 
-            :src="getProfileImageUrl()" 
-            class="w-full h-full object-cover"
-            @error="handleImageError"
-          />
-          <div 
-            v-else 
-            class="w-full h-full bg-blue-600 text-white flex items-center justify-center font-semibold text-sm"
-          >
-            {{ getUserInitials() }}
-          </div>
+  <header class="bg-white shadow-sm py-3 border-b border-gray-100">
+    <div class="max-w-8xl mx-auto flex justify-between items-center">
+      <!-- Logo with subtle background -->
+      <router-link to="/" class="ml-5 flex items-center space-x-3 hover:opacity-90 transition-opacity">
+        <div class="bg-blue-50 p-2 rounded-lg">
+          <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422A12.042 12.042 0 0118 14.5C18 17.538 15.538 20 12.5 20S7 17.538 7 14.5c0-.697.096-1.374.273-2.017L12 14z" />
+          </svg>
         </div>
-        <span class="text-gray-800 font-medium text-sm">
-          {{ displayName }}
-        </span>
-        <svg 
-          class="w-4 h-4 text-gray-500 transition-transform duration-200"
-          :class="{'rotate-180': dropdownOpen}"
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
-      </div>
+        <span class="text-xl font-bold text-gray-800">LeaveMS</span>
+      </router-link>
 
-      <!-- Dropdown menu -->
-      <transition
-        enter-active-class="transition ease-out duration-100"
-        enter-from-class="transform opacity-0 scale-95"
-        enter-to-class="transform opacity-100 scale-100"
-        leave-active-class="transition ease-in duration-75"
-        leave-from-class="transform opacity-100 scale-100"
-        leave-to-class="transform opacity-0 scale-95"
-      >
-        <div 
-          v-if="dropdownOpen" 
-          class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50 divide-y divide-gray-100"
-        >
-          <div class="px-4 py-3">
-            <p class="text-sm text-gray-900 font-medium">{{ displayName }}</p>
-            <p class="text-xs text-gray-500 truncate">{{ user?.email }}</p>
-          </div>
-          <div class="py-1">
-            <router-link 
-              to="/profile" 
-              @click="closeDropdown"
-              class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
+      <!-- Navigation with pill-shaped active state -->
+      <nav>
+        <ul class="flex space-x-1">
+          <li>
+            <router-link
+              to="/dashboard"
+              class="px-4 py-2 text-gray-600 font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:shadow-sm"
+              active-class="bg-blue-50 text-blue-600 shadow-inner"
+              exact-active-class="bg-blue-50 text-blue-600 shadow-inner"
+              @click.native="closeDropdown"
             >
-              Profile
+              Dashboard
+            </router-link>
+          </li>
+          <li>
+            <router-link
+              to="/request-leave"
+              class="px-4 py-2 text-gray-600 font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:shadow-sm"
+              active-class="bg-blue-50 text-blue-600 shadow-inner"
+              exact-active-class="bg-blue-50 text-blue-600 shadow-inner"
+              @click.native="closeDropdown"
+            >
+              Request Leave
+            </router-link>
+          </li>
+          <li>
+            <router-link
+              to="/history"
+              class="px-4 py-2 text-gray-600 font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:shadow-sm"
+              active-class="bg-blue-50 text-blue-600 shadow-inner"
+              exact-active-class="bg-blue-50 text-blue-600 shadow-inner"
+              @click.native="closeDropdown"
+            >
+              History
+            </router-link>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- User dropdown with card-style design -->
+      <div class="relative" @click.stop="toggleDropdown">
+        <div class="flex items-center space-x-2 px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-all duration-200 border border-transparent hover:border-gray-200 hover:shadow-sm">
+          <div class="relative">
+            <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-white shadow-sm">
+              <img 
+                v-if="getProfileImageUrl()" 
+                :src="getProfileImageUrl()" 
+                :alt="displayName"
+                class="w-full h-full object-cover"
+                @error="handleImageError"
+              />
+              <div 
+                v-else 
+                class="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center font-semibold text-sm"
+              >
+                {{ getUserInitials() }}
+              </div>
+            </div>
+            <span class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></span>
+          </div>
+          <span class="text-gray-700 font-medium text-sm hidden md:inline-block">
+            {{ displayName }}
+          </span>
+          <svg class="w-4 h-4 text-gray-500 transform transition-transform duration-200" :class="{'rotate-180': dropdownOpen}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+
+        <!-- Dropdown menu with subtle shadow -->
+        <transition
+          enter-active-class="transition duration-100 ease-out"
+          enter-from-class="transform scale-95 opacity-0"
+          enter-to-class="transform scale-100 opacity-100"
+          leave-active-class="transition duration-75 ease-in"
+          leave-from-class="transform scale-100 opacity-100"
+          leave-to-class="transform scale-95 opacity-0"
+        >
+          <div 
+            v-if="dropdownOpen" 
+            ref="dropdownMenu"
+            class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-100 z-50 overflow-hidden py-1"
+            v-click-outside="closeDropdown"
+          >
+            <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+              <p class="text-sm font-medium text-gray-700">Signed in as</p>
+              <p class="text-sm text-gray-500 truncate">{{ user?.email || 'user@example.com' }}</p>
+            </div>
+            <router-link 
+              to="/student-profile" 
+              class="block px-4 py-2.5 text-gray-700 hover:bg-blue-50 transition-all duration-150 flex items-center space-x-3"
+              @click.native="closeDropdown"
+            >
+              <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span>Your Profile</span>
             </router-link>
             <button 
-              @click="handleSignOut"
-              class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50"
+              @click="handleSignOut" 
+              class="w-full text-left px-4 py-2.5 text-gray-700 hover:bg-blue-50 transition-all duration-150 flex items-center space-x-3 border-t border-gray-100"
             >
-              Sign out
+              <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span>Sign out</span>
             </button>
           </div>
-        </div>
-      </transition>
+        </transition>
+      </div>
     </div>
-  </nav>
+  </header>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
 const route = useRoute()
 const dropdownOpen = ref(false)
-const user = ref(JSON.parse(localStorage.getItem('user_data')) || null)
+const dropdownMenu = ref(null)
+const user = ref(null)
+const isLoading = ref(false)
+const apiError = ref(null)
 const imageError = ref(false)
 
-const navLinks = [
-  { to: '/dashboard', text: 'Dashboard' },
-  { to: '/request-leave', text: 'Request Leave' },
-  { to: '/history', text: 'History' }
-]
-
-const displayName = computed(() => {
-  if (!user.value) return 'Loading...'
-  return user.value.name || 
-         user.value.full_name || 
-         user.value.first_name || 
-         (user.value.email ? user.value.email.split('@')[0] : 'User')
+// Close dropdown when route changes
+watch(() => route.path, () => {
+  closeDropdown()
 })
-
-const toggleDropdown = () => {
-  dropdownOpen.value = !dropdownOpen.value
-}
 
 const closeDropdown = () => {
   dropdownOpen.value = false
 }
 
+const toggleDropdown = () => {
+  dropdownOpen.value = !dropdownOpen.value
+}
+
+// Click outside directive
+const vClickOutside = {
+  beforeMount(el, binding) {
+    el.clickOutsideEvent = function(event) {
+      if (!(el === event.target || el.contains(event.target))) {
+        binding.value()
+      }
+    }
+    document.addEventListener('click', el.clickOutsideEvent)
+  },
+  unmounted(el) {
+    document.removeEventListener('click', el.clickOutsideEvent)
+  }
+}
+
+const hasToken = computed(() => !!localStorage.getItem('authToken'))
+
+const displayName = computed(() => {
+  if (isLoading.value) return 'Loading...'
+  if (apiError.value) return 'Error'
+  if (!user.value) return 'Guest'
+  return user.value.name || user.value.full_name || user.value.first_name ||
+         (user.value.email ? user.value.email.split('@')[0] : null) || 'User'
+})
+
 const getUserInitials = () => {
-  if (!user.value) return 'U'
-  const name = displayName.value
-  return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
+  if (!user.value) return 'G'
+  
+  const name = user.value.name || 
+               user.value.full_name || 
+               user.value.first_name || 
+               user.value.email || 
+               'Guest'
+  
+  if (name.includes('@')) {
+    return name.charAt(0).toUpperCase()
+  }
+  
+  const words = name.split(' ')
+  if (words.length >= 2) {
+    return (words[0].charAt(0) + words[1].charAt(0)).toUpperCase()
+  }
+  
+  return name.charAt(0).toUpperCase()
 }
 
 const getProfileImageUrl = () => {
   if (!user.value || imageError.value) return null
-  const imgField = user.value.img_url || user.value.profile_image || user.value.avatar
-  if (!imgField) return null
   
-  if (imgField.startsWith('http')) return imgField
-  return `http://127.0.0.1:8000${imgField.startsWith('/') ? '' : '/'}${imgField}`
+  const imageField = user.value.img_url ||
+                    user.value.img || 
+                    user.value.profile_image || 
+                    user.value.avatar || 
+                    user.value.image || 
+                    user.value.photo ||
+                    user.value.profile_photo
+
+  if (!imageField) {
+    console.log('No image field found')
+    return null
+  }
+
+  let finalUrl = ''
+
+  if (imageField.startsWith('http://') || imageField.startsWith('https://')) {
+    finalUrl = imageField
+  } else if (imageField.startsWith('/')) {
+    finalUrl = `http://127.0.0.1:8000${imageField}`
+  } else {
+    finalUrl = `http://127.0.0.1:8000/storage/${imageField}`
+  }
+
+  return finalUrl
 }
 
 const handleImageError = () => {
+  console.log('Image failed to load, falling back to initials')
   imageError.value = true
 }
 
 const fetchUser = async () => {
   const token = localStorage.getItem('authToken')
-  if (!token) return
+  
+  if (!token) {
+    router.push('/login')
+    return
+  }
 
+  isLoading.value = true
+  apiError.value = null
+  imageError.value = false
+  
   try {
-    const { data } = await axios.get('http://127.0.0.1:8000/api/user', {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const response = await axios.get('http://127.0.0.1:8000/api/user', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
     })
-    user.value = data
-    localStorage.setItem('user_data', JSON.stringify(data))
-    imageError.value = false
+    
+    user.value = response.data
+    localStorage.setItem('user_data', JSON.stringify(response.data))
+    
   } catch (error) {
+    console.error('Error fetching user:', error)
+    apiError.value = error.response?.data?.message || error.message
+    
     if (error.response?.status === 401) {
-      handleSignOut()
+      localStorage.removeItem('token')
+      localStorage.removeItem('user_data')
+      router.push('/login')
     }
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -175,45 +278,13 @@ const handleSignOut = async () => {
         headers: { 'Authorization': `Bearer ${token}` }
       })
     } catch (error) {
-      console.error('Logout error:', error)
+      console.error('Logout API error:', error)
     }
   }
-  localStorage.removeItem('authToken')
-  localStorage.removeItem('user_data')
+  localStorage.clear()
   user.value = null
   router.push('/login')
 }
 
-const handleUserUpdate = (event) => {
-  if (event.detail) {
-    user.value = event.detail
-    localStorage.setItem('user_data', JSON.stringify(event.detail))
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('userUpdated', handleUserUpdate)
-  if (localStorage.getItem('authToken') && !user.value) {
-    fetchUser()
-  }
-})
-
-onUnmounted(() => {
-  window.removeEventListener('userUpdated', handleUserUpdate)
-})
-
-// Click outside directive
-const vClickOutside = {
-  beforeMount(el, binding) {
-    el.clickOutsideEvent = event => {
-      if (!(el === event.target || el.contains(event.target))) {
-        binding.value()
-      }
-    }
-    document.addEventListener('click', el.clickOutsideEvent)
-  },
-  unmounted(el) {
-    document.removeEventListener('click', el.clickOutsideEvent)
-  }
-}
+onMounted(fetchUser)
 </script>
