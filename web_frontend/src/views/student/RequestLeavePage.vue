@@ -5,18 +5,12 @@
       <p class="text-sm text-gray-500 mb-6">Fill out the form below to request leave from your studies</p>
 
       <div class="bg-white p-6 rounded-lg shadow border">
-        <div v-if="successMessage"
-          class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-          <span class="block sm:inline">{{ successMessage }}</span>
-          <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" @click="clearAlert('success')">
-            <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20">
-              <title>Close</title>
-              <path
-                d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.414l-2.651 2.651a1.2 1.2 0 1 1-1.697-1.697L8.586 10l-2.651-2.651a1.2 1.2 0 0 1 1.697-1.697L10 8.586l2.651-2.651a1.2 1.2 0 0 1 0 1.697z" />
-            </svg>
-          </span>
-        </div>
+        <div v-if="successMessage" class="fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {{ successMessage }}
+      </div>
         <div v-if="errorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
           role="alert">
           <span class="block sm:inline">{{ errorMessage }}</span>

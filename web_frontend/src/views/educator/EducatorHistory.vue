@@ -3,7 +3,7 @@
     <!-- Main Content -->
     <div class="max-w-5xl mx-auto px-6 py-10">
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">Leave Request Dashboard</h1>
+        <h1 class="text-2xl font-bold mb-1 text-blue-600">Leave Request Dashboard</h1>
         <p class="text-gray-600">Review and manage all processed leave applications.</p>
       </div>
 

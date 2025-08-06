@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-100 text-gray-800 font-sans">
     <div class="px-6 py-6">
-      <h2 class="text-2xl font-bold mb-1">Educator Dashboard</h2>
+      <h2 class="text-2xl font-bold mb-1 text-blue-600">Educator Dashboard</h2>
       <p class="text-gray-600">Review and manage student leave requests</p>
     </div>
 

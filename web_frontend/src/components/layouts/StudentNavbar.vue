@@ -100,7 +100,7 @@
               <p class="text-sm text-gray-500 truncate">{{ user?.email || 'user@example.com' }}</p>
             </div>
             <router-link 
-              to="/student-profile" 
+              to="/profile" 
               class="block px-4 py-2.5 text-gray-700 hover:bg-blue-50 transition-all duration-150 flex items-center space-x-3"
               @click.native="closeDropdown"
             >
