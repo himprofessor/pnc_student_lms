@@ -1,6 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50 text-gray-800">
     <div class="px-6 py-6 max-w-4xl mx-auto">
+      <AbsenceCalendar/>
       <!-- Header -->
       <div class="flex justify-between items-center mb-2">
         <div>
@@ -289,6 +290,8 @@ import axios from "axios";
 import { useRouter } from "vue-router";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import { useAlert } from "@/stores/useAlertStore";
+import AbsenceCalendar from "@/components/AbsenceCalendar.vue";
+
 
 const router = useRouter();
 
