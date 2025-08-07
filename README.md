@@ -23,11 +23,8 @@ Follow these steps to get the project installed and ready:
 1.  **Clone the repository:**
 
     ```bash
-    git clone [https://github.com/](https://github.com/)[your-username]/[your-repository-name].git
-    cd [your-repository-name]
+    git clone https://github.com/himprofessor/pnc_student_lms.git
     ```
-
-    (Replace `https://github.com/[your-username]/[your-repository-name].git` with the actual URL of your Git repository and `[your-repository-name]` with the name of the directory created after cloning.)
 
 2.  **Install dependencies:**
 
@@ -46,4 +43,17 @@ Follow these steps to get the project installed and ready:
 Once the dependencies are installed, you can start the project using the following command:
 
 ```bash
-npm start
+npm run dev
+
+### 2. Backend Setup
+
+Navigate to the `backend` directory:
+
+```bash
+composer install
+
+cp .env.example .env
+php artisan key:generate
+
+php artisan serve
+
