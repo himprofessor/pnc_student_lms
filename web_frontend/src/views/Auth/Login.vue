@@ -1,45 +1,80 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-100">
-    <div class="w-full max-w-md bg-white rounded p-8 shadow">
-      <h1 class="text-2xl font-bold text-center mb-4">Login</h1>
-      <form @submit.prevent="login" class="space-y-4">
+  <div class="min-h-screen flex items-center justify-center bg-gray-50">
+    <div class="w-full max-w-md bg-white rounded-xl p-8 shadow-lg ring-1 ring-gray-200">
+
+      <!-- Welcome section with centered icon and text -->
+      <div class="flex flex-col items-center mb-8">
+        <!-- Modern graduation cap icon -->
+        <div class="mb-4 p-3 bg-blue-50 rounded-full">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 14v7m0 0H6a2 2 0 01-2-2v-5" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18 19v-5a2 2 0 00-2-2h-1" />
+          </svg>
+        </div>
+        <h1 class="text-1xl font-bold text-center text-gray-800">
+          Welcome to PNC LeaveMS
+        </h1>
+        <p class="text-gray-500 mt-2 text-sm">Sign in to manage your leave requests</p>
+      </div>
+
+      <form @submit.prevent="login" class="space-y-5">
         <div>
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
           <input
+            id="email"
             v-model="email"
             type="email"
-            placeholder="Email"
-            class="w-full p-2 border rounded"
+            placeholder="Enter your email"
+            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200"
+            :class="{ 'border-red-500': fieldErrors.email }"
             required
           />
-          <p v-if="fieldErrors.email" class="text-red-600 text-sm mt-1">{{ fieldErrors.email }}</p>
+          <p v-if="fieldErrors.email" class="text-red-500 text-sm mt-1.5">{{ fieldErrors.email }}</p>
         </div>
+        
         <div>
+          <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
           <input
+            id="password"
             v-model="password"
             type="password"
-            placeholder="Password"
-            class="w-full p-2 border rounded"
+            placeholder="Enter your password"
+            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200"
+            :class="{ 'border-red-500': fieldErrors.password }"
             required
           />
-          <p v-if="fieldErrors.password" class="text-red-600 text-sm mt-1">{{ fieldErrors.password }}</p>
+          <p v-if="fieldErrors.password" class="text-red-500 text-sm mt-1.5">{{ fieldErrors.password }}</p>
         </div>
-        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700" :disabled="isLoading">
-          <span v-if="isLoading">Logging in...</span>
+        
+        <button
+          type="submit"
+          class="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white py-3 rounded-lg font-medium hover:from-blue-700 hover:to-blue-600 transition-all duration-300 shadow-md hover:shadow-lg"
+          :disabled="isLoading"
+          :class="{ 'opacity-75 cursor-not-allowed': isLoading }"
+        >
+          <span v-if="isLoading" class="flex items-center justify-center">
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Logging in...
+          </span>
           <span v-else>Login</span>
         </button>
       </form>
-      <p v-if="errorMessage" class="text-red-600 mt-4 text-center">{{ errorMessage }}</p>
-    </div>
 
-    <!-- Success Alert -->
-    <div v-if="successMessage" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center">
-      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      {{ successMessage }}
+        <!-- Success Alert -->
+      <div v-if="successMessage" class="fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {{ successMessage }}
+      </div>
     </div>
   </div>
 </template>
+
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -49,7 +84,6 @@ const router = useRouter()
 
 const email = ref('')
 const password = ref('')
-const errorMessage = ref('')
 const successMessage = ref('')
 const fieldErrors = ref({})
 const isLoading = ref(false)
@@ -60,8 +94,9 @@ const showSuccess = (message) => {
     successMessage.value = ''
   }, 3000)
 }
-const login = async () => {
-  errorMessage.value = ''
+
+  const login = async () => {
+  // Reset errors
   fieldErrors.value = {}
   successMessage.value = ''
   isLoading.value = true
@@ -87,7 +122,6 @@ const login = async () => {
     showSuccess('Login successful! Redirecting...')
 
     setTimeout(() => {
-      // Redirect dynamically based on backend response
       if (dashboard_url) {
         router.replace(dashboard_url)
       } else {
@@ -95,50 +129,66 @@ const login = async () => {
       }
     }, 1000)
   } catch (error) {
-    // Error handling remains the same
     if (error.response?.status === 422 && error.response?.data?.errors) {
+      // Handle validation errors
       fieldErrors.value = error.response.data.errors
-      errorMessage.value = 'Please correct the errors.'
     } else if (error.response?.status === 401) {
-      errorMessage.value = error.response.data.message || 'Invalid email or password.'
+      // Handle unauthorized (invalid credentials)
+      fieldErrors.value = {
+        email: 'Invalid email',
+        password: 'Invalid password'
+      }
     } else {
-      errorMessage.value = 'Login failed. Please try again.'
+      // Handle other errors
+      fieldErrors.value = {
+        email: 'Login failed. Please try again.',
+        password: 'Login failed. Please try again.'
+      }
     }
   } finally {
     isLoading.value = false
   }
 }
-
 </script>
 
 <style scoped>
-/* Success alert animation */
-.fixed.top-4.right-4 {
-  animation: slideInRight 0.3s ease-out;
+/* Notification animation */
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
 }
 
-@keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+.slide-fade-leave-active {
+  transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
 }
 
-/* Button hover effects */
-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  transition: all 0.2s ease-in-out;
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateX(20px);
+  opacity: 0;
 }
 
-/* Input focus effects */
+/* Input focus effect */
 input:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  transition: all 0.2s ease-in-out;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* Button hover effect */
+button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 </style>

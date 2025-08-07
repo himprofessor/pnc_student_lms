@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-100 text-gray-800 font-sans">
     <div class="px-6 py-6">
-      <h2 class="text-2xl font-bold mb-1">Educator Dashboard</h2>
+      <h2 class="text-2xl font-bold mb-1 text-blue-600">Educator Dashboard</h2>
       <p class="text-gray-600">Review and manage student leave requests</p>
     </div>
 
@@ -238,9 +238,7 @@
                     {{ detail.status }}
                   </span>
                 </p>
-                <p v-if="detail.approved_by" class="text-gray-700">
-                  <span class="font-medium">Approved by:</span> {{ detail.approved_by }}
-                </p>
+                
                 <div v-if="detail.rejection_reason" class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
                   <p class="font-medium text-red-800 mb-1">Rejection Reason:</p>
                   <p class="text-red-700 text-sm">{{ detail.rejection_reason }}</p>
@@ -501,14 +499,14 @@ const approve = async (id) => {
 
     // Show success notification
     const successNotification = document.createElement('div')
-    successNotification.className = 'fixed top-4 right-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-md z-50'
+    successNotification.className = 'fixed top-4 right-4 bg-blue-500 border-l-4 border-blue-500 text-white-700 p-4 rounded shadow-md z-50'
     successNotification.innerHTML = `
-            <div class="flex items-center">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <p>Leave request approved successfully</p>
-            </div>
+           <div v-if="successMessage" class="fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Approve leave request successfully 
+      </div>
         `
     document.body.appendChild(successNotification)
 
@@ -575,14 +573,14 @@ const submitRejection = async () => {
 
     // Show success notification
     const successNotification = document.createElement('div')
-    successNotification.className = 'fixed top-4 right-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-md z-50'
+    successNotification.className = 'fixed top-4 right-4 bg-blue-500 border-l-4 border-blue-500 text-white-700 p-4 rounded shadow-md z-50'
     successNotification.innerHTML = `
-            <div class="flex items-center">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p>Leave request rejected successfully</p>
-            </div>
+            <div v-if="successMessage" class="fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Reject leave successfully 
+      </div>
         `
     document.body.appendChild(successNotification)
 

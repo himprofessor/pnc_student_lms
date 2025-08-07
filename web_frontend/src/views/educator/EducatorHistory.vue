@@ -3,7 +3,7 @@
     <!-- Main Content -->
     <div class="max-w-5xl mx-auto px-6 py-10">
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">Leave Request Dashboard</h1>
+        <h1 class="text-2xl font-bold mb-1 text-blue-600">Leave Request Dashboard</h1>
         <p class="text-gray-600">Review and manage all processed leave applications.</p>
       </div>
 
@@ -206,7 +206,7 @@
                 stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
-              Approved by {{ request.approved_by || 'Administrator' }}
+              Approved
             </div>
 
             <div v-if="request.status === 'Rejected'" class="mt-2">
@@ -380,10 +380,6 @@
                     }" class="font-semibold capitalize ml-2">
                       {{ detail.status || 'Unknown' }}
                     </span>
-                  </p>
-                  <p v-if="detail.approved_by" class="text-gray-700">
-                    <span class="font-medium">Approved by:</span>
-                    {{ detail.approved_by }}
                   </p>
 
                   <!-- Display Rejection Reason -->

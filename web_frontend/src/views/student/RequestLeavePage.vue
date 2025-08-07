@@ -1,22 +1,16 @@
 <template>
   <div class="min-h-screen bg-gray-50 text-gray-800">
     <div class="px-6 py-6 max-w-3xl mx-auto">
-      <h1 class="text-2xl font-bold mb-2">Submit Leave Request</h1>
+      <h1 class="text-2xl font-bold mb-2 text-blue-600">Submit Leave Request</h1>
       <p class="text-sm text-gray-500 mb-6">Fill out the form below to request leave from your studies</p>
 
       <div class="bg-white p-6 rounded-lg shadow border">
-        <div v-if="successMessage"
-          class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-          <span class="block sm:inline">{{ successMessage }}</span>
-          <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" @click="clearAlert('success')">
-            <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20">
-              <title>Close</title>
-              <path
-                d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.414l-2.651 2.651a1.2 1.2 0 1 1-1.697-1.697L8.586 10l-2.651-2.651a1.2 1.2 0 0 1 1.697-1.697L10 8.586l2.651-2.651a1.2 1.2 0 0 1 0 1.697z" />
-            </svg>
-          </span>
-        </div>
+        <div v-if="successMessage" class="fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {{ successMessage }}
+      </div>
         <div v-if="errorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
           role="alert">
           <span class="block sm:inline">{{ errorMessage }}</span>
@@ -47,21 +41,33 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-1">
             <div>
               <label for="from-date" class="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
-              <input type="date" id="from-date" v-model="form.from_date"
+              <input 
+                type="date" 
+                id="from-date" 
+                v-model="form.from_date"
+                :min="today"
                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                :class="{ 'border-red-500': fieldErrors.from_date }" @change="calculateDays">
+                :class="{ 'border-red-500': fieldErrors.from_date }" 
+                @change="calculateDays"
+              >
               <p v-if="fieldErrors.from_date" class="mt-1 text-sm text-red-600">{{ fieldErrors.from_date }}</p>
             </div>
             <div>
               <label for="to-date" class="block text-sm font-medium text-gray-700 mb-1">End Date *</label>
-              <input type="date" id="to-date" v-model="form.to_date"
+              <input 
+                type="date" 
+                id="to-date" 
+                v-model="form.to_date"
+                :min="form.from_date || today"
                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                :class="{ 'border-red-500': fieldErrors.to_date }" @change="calculateDays">
+                :class="{ 'border-red-500': fieldErrors.to_date }" 
+                @change="calculateDays"
+              >
               <p v-if="fieldErrors.to_date" class="mt-1 text-sm text-red-600">{{ fieldErrors.to_date }}</p>
             </div>
           </div>
           <div v-if="totalDays !== null" class="text-sm text-gray-500 mb-4">
-            Total Leave Days: {{ totalDays }} day
+            Total Leave Days: {{ totalDays }} day{{ totalDays !== 1 ? 's' : '' }}
           </div>
 
           <div class="mb-4">
@@ -130,7 +136,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue';
+import { ref, computed, onMounted, reactive } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 
@@ -160,6 +166,12 @@ const fieldErrors = reactive({
   supporting_documents: '',
 });
 
+// Compute today's date in YYYY-MM-DD format
+const today = computed(() => {
+  const date = new Date();
+  return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD
+});
+
 // Fetch leave types on component mount
 onMounted(() => {
   fetchLeaveTypes();
@@ -182,10 +194,10 @@ const calculateDays = () => {
     const from = new Date(form.from_date);
     const to = new Date(form.to_date);
 
-    // Swap dates if from_date is after to_date
+    // Ensure to_date is not before from_date
     if (from > to) {
-      [form.from_date, form.to_date] = [form.to_date, form.from_date];
-      return calculateDays(); // Recalculate with swapped dates
+      form.to_date = form.from_date; // Reset to_date to from_date
+      return calculateDays(); // Recalculate with corrected dates
     }
 
     // Calculate difference in days (inclusive of both dates)
@@ -313,7 +325,7 @@ const resetForm = () => {
   form.leave_type_id = '';
   form.reason = '';
   form.from_date = '';
-  form.to_date = '';
+  form.to_date = '';  
   form.contact_info = '';
   form.supporting_documents = null;
   totalDays.value = null;
