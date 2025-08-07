@@ -1,0 +1,215 @@
+/* color palette from <https://github.com/vuejs/theme> */
+:root {
+  --vt-c-white: #ffffff;
+  --vt-c-white-soft: #f8f8f8;
+  --vt-c-white-mute: #f2f2f2;
+
+  --vt-c-black: #181818;
+  --vt-c-black-soft: #222222;
+  --vt-c-black-mute: #282828;
+
+  --vt-c-indigo: #2c3e50;
+
+  --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
+  --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
+  --vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
+  --vt-c-divider-dark-2: rgba(84, 84, 84, 0.48);
+
+  --vt-c-text-light-1: var(--vt-c-indigo);
+  --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
+  --vt-c-text-dark-1: var(--vt-c-white);
+  --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
+}
+
+/* semantic color variables for this project */
+:root {
+  --color-background: var(--vt-c-white);
+  --color-background-soft: var(--vt-c-white-soft);
+  --color-background-mute: var(--vt-c-white-mute);
+
+  --color-border: var(--vt-c-divider-light-2);
+  --color-border-hover: var(--vt-c-divider-light-1);
+
+  --color-heading: var(--vt-c-text-light-1);
+  --color-text: var(--vt-c-text-light-1);
+
+  --section-gap: 160px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: var(--vt-c-black);
+    --color-background-soft: var(--vt-c-black-soft);
+    --color-background-mute: var(--vt-c-black-mute);
+
+    --color-border: var(--vt-c-divider-dark-2);
+    --color-border-hover: var(--vt-c-divider-dark-1);
+
+    --color-heading: var(--vt-c-text-dark-1);
+    --color-text: var(--vt-c-text-dark-2);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  font-weight: normal;
+}
+
+body {
+  min-height: 100vh;
+  color: var(--color-text);
+  background: var(--color-background);
+  transition:
+    color 0.5s,
+    background-color 0.5s;
+  line-height: 1.6;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Fira Sans',
+    'Droid Sans',
+    'Helvetica Neue',
+    sans-serif;
+  font-size: 15px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin: 10px 0;
+  gap: 8px;
+  font-family: sans-serif;
+  font-size: 14px;
+  position: relative;
+}
+
+.alert-success {
+  background-color: #e6ffed;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+}
+
+.alert-error {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+}
+
+.alert-warning {
+  background-color: #fff8e1;
+  color: #f57f17;
+  border: 1px solid #ffe082;
+}
+
+.alert-info {
+  background-color: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #90caf9;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  margin-left: auto;
+  font-size: 16px;
+  cursor: pointer;
+  color: inherit;
+}
+/* Leave Request List Styles */
+.notification-card {
+  background-color: #ffffff; /* Clean white background */
+  border-radius: 0.5rem; /* Rounded corners */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  padding: 1rem; /* Padding for the card */
+  margin-bottom: 1rem; /* Space between cards */
+  display: flex; /* Flexbox for layout */
+  flex-direction: column; /* Stack items vertically */
+}
+
+.notification-card.approved {
+  border-left: 4px solid #4CAF50; /* Green left border for approved */
+  background-color: #E8F5E9; /* Light green background for approved */
+}
+
+.notification-card.rejected {
+  border-left: 4px solid #F44336; /* Red left border for rejected */
+  background-color: #FFEBEE; /* Light red background for rejected */
+}
+
+.notification-status {
+  font-weight: bold; /* Bold text for status */
+}
+
+.notification-status.approved {
+  color: #4CAF50; /* Green color for approved status */
+}
+
+.notification-status.rejected {
+  color: #F44336; /* Red color for rejected status */
+}
+
+.leave-type-label {
+  background-color: #BBDEFB; /* Light blue background */
+  color: #0D47A1; /* Dark blue text */
+  border-radius: 9999px; /* Pill shape */
+  padding: 0.25rem 0.5rem; /* Padding for the label */
+  font-size: 0.75rem; /* Smaller font size */
+  font-weight: 500; /* Medium font weight */
+  display: inline-block; /* Inline block for pill shape */
+  margin-top: 0.5rem; /* Space above */
+}
+
+.duration-text {
+  font-weight: bold; /* Bold text for duration */
+  margin-top: 0.25rem; /* Space above */
+}
+
+.approval-status {
+  font-weight: bold; /* Bold text for approver/rejector */
+  margin-top: 0.25rem; /* Space above */
+}
+
+.rejection-reason {
+  display: flex; /* Flexbox for icon and text */
+  align-items: center; /* Center align items */
+  margin-top: 0.5rem; /* Space above */
+}
+
+.rejection-reason-icon {
+  color: #D32F2F; /* Red color for warning icon */
+  margin-right: 0.25rem; /* Space between icon and text */
+}
+
+.rejection-reason-label {
+  color: #D32F2F; /* Red color for label */
+  text-transform: uppercase; /* Uppercase text */
+  font-weight: bold; /* Bold text */
+  font-size: 0.75rem; /* Smaller font size */
+}
+
+.notification-date {
+  color: #757575; /* Muted text color for date */
+  font-size: 0.875rem; /* Slightly larger than smaller text */
+  margin-top: 0.25rem; /* Space above */
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .notification-card {
+      padding: 0.75rem; /* Adjust padding for smaller screens */
+  }
+}
