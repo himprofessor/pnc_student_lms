@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,7 +16,7 @@ type FieldErrors = {
 };
 
 type Props = {
-  navigation: any; // for navigation (React Navigation)
+  navigation: any;
 };
 
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
@@ -38,37 +37,52 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     setIsLoading(true);
 
     try {
+      // Clear existing tokens
       await AsyncStorage.multiRemove(['authToken', 'user_data', 'role']);
 
-      const response = await axios.post('/login', {
-        email,
-        password,
+      // TODO: Replace this URL with your backend API address
+      const response = await axios.post('http://192.168.108.43:8080/api/login', {
+        email: email.trim().toLowerCase(),
+        password: password.trim(),
       });
+
+      console.log('Login API response:', response.data);
 
       const { token, user, role, dashboard_url } = response.data;
 
+      if (!token) {
+        throw new Error('No token received from server.');
+      }
+
+      // Store token and user data safely (fallback to empty string if role/dashboard_url undefined)
       await AsyncStorage.setItem('authToken', token);
       await AsyncStorage.setItem('user_data', JSON.stringify(user));
-      await AsyncStorage.setItem('role', role);
-
+      await AsyncStorage.setItem('role', role ?? '');
+      
+      // Set default auth header for subsequent axios requests
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
       showSuccess('Login successful! Redirecting...');
 
       setTimeout(() => {
-        if (dashboard_url) {
-          navigation.replace(dashboard_url);
-        } else {
-          navigation.replace(role === 'teacher' ? 'EducatorDashboard' : 'Dashboard');
-        }
+        navigation.replace(
+          dashboard_url || (role === 'teacher' ? 'EducatorDashboard' : 'Dashboard')
+        );
       }, 1000);
     } catch (error: any) {
+      console.error('Login error:', error.response?.data || error.message);
+
       if (error.response?.status === 422 && error.response?.data?.errors) {
         setFieldErrors(error.response.data.errors);
       } else if (error.response?.status === 401) {
         setFieldErrors({
-          email: 'Invalid email',
-          password: 'Invalid password',
+          email: 'Invalid credentials',
+          password: 'Invalid credentials',
+        });
+      } else if (error.message) {
+        setFieldErrors({
+          email: error.message,
+          password: error.message,
         });
       } else {
         setFieldErrors({
@@ -81,12 +95,12 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
+  // Your existing render method remains exactly the same
   return (
     <View style={styles.container}>
       {/* Icon and welcome text */}
       <View style={styles.header}>
         <View style={styles.iconWrapper}>
-          {/* Simple graduation cap SVG replacement */}
           <Text style={styles.icon}>🎓</Text>
         </View>
         <Text style={styles.title}>Welcome to PNC LeaveMS</Text>
@@ -158,12 +172,11 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   );
 };
 
-export default LoginScreen;
-
+// Your existing StyleSheet remains exactly the same
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB', // bg-gray-50
+    backgroundColor: '#F9FAFB',
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
@@ -172,25 +185,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconWrapper: {
-    backgroundColor: '#DBEAFE', // bg-blue-50
+    backgroundColor: '#DBEAFE',
     borderRadius: 9999,
     padding: 12,
     marginBottom: 12,
   },
   icon: {
     fontSize: 32,
-    color: '#2563EB', // text-blue-600
+    color: '#2563EB',
   },
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1F2937', // text-gray-800
+    color: '#1F2937',
     textAlign: 'center',
   },
   subtitle: {
     marginTop: 6,
     fontSize: 14,
-    color: '#6B7280', // text-gray-500
+    color: '#6B7280',
     textAlign: 'center',
   },
   form: {
@@ -203,11 +216,11 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151', // text-gray-700
+    color: '#374151',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#D1D5DB', // border-gray-300
+    borderColor: '#D1D5DB',
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -215,15 +228,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   inputError: {
-    borderColor: '#EF4444', // border-red-500
+    borderColor: '#EF4444',
   },
   errorText: {
     marginTop: 4,
-    color: '#EF4444', // text-red-500
+    color: '#EF4444',
     fontSize: 12,
   },
   button: {
-    backgroundColor: '#2563EB', // from-blue-600
+    backgroundColor: '#2563EB',
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
@@ -242,7 +255,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 40,
     right: 20,
-    backgroundColor: '#3B82F6', // blue-500
+    backgroundColor: '#3B82F6',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 10,
@@ -257,3 +270,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
+export default LoginScreen;

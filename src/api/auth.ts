@@ -1,38 +1,30 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiClient from './apiClient';
+import csrfClient from './csrfClient';
 
-interface LoginResponse {
-  token: string;
-  user: {
-    id: number;
-    name: string;
-    email: string;
-  };
-  role: string;
-  dashboard_url?: string;
-}
-
-export const login = async (email: string, password: string): Promise<LoginResponse> => {
+export const login = async (email: string, password: string) => {
   try {
-    // First get CSRF token if using Sanctum
-    await apiClient.get('/sanctum/csrf-cookie');
-    
-    const response = await apiClient.post<LoginResponse>('/login', {
-      email: email.trim().toLowerCase(),
-      password: password.trim()
+    await csrfClient.get('/sanctum/csrf-cookie');
+
+    const response = await apiClient.post('/login', {
+      email: email.trim(),
+      password: password.trim(),
     });
-    
-    return response.data;
-  } catch (error: any) {
-    console.error('Login error:', {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message
-    });
-    
-    if (error.response?.data?.errors) {
-      const errorMessages = Object.values(error.response.data.errors).flat().join('\n');
-      throw new Error(errorMessages);
+
+    const token = response.data?.token;
+
+    if (token) {
+      await AsyncStorage.setItem('authToken', token);
+    } else {
+      // Only call removeItem if token is missing
+      await AsyncStorage.removeItem('authToken');
+      throw new Error('Login failed: No token received');
     }
-    throw new Error(error.response?.data?.message || 'Login failed. Please try again.');
+
+    return response.data;
+  } catch (error) {
+    await AsyncStorage.removeItem('authToken');
+    console.error('Login error:', error);
+    throw error;
   }
 };
