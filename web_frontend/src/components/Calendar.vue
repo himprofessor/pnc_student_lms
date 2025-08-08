@@ -1,13 +1,13 @@
 <template>
   <div class="container mx-auto max-w-7xl">
-    <h1 class="text-3xl font-semibold mb-6 text-center text-gray-800">Attendance Calendar</h1>
+    <h1 class="text-3xl font-semibold mb-6 text-center text-gray-800">ATTENDENCE CALENDAR</h1>
 
     <!-- Month Navigation -->
     <div class="flex items-center justify-between mb-6">
       <button
         @click="prevMonth"
         aria-label="Previous month"
-        class="text-gray-600 hover:text-gray-900 focus:outline-none"
+        class="text-gray-600 hover:text-gray-900 focus:outline-none box-content border border-gray-300 rounded p-1"
       >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="15 18 9 12 15 6"></polyline>
@@ -19,7 +19,7 @@
       <button
         @click="nextMonth"
         aria-label="Next month"
-        class="text-gray-600 hover:text-gray-900 focus:outline-none"
+        class="text-gray-600 hover:text-gray-900 focus:outline-none box-content border border-gray-300 rounded p-1"
       >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="9 18 15 12 9 6"></polyline>
@@ -52,7 +52,8 @@
           'bg-white min-h-[80px] p-2 flex flex-col',
           day.isCurrentMonth ? 'text-gray-900' : 'text-gray-400',
           isToday(day.date) ? 'border-2 border-blue-500 rounded-md' : '',
-          isAbsent(day.date) ? 'bg-red-50' : ''
+          isAbsent(day.date) ? 'bg-red-50' : '',
+          isWeekend(day.date) ? 'text-red-600' : ''
         ]"
         @click="showAbsenceDetails(day.date)"
         role="button"
@@ -129,7 +130,7 @@ const currentDate = ref(new Date())
 const year = ref(currentDate.value.getFullYear())
 const month = ref(currentDate.value.getMonth())
 
-const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const daysOfWeek = [ 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
@@ -187,6 +188,12 @@ const isAbsent = (date) => {
         date >= absence.from_date && date <= absence.to_date
     )
 }
+
+const isWeekend = (dateString) => {
+    const date = new Date(dateString);
+    const day = date.getDay(); // Sunday = 0, Saturday = 6
+    return day === 4 || day === 5
+};
 
 const getAbsenceDetails = (date) => {
     return absences.value.find(absence => 
