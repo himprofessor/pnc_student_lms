@@ -37,7 +37,10 @@
       <div
         v-for="day in daysOfWeek"
         :key="day"
-        class="py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+        :class="[
+            'py-2 text-center text-xl font-medium text-gray-500 uppercase tracking-wider',
+            isWeekend(day.date) ? 'text-red-600' : ''
+        ]"
       >
         {{ day }}
       </div>
@@ -130,7 +133,7 @@ const currentDate = ref(new Date())
 const year = ref(currentDate.value.getFullYear())
 const month = ref(currentDate.value.getMonth())
 
-const daysOfWeek = [ 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
@@ -191,8 +194,8 @@ const isAbsent = (date) => {
 
 const isWeekend = (dateString) => {
     const date = new Date(dateString);
-    const day = date.getDay(); // Sunday = 0, Saturday = 6
-    return day === 4 || day === 5
+    const day = date.getDay(); 
+    return day === 5 || day === 6
 };
 
 const getAbsenceDetails = (date) => {
