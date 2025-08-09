@@ -41,7 +41,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       await AsyncStorage.multiRemove(['authToken', 'user_data', 'role']);
 
       // TODO: Replace this URL with your backend API address
-      const response = await axios.post('http://192.168.108.43:8080/api/login', {
+      const response = await axios.post('http://10.193.247.163:8080/api/login', {
         email: email.trim().toLowerCase(),
         password: password.trim(),
       });
@@ -65,10 +65,24 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       showSuccess('Login successful! Redirecting...');
 
       setTimeout(() => {
-        navigation.replace(
-          dashboard_url || (role === 'teacher' ? 'EducatorDashboard' : 'Dashboard')
-        );
+        let targetScreen = '';
+      
+        if (role === 'teacher') {
+          targetScreen = 'EducatorDashboard';
+        } else {
+          targetScreen = 'Dashboard';
+        }
+      
+        // Optional: use dashboard_url if you want, but map it
+        if (dashboard_url === '/dashboard') {
+          targetScreen = 'Dashboard';
+        } else if (dashboard_url === '/educator-dashboard') {
+          targetScreen = 'EducatorDashboard';
+        }
+      
+        navigation.replace(targetScreen);
       }, 1000);
+      
     } catch (error: any) {
       console.error('Login error:', error.response?.data || error.message);
 
