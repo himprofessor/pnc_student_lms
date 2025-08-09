@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../navigation/StackNavigator';
 
 type FieldErrors = {
   email?: string;
@@ -16,7 +18,7 @@ type FieldErrors = {
 };
 
 type Props = {
-  navigation: any;
+  navigation: StackNavigationProp<RootStackParamList, 'Login'>;
 };
 
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
@@ -37,10 +39,8 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     setIsLoading(true);
 
     try {
-      // Clear existing tokens
       await AsyncStorage.multiRemove(['authToken', 'user_data', 'role']);
 
-      // TODO: Replace this URL with your backend API address
       const response = await axios.post('http://10.193.247.163:8080/api/login', {
         email: email.trim().toLowerCase(),
         password: password.trim(),
@@ -54,29 +54,22 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         throw new Error('No token received from server.');
       }
 
-      // Store token and user data safely (fallback to empty string if role/dashboard_url undefined)
       await AsyncStorage.setItem('authToken', token);
       await AsyncStorage.setItem('user_data', JSON.stringify(user));
       await AsyncStorage.setItem('role', role ?? '');
       
-      // Set default auth header for subsequent axios requests
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
       showSuccess('Login successful! Redirecting...');
 
       setTimeout(() => {
-        let targetScreen = '';
+        let targetScreen: keyof RootStackParamList = 'Dashboard';
       
         if (role === 'teacher') {
           targetScreen = 'EducatorDashboard';
-        } else {
-          targetScreen = 'Dashboard';
         }
       
-        // Optional: use dashboard_url if you want, but map it
-        if (dashboard_url === '/dashboard') {
-          targetScreen = 'Dashboard';
-        } else if (dashboard_url === '/educator-dashboard') {
+        if (dashboard_url === '/educator-dashboard') {
           targetScreen = 'EducatorDashboard';
         }
       
@@ -93,15 +86,10 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
           email: 'Invalid credentials',
           password: 'Invalid credentials',
         });
-      } else if (error.message) {
-        setFieldErrors({
-          email: error.message,
-          password: error.message,
-        });
       } else {
         setFieldErrors({
-          email: 'Login failed. Please try again.',
-          password: 'Login failed. Please try again.',
+          email: error.message || 'Login failed. Please try again.',
+          password: error.message || 'Login failed. Please try again.',
         });
       }
     } finally {
@@ -109,10 +97,8 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  // Your existing render method remains exactly the same
   return (
     <View style={styles.container}>
-      {/* Icon and welcome text */}
       <View style={styles.header}>
         <View style={styles.iconWrapper}>
           <Text style={styles.icon}>🎓</Text>
@@ -121,7 +107,6 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         <Text style={styles.subtitle}>Sign in to manage your leave requests</Text>
       </View>
 
-      {/* Login Form */}
       <View style={styles.form}>
         <View style={styles.field}>
           <Text style={styles.label}>Email</Text>
@@ -131,10 +116,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             keyboardType="email-address"
             autoCapitalize="none"
             placeholder="Enter your email"
-            style={[
-              styles.input,
-              fieldErrors.email ? styles.inputError : null,
-            ]}
+            style={[styles.input, fieldErrors.email ? styles.inputError : null]}
             editable={!isLoading}
           />
           {fieldErrors.email && (
@@ -149,10 +131,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             onChangeText={setPassword}
             secureTextEntry
             placeholder="Enter your password"
-            style={[
-              styles.input,
-              fieldErrors.password ? styles.inputError : null,
-            ]}
+            style={[styles.input, fieldErrors.password ? styles.inputError : null]}
             editable={!isLoading}
           />
           {fieldErrors.password && (
@@ -176,7 +155,6 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Success message */}
       {successMessage ? (
         <View style={styles.successBanner}>
           <Text style={styles.successText}>{successMessage}</Text>
@@ -185,6 +163,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     </View>
   );
 };
+
 
 // Your existing StyleSheet remains exactly the same
 const styles = StyleSheet.create({

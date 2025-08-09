@@ -1,6 +1,13 @@
+// App.tsx
+import 'react-native-gesture-handler';
 import React from 'react';
-import LoginScreen from './src/screens/login_screen';
+import { NavigationContainer } from '@react-navigation/native';
+import StackNavigator from './src/navigation/StackNavigator';
 
 export default function App() {
-  return <LoginScreen />;
+  return (
+    <NavigationContainer>
+      <StackNavigator />
+    </NavigationContainer>
+  );
 }
