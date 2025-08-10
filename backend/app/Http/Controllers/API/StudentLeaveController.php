@@ -66,9 +66,11 @@ class StudentLeaveController extends Controller
     // View logged-in student's leave requests
     public function myLeaves()
     {
-        $leaves = LeaveRequest::with('leaveType')->where('student_id', Auth::id())->get();
-
-        // Transform the response to include leave type name instead of ID
+        $leaves = LeaveRequest::with('leaveType')
+            ->where('student_id', Auth::id())
+            ->orderBy('created_at', 'desc') // ✅ Sort newest first
+            ->get();
+    
         $leaves = $leaves->map(function ($leave) {
             return [
                 'id' => $leave->id,
@@ -81,12 +83,14 @@ class StudentLeaveController extends Controller
                     ? url('storage/' . $leave->supporting_documents)
                     : null,
                 'status' => $leave->status,
-                'leave_type' => $leave->leaveType->name, // Get the leave type name
+                'leave_type' => $leave->leaveType->name,
+                'created_at' => $leave->created_at, // 👈 Optional: include in response for frontend sorting
             ];
         });
-
+    
         return response()->json(['leaves' => $leaves]);
     }
+    
 
     // Dashboard summary
     public function dashboard()
