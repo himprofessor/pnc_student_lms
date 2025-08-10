@@ -3,13 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Educator; // Make sure to import the Educator model
+use App\Models\User;
 use App\Models\LeaveRequest;
 use App\Models\Notification;
 use App\Mail\LeaveApprovedNotification;
 use App\Mail\LeaveRejectedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 
 class EducatorController extends Controller
 {
@@ -125,5 +129,37 @@ class EducatorController extends Controller
                         : url('storage/profile-images/default.png')),
             ]
         ]);
+    }
+  // In your EducatorController.php
+
+    public function createStudentAccount(Request $request)
+    {
+        try {
+            // Instantiate the Educator model to call the method
+            $educatorModel = new Educator();
+            
+            // Call the method on the Educator model instance
+            $student = $educatorModel->createStudentAccount($request->all());
+
+            return response()->json([
+                'message' => 'Student account created successfully.',
+                'student' => [
+                    'id' => $student->id,
+                    'name' => $student->name,
+                    'email' => $student->email,
+                ]
+            ], 201);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation Error',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
