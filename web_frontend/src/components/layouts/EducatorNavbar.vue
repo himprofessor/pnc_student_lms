@@ -39,6 +39,17 @@
               History
             </router-link>
           </li>
+          <li>
+            <router-link
+              to="/create-account"
+              class="px-4 py-2 text-gray-600 font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:shadow-sm"
+              active-class="bg-blue-50 text-blue-600 shadow-inner"
+              exact-active-class="bg-blue-50 text-blue-600 shadow-inner"
+              @click.native="closeDropdown"
+            >
+              CreateAccountStudent
+            </router-link>
+          </li>
         </ul>
       </nav>
 
