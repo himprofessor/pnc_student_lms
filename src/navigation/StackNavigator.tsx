@@ -2,11 +2,13 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from '../screens/login_screen';
 import Dashboard from '../screens/dashboard';
+import RequestLeaveScreen from '../screens/leave_request';
 
 export type RootStackParamList = {
   Login: undefined;
   Dashboard: undefined;
   EducatorDashboard: undefined;
+  RequestLeave: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -21,6 +23,7 @@ const StackNavigator = () => {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Dashboard" component={Dashboard} />
       <Stack.Screen name="EducatorDashboard" component={Dashboard} />
+      <Stack.Screen name="RequestLeave" component={RequestLeaveScreen} />
     </Stack.Navigator>
   );
 };

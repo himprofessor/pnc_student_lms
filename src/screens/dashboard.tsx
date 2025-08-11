@@ -5,10 +5,9 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Modal,
   Animated,
-  TouchableWithoutFeedback,
   Alert,
+  ActivityIndicator
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -100,6 +99,7 @@ const DashboardScreen = () => {
   const [approvedCount, setApprovedCount] = useState<string>('0');
   const [rejectedCount, setRejectedCount] = useState<string>('0');
   const [successMessage, setSuccessMessage] = useState<string>('');
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -135,6 +135,47 @@ const DashboardScreen = () => {
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Confirm Logout',
+      'Are you sure you want to log out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Log Out', onPress: logout, style: 'destructive' },
+      ]
+    );
+  };
+
+  const logout = async () => {
+    setIsLoggingOut(true);
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      
+      try {
+        await axios.post('http://10.193.247.163:8080/api/logout', {}, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch (apiError) {
+        console.log('Backend logout failed, proceeding with client-side logout', apiError);
+      }
+
+      await AsyncStorage.multiRemove(['user_data', 'authToken']);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      await AsyncStorage.multiRemove(['user_data', 'authToken']);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   const fetchLeaveRequests = async () => {
     try {
@@ -219,7 +260,20 @@ const DashboardScreen = () => {
           <Text style={styles.headerTitle}>Welcome back, {user?.name || 'User'}</Text>
           <Text style={styles.headerSub}>Manage your leave requests and track their status</Text>
         </View>
-        
+        <TouchableOpacity 
+          style={styles.logoutBtn}
+          onPress={handleLogout}
+          disabled={isLoggingOut}
+        >
+          {isLoggingOut ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <>
+              <Feather name="log-out" size={16} color="#fff" />
+              <Text style={styles.logoutText}>Logout</Text>
+            </>
+          )}
+        </TouchableOpacity>
       </View>
 
       {/* Stats */}
@@ -253,16 +307,16 @@ const DashboardScreen = () => {
           value={leaveRequests.length.toString()} 
         />
       </View>
+
+      {/* New Leave Button */}
       <TouchableOpacity 
-          style={styles.newLeaveBtn}
-          onPress={() => navigation.navigate('RequestLeave')}
-        >
-          <Feather name="plus" size={16} color="#fff" />
-          <Text style={styles.newLeaveText}>New Leave Request</Text>
-        </TouchableOpacity>
+        style={styles.newLeaveBtn}
+        onPress={() => navigation.navigate('RequestLeave')}
+      >
+        <Feather name="plus" size={16} color="#fff" />
+        <Text style={styles.newLeaveText}>New Leave Request</Text>
+      </TouchableOpacity>
 
-
-        
       {/* Recent Requests */}
       <View style={styles.recentContainer}>
         <Text style={styles.recentTitle}>Recent Leave Requests</Text>
@@ -330,6 +384,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6B7280',
   },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'gray',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+  },
+  logoutText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
   newLeaveBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -337,6 +405,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 6,
+    marginBottom: 20,
   },
   newLeaveText: {
     color: '#fff',
