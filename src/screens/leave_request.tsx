@@ -63,7 +63,7 @@ const RequestLeaveScreen = () => {
   const fetchLeaveTypes = async () => {
     try {
       const token = await AsyncStorage.getItem('authToken');
-      const response = await axios.get('http:// 192.168.108.43:8080/api/leave-types', {
+      const response = await axios.get('http://192.168.108.43:8080/api/leave-types', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setLeaveTypes(response.data.data);
@@ -163,7 +163,7 @@ const RequestLeaveScreen = () => {
     }
 
     try {
-      const response = await axios.post('http:// 192.168.108.43:8080/api/student/request-leave', formData, {
+      const response = await axios.post('http://192.168.108.43:8080/api/student/request-leave', formData, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'multipart/form-data'
