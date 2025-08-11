@@ -65,7 +65,7 @@
       </form>
 
         <!-- Success Alert -->
-      <div v-if="successMessage" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center">
+      <div v-if="successMessage" class="fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center">
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
@@ -113,7 +113,7 @@ const showSuccess = (message) => {
 
     const { token, user, role, dashboard_url } = data
 
-    localStorage.setItem('authToken', token)
+    localStorage.setItem('authToken', res.data.token)
     localStorage.setItem('user_data', JSON.stringify(user))
     localStorage.setItem('role', role)
 
@@ -135,8 +135,8 @@ const showSuccess = (message) => {
     } else if (error.response?.status === 401) {
       // Handle unauthorized (invalid credentials)
       fieldErrors.value = {
-        email: 'Invalid email or password',
-        password: 'Invalid email or password'
+        email: 'Invalid email',
+        password: 'Invalid password'
       }
     } else {
       // Handle other errors

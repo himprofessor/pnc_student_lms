@@ -4,7 +4,7 @@
       <!-- Header -->
       <div class="flex justify-between items-center mb-2">
         <div>
-          <h1 class="text-2xl font-bold">Leave History</h1>
+          <h1 class="text-2xl font-bold text-blue-600">Leave History</h1>
           <p class="text-sm text-gray-500">
             View all your previous leave requests and their status
           </p>
