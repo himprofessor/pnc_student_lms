@@ -41,7 +41,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     try {
       await AsyncStorage.multiRemove(['authToken', 'user_data', 'role']);
 
-      const response = await axios.post('http://10.193.247.163:8080/api/login', {
+      const response = await axios.post('http://192.168.108.43:8080/api/login', {
         email: email.trim().toLowerCase(),
         password: password.trim(),
       });
