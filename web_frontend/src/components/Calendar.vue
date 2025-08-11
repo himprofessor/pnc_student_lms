@@ -1,71 +1,154 @@
 <template>
   <div class="container mx-auto max-w-7xl p-4">
-    <div class="bg-green-100 text-green-800 p-2 mb-4" v-if="eventAdded">Event Added</div>
-    <div class="flex justify-between mb-4">
-      <div>
-        <button
-            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center space-x-1"
-            @click="$router.push('/add-absence')">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Add absence</span>
-          </button>
-        <button @click="editEvent" class="bg-blue-500 text-white px-4 py-2 rounded mr-2">Edit Absence</button>
-        <button @click="deleteEvent" class="bg-red-500 text-white px-4 py-2 rounded">Delete Absence</button>
-      </div>
+    <!-- Notification -->
+    <div v-if="eventAdded" class="mb-4 rounded-lg bg-emerald-100 p-3 text-sm text-emerald-800 shadow-sm transition-all duration-300">
+      Event Added
+    </div>
+    
+    <!-- Action Bar -->
+    <div class="mb-6 flex justify-between">
+      <button
+        class="flex items-center space-x-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 focus:ring-4 focus:ring-blue-200"
+        @click="$router.push('/request-leave')"
+      >
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        <span>New Leave Request</span>
+      </button>
     </div>
 
     <!-- Calendar Header -->
-    <div class="bg-blue-800 text-white p-2 mb-4 flex justify-between items-center">
-      <div class="flex space-x-2">
-        <button @click="prevMonth" class="text-white hover:text-gray-300">&lt;</button>
-        <button @click="goToday" class="bg-gray-300 text-black px-2 py-1 rounded">today</button>
-        <button @click="nextMonth" class="text-white hover:text-gray-300">&gt;</button>
+    <div class="mb-4 flex items-center justify-between rounded-xl bg-gradient-to-r from-blue-700 to-blue-800 p-4 text-white shadow-md">
+      <div class="flex items-center space-x-2">
+        <button @click="prevMonth" class="rounded-lg p-2 hover:bg-blue-600/50">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button @click="goToday" class="rounded-lg bg-white/90 px-3 py-1.5 text-sm font-medium text-blue-800 shadow-sm hover:bg-white">
+          Today
+        </button>
+        <button @click="nextMonth" class="rounded-lg p-2 hover:bg-blue-600/50">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
       </div>
+      
       <h2 class="text-xl font-semibold">{{ monthName }} {{ year }}</h2>
+      
       <div class="flex space-x-2">
-        <button class="bg-gray-300 text-black px-2 py-1 rounded">month</button>
-        <button class="bg-gray-300 text-black px-2 py-1 rounded">week</button>
-        <button class="bg-gray-300 text-black px-2 py-1 rounded">day</button>
+        <button class="rounded-lg bg-white/90 px-3 py-1.5 text-sm font-medium text-blue-800 shadow-sm hover:bg-white">
+          Month
+        </button>
+        <button class="rounded-lg bg-white/20 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-white/30">
+          Week
+        </button>
+        <button class="rounded-lg bg-white/20 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-white/30">
+          Day
+        </button>
       </div>
     </div>
 
     <!-- Calendar Grid -->
-    <div class="grid grid-cols-7 gap-px bg-gray-300">
-      <div v-for="day in daysOfWeek" :key="day" class="bg-white p-2 text-center font-semibold text-gray-700">
-        {{ day }}
+    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div class="grid grid-cols-7 gap-px border-b border-gray-200 bg-gray-100">
+        <div v-for="day in daysOfWeek" :key="day" class="py-3 text-center text-sm font-semibold text-gray-600">
+          {{ day }}
+        </div>
       </div>
-      <div v-for="day in calendarDays" :key="day.date" class="bg-white p-2 text-center relative"
-           :class="{ 'bg-gray-100': !day.isCurrentMonth, 'bg-red-100': isAbsent(day.date) }"
-           @click="showAbsenceDetails(day.date)" role="button" tabindex="0" @keydown.enter.prevent="showAbsenceDetails(day.date)">
-        <div class="text-sm">{{ day.day }}</div>
-        <div v-if="day.events.length" class="mt-1">
-          <div v-for="(event, index) in day.events" :key="index" class="text-xs p-1 rounded"
-               :class="{
-                 'bg-red-500 text-white': event.type === 'absence'
-               }">
-            {{ event.title }}
+      <div class="grid grid-cols-7 gap-px bg-gray-100">
+        <div 
+          v-for="day in calendarDays" 
+          :key="day.date" 
+          class="relative min-h-[100px] bg-white p-2 transition-colors hover:bg-gray-50"
+          :class="{ 
+            'bg-gray-50 text-gray-400': !day.isCurrentMonth,
+            'bg-red-50': isAbsent(day.date)
+          }"
+          @click="showAbsenceDetails(day.date)" 
+          role="button" 
+          tabindex="0" 
+          @keydown.enter.prevent="showAbsenceDetails(day.date)"
+        >
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-medium" :class="{ 'text-gray-900': day.isCurrentMonth, 'text-gray-400': !day.isCurrentMonth }">
+              {{ day.day }}
+            </span>
+            <span v-if="day.day === new Date().getDate() && day.isCurrentMonth && currentDate.getMonth() === new Date().getMonth()" 
+                  class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-medium text-white">
+              {{ day.day }}
+            </span>
+          </div>
+          <div v-if="day.events.length" class="mt-1 space-y-1">
+            <div 
+              v-for="(event, index) in day.events" 
+              :key="index" 
+              class="truncate rounded px-1.5 py-1 text-xs font-medium"
+              :class="{
+                'bg-red-100 text-red-800': event.type === 'absence'
+              }"
+            >
+              {{ event.title }}
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Absence Details Modal -->
-    <div v-if="selectedAbsence" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50"
-         @click.self="selectedAbsence = null">
-      <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-lg">
-        <div class="flex justify-between items-center mb-4">
+    <div 
+      v-if="selectedAbsence" 
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      @click.self="selectedAbsence = null"
+    >
+      <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div class="mb-4 flex items-center justify-between">
           <h3 class="text-lg font-semibold text-gray-900">Absence Details</h3>
-          <button @click="selectedAbsence = null" class="text-gray-500 hover:text-gray-700 focus:outline-none text-2xl leading-none"
-                  aria-label="Close modal">&times;</button>
+          <button 
+            @click="selectedAbsence = null" 
+            class="text-gray-400 hover:text-gray-500 focus:outline-none"
+            aria-label="Close modal"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-        <div class="space-y-3 text-gray-800 text-sm">
-          <p><span class="font-semibold">Date:</span> {{ formatFullDate(selectedAbsence.date) }}</p>
-          <p><span class="font-semibold">Reason:</span> {{ selectedAbsence.reason || 'Not specified' }}</p>
-          <p v-if="selectedAbsence.notes"><span class="font-semibold">Notes:</span> {{ selectedAbsence.notes }}</p>
-          <p><span class="font-semibold">Period:</span> {{ selectedAbsence.from_date }} to {{ selectedAbsence.to_date }}</p>
-          <p><span class="font-semibold">Status:</span> {{ selectedAbsence.status }}</p>
+        
+        <div class="space-y-4 text-gray-700">
+          <div class="flex items-start">
+            <div class="w-24 shrink-0 text-sm font-medium text-gray-500">Date:</div>
+            <div class="text-sm">{{ formatFullDate(selectedAbsence.date) }}</div>
+          </div>
+          <div class="flex items-start">
+            <div class="w-24 shrink-0 text-sm font-medium text-gray-500">Reason:</div>
+            <div class="text-sm">{{ selectedAbsence.reason || 'Not specified' }}</div>
+          </div>
+          <div v-if="selectedAbsence.notes" class="flex items-start">
+            <div class="w-24 shrink-0 text-sm font-medium text-gray-500">Notes:</div>
+            <div class="text-sm">{{ selectedAbsence.notes }}</div>
+          </div>
+          <div class="flex items-start">
+            <div class="w-24 shrink-0 text-sm font-medium text-gray-500">Period:</div>
+            <div class="text-sm">{{ selectedAbsence.from_date }} to {{ selectedAbsence.to_date }}</div>
+          </div>
+          <div class="flex items-start">
+            <div class="w-24 shrink-0 text-sm font-medium text-gray-500">Status:</div>
+            <div class="text-sm">
+              <span 
+                class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                :class="{
+                  'bg-green-100 text-green-800': selectedAbsence.status === 'approved',
+                  'bg-yellow-100 text-yellow-800': selectedAbsence.status === 'pending',
+                  'bg-red-100 text-red-800': selectedAbsence.status === 'rejected'
+                }"
+              >
+                {{ selectedAbsence.status }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -191,39 +274,24 @@ const addEvent = () => {
   setTimeout(() => eventAdded.value = false, 2000)
 }
 
-const editEvent = () => {
-  alert('Edit Absence functionality to be implemented')
-}
-
-const deleteEvent = () => {
-  alert('Delete Absence functionality to be implemented')
-}
-
 onMounted(fetchAbsences)
 watch([() => currentDate.value.getMonth(), () => currentDate.value.getFullYear()], fetchAbsences)
 </script>
 
 <style scoped>
-.bg-gray-100 {
-  color: #9ca3af;
+/* Smooth transitions for interactive elements */
+button, [role="button"] {
+  transition: all 0.2s ease;
 }
 
-.grid-cols-7 > div {
-  min-height: 80px;
+/* Better focus states for accessibility */
+button:focus-visible, [role="button"]:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
 }
 
-.bg-red-500 {
-  display: block;
-  width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.bg-red-100 {
-  cursor: pointer;
-}
-
-.bg-red-100:hover {
-  background-color: #fee2e2;
+/* Calendar day hover effect */
+.grid-cols-7 > div:hover {
+  @apply shadow-[inset_0_0_0_1px_rgba(59,130,246,0.5)];
 }
 </style>
