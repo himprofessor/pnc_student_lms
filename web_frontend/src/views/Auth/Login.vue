@@ -113,7 +113,7 @@ const showSuccess = (message) => {
 
     const { token, user, role, dashboard_url } = data
 
-    localStorage.setItem('authToken', token)
+    localStorage.setItem('authToken', res.data.token)
     localStorage.setItem('user_data', JSON.stringify(user))
     localStorage.setItem('role', role)
 
