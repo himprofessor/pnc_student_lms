@@ -51,10 +51,11 @@ const RequestLeaveScreen = () => {
   });
 
   // Get today's date in YYYY-MM-DD format
-  const getToday = () => {
-    const date = new Date();
-    return date.toISOString().split('T')[0];
-  };
+const getToday = () => {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0); // Reset time to midnight
+  return date.toISOString().split('T')[0];
+};
 
   useEffect(() => {
     fetchLeaveTypes();
