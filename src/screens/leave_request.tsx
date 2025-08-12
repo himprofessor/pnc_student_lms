@@ -8,7 +8,8 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
-  Image
+  Image,
+  Platform,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
@@ -18,6 +19,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/StackNavigator';
 import Feather from 'react-native-vector-icons/Feather';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface LeaveType {
   id: number;
@@ -31,6 +33,8 @@ const RequestLeaveScreen = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [totalDays, setTotalDays] = useState<number | null>(null);
+  const [showFromDatePicker, setShowFromDatePicker] = useState(false);
+  const [showToDatePicker, setShowToDatePicker] = useState(false);
 
   const [form, setForm] = useState({
     leave_type_id: '',
@@ -51,11 +55,10 @@ const RequestLeaveScreen = () => {
   });
 
   // Get today's date in YYYY-MM-DD format
-const getToday = () => {
-  const date = new Date();
-  date.setHours(0, 0, 0, 0); // Reset time to midnight
-  return date.toISOString().split('T')[0];
-};
+  const getToday = () => {
+    const date = new Date();
+    return date.toISOString().split('T')[0];
+  };
 
   useEffect(() => {
     fetchLeaveTypes();
@@ -224,6 +227,41 @@ const getToday = () => {
     setSuccessMessage('');
   };
 
+  // DateTimePicker handlers
+  const onFromDateChange = (event: any, selectedDate?: Date) => {
+    setShowFromDatePicker(Platform.OS === 'ios'); // Keep picker open on iOS
+    if (event.type === 'dismissed') {
+      setShowFromDatePicker(false);
+      return;
+    }
+    const currentDate = selectedDate || new Date(form.from_date || getToday());
+    const formattedDate = currentDate.toISOString().split('T')[0];
+    setForm({ ...form, from_date: formattedDate });
+    setShowFromDatePicker(false);
+    calculateDays();
+  };
+
+  const onToDateChange = (event: any, selectedDate?: Date) => {
+    setShowToDatePicker(Platform.OS === 'ios'); // Keep picker open on iOS
+    if (event.type === 'dismissed') {
+      setShowToDatePicker(false);
+      return;
+    }
+    const currentDate = selectedDate || new Date(form.to_date || getToday());
+    const formattedDate = currentDate.toISOString().split('T')[0];
+    setForm({ ...form, to_date: formattedDate });
+    setShowToDatePicker(false);
+    calculateDays();
+  };
+
+  const showFromPicker = () => {
+    setShowFromDatePicker(true);
+  };
+
+  const showToPicker = () => {
+    setShowToDatePicker(true);
+  };
+
   return (
     <ScrollView style={styles.container}>
       {/* Success Alert */}
@@ -271,31 +309,45 @@ const getToday = () => {
         <View style={styles.dateRow}>
           <View style={styles.dateInput}>
             <Text style={styles.label}>Start Date *</Text>
-            <TextInput
+            <TouchableOpacity
               style={[styles.input, fieldErrors.from_date ? styles.errorBorder : null]}
-              value={form.from_date}
-              onChangeText={(text) => {
-                setForm({ ...form, from_date: text });
-                calculateDays();
-              }}
-              placeholder="YYYY-MM-DD"
-              keyboardType="numbers-and-punctuation"
-            />
+              onPress={showFromPicker}
+            >
+              <Text style={styles.inputText}>
+                {form.from_date ? new Date(form.from_date).toLocaleDateString() : 'Start date'}
+              </Text>
+            </TouchableOpacity>
+            {showFromDatePicker && (
+              <DateTimePicker
+                value={form.from_date ? new Date(form.from_date) : new Date()}
+                mode="date"
+                display="default"
+                onChange={onFromDateChange}
+                minimumDate={new Date(getToday())}
+              />
+            )}
             {fieldErrors.from_date ? <Text style={styles.errorText}>{fieldErrors.from_date}</Text> : null}
           </View>
 
           <View style={styles.dateInput}>
             <Text style={styles.label}>End Date *</Text>
-            <TextInput
+            <TouchableOpacity
               style={[styles.input, fieldErrors.to_date ? styles.errorBorder : null]}
-              value={form.to_date}
-              onChangeText={(text) => {
-                setForm({ ...form, to_date: text });
-                calculateDays();
-              }}
-              placeholder="YYYY-MM-DD"
-              keyboardType="numbers-and-punctuation"
-            />
+              onPress={showToPicker}
+            >
+              <Text style={styles.inputText}>
+                {form.to_date ? new Date(form.to_date).toLocaleDateString() : 'End date'}
+              </Text>
+            </TouchableOpacity>
+            {showToDatePicker && (
+              <DateTimePicker
+                value={form.to_date ? new Date(form.to_date) : new Date()}
+                mode="date"
+                display="default"
+                onChange={onToDateChange}
+                minimumDate={form.from_date ? new Date(form.from_date) : new Date()}
+              />
+            )}
             {fieldErrors.to_date ? <Text style={styles.errorText}>{fieldErrors.to_date}</Text> : null}
           </View>
         </View>
@@ -327,7 +379,7 @@ const getToday = () => {
             style={[styles.input, fieldErrors.contact_info ? styles.errorBorder : null]}
             value={form.contact_info}
             onChangeText={(text) => setForm({ ...form, contact_info: text })}
-            placeholder="Phone number or email where you can be reached (optional)"
+            placeholder="Phone number or email"
             keyboardType="email-address"
           />
           {fieldErrors.contact_info ? <Text style={styles.errorText}>{fieldErrors.contact_info}</Text> : null}
@@ -416,6 +468,11 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     backgroundColor: 'white',
+    justifyContent: 'center',
+  },
+  inputText: {
+    fontSize: 16,
+    color: '#374151',
   },
   textArea: {
     borderWidth: 1,
