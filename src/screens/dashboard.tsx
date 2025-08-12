@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/StackNavigator';
 import Feather from 'react-native-vector-icons/Feather';
@@ -95,35 +95,24 @@ const DashboardScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [user, setUser] = useState<UserData | null>(null);
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+  // Kept your separate state variables for counts as requested
   const [pendingCount, setPendingCount] = useState<string>('0');
   const [approvedCount, setApprovedCount] = useState<string>('0');
   const [rejectedCount, setRejectedCount] = useState<string>('0');
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
+  // This hook handles showing the success message animation
   useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        const userData = await AsyncStorage.getItem('user_data');
-        if (userData) {
-          setUser(JSON.parse(userData));
-        }
-      } catch (error) {
-        console.error('Failed to load user data:', error);
-      }
-    };
-
-    loadUserData();
-    fetchLeaveRequests();
-    
     if (successMessage) {
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
       }).start();
-      
+
       const timer = setTimeout(() => {
         Animated.timing(fadeAnim, {
           toValue: 0,
@@ -131,56 +120,22 @@ const DashboardScreen = () => {
           useNativeDriver: true,
         }).start(() => setSuccessMessage(''));
       }, 3000);
-      
+
       return () => clearTimeout(timer);
     }
-  }, [successMessage]);
+  }, [successMessage, fadeAnim]);
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Confirm Logout',
-      'Are you sure you want to log out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Log Out', onPress: logout, style: 'destructive' },
-      ]
-    );
-  };
-
-  const logout = async () => {
-    setIsLoggingOut(true);
+  // The main data fetching logic, which now also updates the count states
+  const fetchLeaveRequests = async () => {
+    setIsLoading(true);
     try {
       const token = await AsyncStorage.getItem('authToken');
-      
-      try {
-        await axios.post('http://10.193.247.163:8080/api/logout', {}, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-      } catch (apiError) {
-        console.log('Backend logout failed, proceeding with client-side logout', apiError);
+      if (!token) {
+        navigation.navigate('Login');
+        return;
       }
 
-      await AsyncStorage.multiRemove(['user_data', 'authToken']);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }],
-      });
-    } catch (error) {
-      console.error('Logout error:', error);
-      await AsyncStorage.multiRemove(['user_data', 'authToken']);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }],
-      });
-    } finally {
-      setIsLoggingOut(false);
-    }
-  };
-
-  const fetchLeaveRequests = async () => {
-    try {
-      const token = await AsyncStorage.getItem('authToken');
-      const response = await axios.get('http://10.193.247.163:8080/api/student/my-leaves', {
+      const response = await axios.get('http://192.168.108.43:8080/api/student/my-leaves', {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -196,31 +151,73 @@ const DashboardScreen = () => {
       }));
 
       setLeaveRequests(requests);
+      // Update your separate count states here
       setPendingCount(requests.filter(r => r.status === 'pending').length.toString());
       setApprovedCount(requests.filter(r => r.status === 'approved').length.toString());
       setRejectedCount(requests.filter(r => r.status === 'rejected').length.toString());
     } catch (error) {
       console.error('Failed to fetch leave requests:', error);
       Alert.alert('Error', 'Failed to load leave requests');
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // This hook now fetches data every time the screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchLeaveRequests();
+
+      // Load user data once
+      const loadUserData = async () => {
+        try {
+          const userData = await AsyncStorage.getItem('user_data');
+          if (userData) {
+            setUser(JSON.parse(userData));
+          }
+        } catch (error) {
+          console.error('Failed to load user data:', error);
+        }
+      };
+      loadUserData();
+
+      return () => {
+        // Any cleanup logic here if needed
+      };
+    }, [])
+  );
+
   const cancelLeaveRequest = async (id: number) => {
-    try {
-      const token = await AsyncStorage.getItem('authToken');
-      await axios.delete(
-        `http://10.193.247.163:8080/api/student/leave-request/${id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setSuccessMessage('Leave request cancelled successfully');
-      await fetchLeaveRequests();
-    } catch (err) {
-      Alert.alert(
-        'Error',
-        `Failed to cancel leave: ${err.response?.data?.message || err.message}`
-      );
-      console.error('Cancel leave error:', err);
-    }
+    Alert.alert(
+      "Cancel Leave Request",
+      "Are you sure you want to cancel this leave request?",
+      [
+        {
+          text: "No",
+          style: "cancel"
+        },
+        {
+          text: "Yes",
+          onPress: async () => {
+            try {
+              const token = await AsyncStorage.getItem('authToken');
+              await axios.delete(
+                `http://http://192.168.108.43:8080/api/student/leave-request/${id}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              setSuccessMessage('Leave request cancelled successfully');
+              await fetchLeaveRequests();
+            } catch (err) {
+              Alert.alert(
+                'Error',
+                `Failed to cancel leave: ${err.response?.data?.message || err.message}`
+              );
+              console.error('Cancel leave error:', err);
+            }
+          }
+        }
+      ]
+    );
   };
 
   const getStatusColor = (status: string) => {
@@ -260,9 +257,9 @@ const DashboardScreen = () => {
           <Text style={styles.headerTitle}>Welcome back, {user?.name || 'User'}</Text>
           <Text style={styles.headerSub}>Manage your leave requests and track their status</Text>
         </View>
-        <TouchableOpacity 
-          style={styles.logoutBtn}
-          onPress={handleLogout}
+        <TouchableOpacity
+   
+        
           disabled={isLoggingOut}
         >
           {isLoggingOut ? (
@@ -270,7 +267,7 @@ const DashboardScreen = () => {
           ) : (
             <>
               <Feather name="log-out" size={16} color="#fff" />
-              <Text style={styles.logoutText}>Logout</Text>
+        
             </>
           )}
         </TouchableOpacity>
@@ -278,38 +275,38 @@ const DashboardScreen = () => {
 
       {/* Stats */}
       <View style={styles.statsRow}>
-        <StatCard 
-          icon="clock" 
-          color="#FBBF24" 
-          bgColor="#FEF3C7" 
-          label="Pending" 
-          value={pendingCount} 
+        <StatCard
+          icon="clock"
+          color="#FBBF24"
+          bgColor="#FEF3C7"
+          label="Pending"
+          value={pendingCount}
         />
-        <StatCard 
-          icon="check" 
-          color="#10B981" 
-          bgColor="#D1FAE5" 
-          label="Approved" 
-          value={approvedCount} 
+        <StatCard
+          icon="check"
+          color="#10B981"
+          bgColor="#D1FAE5"
+          label="Approved"
+          value={approvedCount}
         />
-        <StatCard 
-          icon="x" 
-          color="#EF4444" 
-          bgColor="#FEE2E2" 
-          label="Rejected" 
-          value={rejectedCount} 
+        <StatCard
+          icon="x"
+          color="#EF4444"
+          bgColor="#FEE2E2"
+          label="Rejected"
+          value={rejectedCount}
         />
-        <StatCard 
-          icon="file-text" 
-          color="#3B82F6" 
-          bgColor="#DBEAFE" 
-          label="Total" 
-          value={leaveRequests.length.toString()} 
+        <StatCard
+          icon="file-text"
+          color="#3B82F6"
+          bgColor="#DBEAFE"
+          label="Total"
+          value={leaveRequests.length.toString()}
         />
       </View>
 
       {/* New Leave Button */}
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.newLeaveBtn}
         onPress={() => navigation.navigate('RequestLeave')}
       >
@@ -322,24 +319,28 @@ const DashboardScreen = () => {
         <Text style={styles.recentTitle}>Recent Leave Requests</Text>
         <Text style={styles.recentSub}>Your latest leave requests and their status</Text>
 
-        {leaveRequests.length > 0 ? (
-          leaveRequests
-            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-            .slice(0, 5)
-            .map(request => (
-              <LeaveRequestCard
-                key={request.id}
-                title={request.leave_type}
-                date={formatDateRange(request.from_date, request.to_date)}
-                reason={request.reason}
-                status={request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                statusColor={getStatusColor(request.status)}
-                canCancel={request.status === 'pending'}
-                onCancel={() => cancelLeaveRequest(request.id)}
-              />
-            ))
+        {isLoading ? (
+          <ActivityIndicator size="large" color="#2563EB" style={{ paddingVertical: 16 }} />
         ) : (
-          <Text style={styles.emptyText}>No leave requests found</Text>
+          leaveRequests.length > 0 ? (
+            leaveRequests
+              .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+              .slice(0, 5)
+              .map(request => (
+                <LeaveRequestCard
+                  key={request.id}
+                  title={request.leave_type}
+                  date={formatDateRange(request.from_date, request.to_date)}
+                  reason={request.reason}
+                  status={request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                  statusColor={getStatusColor(request.status)}
+                  canCancel={request.status === 'pending'}
+                  onCancel={() => cancelLeaveRequest(request.id)}
+                />
+              ))
+          ) : (
+            <Text style={styles.emptyText}>No leave requests found</Text>
+          )
         )}
       </View>
     </ScrollView>
@@ -383,20 +384,6 @@ const styles = StyleSheet.create({
   headerSub: {
     fontSize: 12,
     color: '#6B7280',
-  },
-  logoutBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'gray',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-  },
-  logoutText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 4,
   },
   newLeaveBtn: {
     flexDirection: 'row',
