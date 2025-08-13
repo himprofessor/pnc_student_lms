@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -7,14 +7,18 @@ import {
   StyleSheet,
   Animated,
   Alert,
-  ActivityIndicator
-} from 'react-native';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation/StackNavigator';
-import Feather from 'react-native-vector-icons/Feather';
+  ActivityIndicator,
+} from "react-native";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  useNavigation,
+  useFocusEffect,
+  useRoute,
+} from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { RootStackParamList } from "../navigation/StackNavigator";
+import Feather from "react-native-vector-icons/Feather";
 
 interface UserData {
   id: number;
@@ -28,7 +32,7 @@ interface LeaveRequest {
   leave_type: string;
   from_date: string;
   to_date: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
   created_at: string;
   approved_by?: string;
   reason?: string;
@@ -51,7 +55,7 @@ const LeaveRequestCard = ({
   status,
   statusColor,
   canCancel,
-  onCancel
+  onCancel,
 }: LeaveRequestProps) => (
   <View style={styles.leaveCard}>
     <Feather name="file-text" size={24} color="#9CA3AF" />
@@ -60,8 +64,13 @@ const LeaveRequestCard = ({
       <Text style={styles.leaveText}>{date}</Text>
       <Text style={styles.leaveText}>{reason}</Text>
     </View>
-    <View style={{ alignItems: 'flex-end' }}>
-      <Text style={[styles.status, { backgroundColor: `${statusColor}20`, color: statusColor }]}>
+    <View style={{ alignItems: "flex-end" }}>
+      <Text
+        style={[
+          styles.status,
+          { backgroundColor: `${statusColor}20`, color: statusColor },
+        ]}
+      >
         {status}
       </Text>
       {canCancel && (
@@ -73,7 +82,13 @@ const LeaveRequestCard = ({
   </View>
 );
 
-const StatCard = ({ icon, color, bgColor, label, value }: {
+const StatCard = ({
+  icon,
+  color,
+  bgColor,
+  label,
+  value,
+}: {
   icon: string;
   color: string;
   bgColor: string;
@@ -96,10 +111,10 @@ const DashboardScreen = () => {
   const [user, setUser] = useState<UserData | null>(null);
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   // Kept your separate state variables for counts as requested
-  const [pendingCount, setPendingCount] = useState<string>('0');
-  const [approvedCount, setApprovedCount] = useState<string>('0');
-  const [rejectedCount, setRejectedCount] = useState<string>('0');
-  const [successMessage, setSuccessMessage] = useState<string>('');
+  const [pendingCount, setPendingCount] = useState<string>("0");
+  const [approvedCount, setApprovedCount] = useState<string>("0");
+  const [rejectedCount, setRejectedCount] = useState<string>("0");
+  const [successMessage, setSuccessMessage] = useState<string>("");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -118,7 +133,7 @@ const DashboardScreen = () => {
           toValue: 0,
           duration: 300,
           useNativeDriver: true,
-        }).start(() => setSuccessMessage(''));
+        }).start(() => setSuccessMessage(""));
       }, 3000);
 
       return () => clearTimeout(timer);
@@ -129,35 +144,46 @@ const DashboardScreen = () => {
   const fetchLeaveRequests = async () => {
     setIsLoading(true);
     try {
-      const token = await AsyncStorage.getItem('authToken');
+      const token = await AsyncStorage.getItem("authToken");
       if (!token) {
-        navigation.navigate('Login');
+        navigation.navigate("Login");
         return;
       }
 
-      const response = await axios.get('http://192.168.108.43:8080/api/student/my-leaves', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        "http://192.168.108.43:8080/api/student/my-leaves",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-      const requests: LeaveRequest[] = response.data.leaves.map((leave: any) => ({
-        id: leave.id,
-        leave_type: leave.leave_type,
-        from_date: leave.from_date,
-        to_date: leave.to_date,
-        status: leave.status,
-        created_at: leave.created_at,
-        approved_by: leave.approved_by || 'N/A',
-        reason: leave.reason || '',
-      }));
+      const requests: LeaveRequest[] = response.data.leaves.map(
+        (leave: any) => ({
+          id: leave.id,
+          leave_type: leave.leave_type,
+          from_date: leave.from_date,
+          to_date: leave.to_date,
+          status: leave.status,
+          created_at: leave.created_at,
+          approved_by: leave.approved_by || "N/A",
+          reason: leave.reason || "",
+        })
+      );
 
       setLeaveRequests(requests);
       // Update your separate count states here
-      setPendingCount(requests.filter(r => r.status === 'pending').length.toString());
-      setApprovedCount(requests.filter(r => r.status === 'approved').length.toString());
-      setRejectedCount(requests.filter(r => r.status === 'rejected').length.toString());
+      setPendingCount(
+        requests.filter((r) => r.status === "pending").length.toString()
+      );
+      setApprovedCount(
+        requests.filter((r) => r.status === "approved").length.toString()
+      );
+      setRejectedCount(
+        requests.filter((r) => r.status === "rejected").length.toString()
+      );
     } catch (error) {
-      console.error('Failed to fetch leave requests:', error);
-      Alert.alert('Error', 'Failed to load leave requests');
+      console.error("Failed to fetch leave requests:", error);
+      Alert.alert("Error", "Failed to load leave requests");
     } finally {
       setIsLoading(false);
     }
@@ -171,12 +197,12 @@ const DashboardScreen = () => {
       // Load user data once
       const loadUserData = async () => {
         try {
-          const userData = await AsyncStorage.getItem('user_data');
+          const userData = await AsyncStorage.getItem("user_data");
           if (userData) {
             setUser(JSON.parse(userData));
           }
         } catch (error) {
-          console.error('Failed to load user data:', error);
+          console.error("Failed to load user data:", error);
         }
       };
       loadUserData();
@@ -194,48 +220,60 @@ const DashboardScreen = () => {
       [
         {
           text: "No",
-          style: "cancel"
+          style: "cancel",
         },
         {
           text: "Yes",
           onPress: async () => {
             try {
-              const token = await AsyncStorage.getItem('authToken');
+              const token = await AsyncStorage.getItem("authToken");
+              if (!token) {
+                Alert.alert(
+                  "Error",
+                  "Authentication token not found. Please log in again."
+                );
+                return;
+              }
               await axios.delete(
-                `http://http://192.168.108.43:8080/api/student/leave-request/${id}`,
+                `http://192.168.108.43:8080/api/student/leave-request/${id}`,
                 { headers: { Authorization: `Bearer ${token}` } }
               );
-              setSuccessMessage('Leave request cancelled successfully');
+              setSuccessMessage("Leave request cancelled successfully");
               await fetchLeaveRequests();
             } catch (err) {
-              Alert.alert(
-                'Error',
-                `Failed to cancel leave: ${err.response?.data?.message || err.message}`
-              );
-              console.error('Cancel leave error:', err);
+              const errorMessage =
+                err.response?.data?.message ||
+                err.message ||
+                "An unknown error occurred";
+              Alert.alert("Error", `Failed to cancel leave: ${errorMessage}`);
+              console.error("Cancel leave error:", err);
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return '#FBBF24';
-      case 'approved': return '#10B981';
-      case 'rejected': return '#EF4444';
-      default: return '#6B7280';
+      case "pending":
+        return "#FBBF24";
+      case "approved":
+        return "#10B981";
+      case "rejected":
+        return "#EF4444";
+      default:
+        return "#6B7280";
     }
   };
 
   const formatDateRange = (fromDate: string, toDate: string) => {
     const format = (dateStr: string) => {
       const date = new Date(dateStr);
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
       });
     };
     return `${format(fromDate)} - ${format(toDate)}`;
@@ -254,20 +292,19 @@ const DashboardScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Welcome back, {user?.name || 'User'}</Text>
-          <Text style={styles.headerSub}>Manage your leave requests and track their status</Text>
+          <Text style={styles.headerTitle}>
+            Welcome back, {user?.name || "User"}
+          </Text>
+          <Text style={styles.headerSub}>
+            Manage your leave requests and track their status
+          </Text>
         </View>
-        <TouchableOpacity
-   
-        
-          disabled={isLoggingOut}
-        >
+        <TouchableOpacity disabled={isLoggingOut}>
           {isLoggingOut ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
             <>
               <Feather name="log-out" size={16} color="#fff" />
-        
             </>
           )}
         </TouchableOpacity>
@@ -308,7 +345,7 @@ const DashboardScreen = () => {
       {/* New Leave Button */}
       <TouchableOpacity
         style={styles.newLeaveBtn}
-        onPress={() => navigation.navigate('RequestLeave')}
+        onPress={() => navigation.navigate("RequestLeave")}
       >
         <Feather name="plus" size={16} color="#fff" />
         <Text style={styles.newLeaveText}>New Leave Request</Text>
@@ -317,30 +354,41 @@ const DashboardScreen = () => {
       {/* Recent Requests */}
       <View style={styles.recentContainer}>
         <Text style={styles.recentTitle}>Recent Leave Requests</Text>
-        <Text style={styles.recentSub}>Your latest leave requests and their status</Text>
+        <Text style={styles.recentSub}>
+          Your latest leave requests and their status
+        </Text>
 
         {isLoading ? (
-          <ActivityIndicator size="large" color="#2563EB" style={{ paddingVertical: 16 }} />
+          <ActivityIndicator
+            size="large"
+            color="#2563EB"
+            style={{ paddingVertical: 16 }}
+          />
+        ) : leaveRequests.length > 0 ? (
+          leaveRequests
+            .sort(
+              (a, b) =>
+                new Date(b.created_at).getTime() -
+                new Date(a.created_at).getTime()
+            )
+            .slice(0, 5)
+            .map((request) => (
+              <LeaveRequestCard
+                key={request.id}
+                title={request.leave_type}
+                date={formatDateRange(request.from_date, request.to_date)}
+                reason={request.reason}
+                status={
+                  request.status.charAt(0).toUpperCase() +
+                  request.status.slice(1)
+                }
+                statusColor={getStatusColor(request.status)}
+                canCancel={request.status === "pending"}
+                onCancel={() => cancelLeaveRequest(request.id)}
+              />
+            ))
         ) : (
-          leaveRequests.length > 0 ? (
-            leaveRequests
-              .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-              .slice(0, 5)
-              .map(request => (
-                <LeaveRequestCard
-                  key={request.id}
-                  title={request.leave_type}
-                  date={formatDateRange(request.from_date, request.to_date)}
-                  reason={request.reason}
-                  status={request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                  statusColor={getStatusColor(request.status)}
-                  canCancel={request.status === 'pending'}
-                  onCancel={() => cancelLeaveRequest(request.id)}
-                />
-              ))
-          ) : (
-            <Text style={styles.emptyText}>No leave requests found</Text>
-          )
+          <Text style={styles.emptyText}>No leave requests found</Text>
         )}
       </View>
     </ScrollView>
@@ -350,70 +398,71 @@ const DashboardScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: "#F9FAFB",
     padding: 16,
   },
   successAlert: {
-    position: 'absolute',
+    position: "absolute",
     top: 16,
     right: 16,
-    backgroundColor: '#10B981',
-    flexDirection: 'row',
-    alignItems: 'center',
+    backgroundColor: "#10B981",
+    flexDirection: "row",
+    alignItems: "center",
     padding: 12,
     borderRadius: 8,
     zIndex: 100,
     elevation: 4,
   },
   successText: {
-    color: 'white',
+    color: "white",
     marginLeft: 8,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 20,
+    marginTop: 50,
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontWeight: "bold",
+    color: "#1F2937",
   },
   headerSub: {
     fontSize: 12,
-    color: '#6B7280',
+    color: "#6B7280",
   },
   newLeaveBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2563EB',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2563EB",
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 6,
     marginBottom: 20,
   },
   newLeaveText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     marginLeft: 4,
   },
   statsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
     marginBottom: 20,
   },
   statCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     padding: 12,
     borderRadius: 8,
     flex: 1,
-    minWidth: '45%',
+    minWidth: "45%",
   },
   iconContainer: {
     padding: 8,
@@ -422,61 +471,61 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '600',
+    color: "#6B7280",
+    fontWeight: "600",
   },
   statValue: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontWeight: "bold",
+    color: "#1F2937",
   },
   recentContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 8,
     padding: 16,
   },
   recentTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
+    fontWeight: "600",
+    color: "#1F2937",
   },
   recentSub: {
     fontSize: 12,
-    color: '#6B7280',
+    color: "#6B7280",
     marginBottom: 10,
   },
   leaveCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: "#E5E7EB",
   },
   leaveTitle: {
-    fontWeight: '600',
-    color: '#1F2937',
+    fontWeight: "600",
+    color: "#1F2937",
   },
   leaveText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: "#6B7280",
   },
   status: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: "600",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
   },
   cancelBtn: {
     fontSize: 10,
-    fontWeight: '600',
-    color: '#EF4444',
+    fontWeight: "600",
+    color: "#EF4444",
     marginTop: 4,
   },
   emptyText: {
-    textAlign: 'center',
-    color: '#9CA3AF',
+    textAlign: "center",
+    color: "#9CA3AF",
     paddingVertical: 16,
   },
 });
