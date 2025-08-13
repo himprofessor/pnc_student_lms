@@ -89,7 +89,7 @@
             :style="getEventStyle(absence)"
             class="absolute text-sm font-medium text-white px-2 py-1 rounded"
             :class="{
-              'bg-green-500': absence.status === 'approved',
+              'bg-blue-500': absence.status === 'approved',
               'bg-yellow-500': absence.status === 'pending',
               'bg-red-500': absence.status === 'rejected'
             }"
@@ -144,7 +144,7 @@
               <span 
                 class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium"
                 :class="{
-                  'bg-green-100 text-green-800': selectedAbsence.status === 'approved',
+                  'bg-blue-100 text-blue-800': selectedAbsence.status === 'approved',
                   'bg-yellow-100 text-yellow-800': selectedAbsence.status === 'pending',
                   'bg-red-100 text-red-800': selectedAbsence.status === 'rejected'
                 }"
