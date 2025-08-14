@@ -41,28 +41,29 @@
     <!-- Calendar grid -->
     <div class="grid grid-cols-7 gap-px bg-gray-300 rounded-md overflow-hidden shadow-sm">
       <div v-for="day in calendarDays" :key="day.date" :class="[
-        'bg-white min-h-[80px] p-2 flex flex-col',
+        'min-h-[80px] p-2 flex flex-col',
         day.isCurrentMonth ? 'text-gray-900' : 'text-gray-400',
         isToday(day.date) ? 'border-2 border-blue-500 rounded-md' : '',
-        isAbsent(day.date) ? 'bg-red-50' : '',
+        getAbsenceDetails(day.date) ? getStatusBg(getAbsenceDetails(day.date).status) : 'bg-white',
         isWeekend(day.date) ? 'text-red-600' : ''
-      ]" @click="handleDayClick(day.date)" role="button" tabindex="0"
-        @keydown.enter.prevent="handleDayClick(day.date)">
+      ]" @click="handleDayClick(day.date)" role="button" tabindex="0" @keydown.enter.prevent="handleDayClick(day.date)">
         <div class="flex justify-between items-start mb-1">
           <span class="text-sm font-semibold">{{ day.day }}</span>
-          <span v-if="isAbsent(day.date)" class="w-2 h-2 bg-red-500 rounded-full mt-1" aria-label="Absent"
-            title="Absent"></span>
+          <span v-if="getAbsenceDetails(day.date)" class="w-2 h-2 rounded-full mt-1"
+            :class="getStatusDot(getAbsenceDetails(day.date).status)" :title="getAbsenceDetails(day.date).status">
+          </span>
         </div>
 
         <!-- Absence reason badge -->
         <div v-if="getAbsenceDetails(day.date)" class="flex-grow">
-          <p class="text-xs text-red-700 bg-red-100 rounded px-1 py-0.5 truncate"
+          <p class="text-xs rounded px-1 py-0.5 truncate" :class="getStatusTextBg(getAbsenceDetails(day.date).status)"
             :title="getAbsenceDetails(day.date).reason || 'Absent'">
             {{ getAbsenceDetails(day.date).reason || 'Absent' }}
           </p>
         </div>
       </div>
     </div>
+
 
     <!-- Absence Details Modal -->
     <div v-if="selectedAbsence" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50"
@@ -223,6 +224,32 @@ const handleDayClick = (date) => {
   }
 }
 
+const getStatusBg = (status) => {
+  switch (status) {
+    case 'approved': return 'bg-green-50';
+    case 'pending': return 'bg-yellow-50';
+    case 'rejected': return 'bg-red-50';
+    default: return 'bg-white';
+  }
+}
+
+const getStatusDot = (status) => {
+  switch (status) {
+    case 'approved': return 'bg-green-500';
+    case 'pending': return 'bg-yellow-500';
+    case 'rejected': return 'bg-red-500';
+    default: return 'bg-gray-400';
+  }
+}
+
+const getStatusTextBg = (status) => {
+  switch (status) {
+    case 'approved': return 'text-green-700 bg-green-100';
+    case 'pending': return 'text-yellow-700 bg-yellow-100';
+    case 'rejected': return 'text-red-700 bg-red-100';
+    default: return 'text-gray-700 bg-gray-100';
+  }
+}
 
 const fetchAbsences = async () => {
   loading.value = true
