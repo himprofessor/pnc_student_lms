@@ -205,9 +205,10 @@ const getAbsenceDetails = (date) => {
 }
 
 const isToday = (date) => {
-    const today = new Date().toISOString().split('T')[0]
-    return date === today
+  const today = new Date().toLocaleDateString('en-CA') // "YYYY-MM-DD"
+  return date === today
 }
+
 
 const formatDate = (dateString) => {
     const date = new Date(dateString)
@@ -257,7 +258,7 @@ const fetchAbsences = async () => {
     try {
         const res = await fetch(`http://127.0.0.1:8000/api/student/my-leaves?month=${apiDate}`, {
             headers: {
-                Authorization: `Bearer 259|XCTwKBUin65WkH6OtoVzUHnWu7sbPrhT7yhFRkFn115ec94c `,
+                Authorization: `Bearer ${localStorage.getItem('authToken')}`,
                 Accept: 'application/json'
             }
         })
