@@ -1,6 +1,6 @@
 <template>
   <div class="container mx-auto max-w-7xl">
-    <h1 class="text-3xl font-semibold mb-6 text-center text-gray-800">ATTENDENCE CALENDAR</h1>
+    <h1 class="text-xl font-semibold mb-6 text-center text-gray-800">ATTENDENCE CALENDAR</h1>
 
     <!-- Month Navigation -->
     <div class="flex items-center justify-between mb-6">
@@ -12,7 +12,7 @@
         </svg>
       </button>
 
-      <h2 class="text-xl font-medium text-gray-900">{{ monthName }} {{ year }}</h2>
+      <h2 class="text-xl font-medium text-gray-500">{{ monthName }} {{ year }}</h2>
 
       <button @click="nextMonth" aria-label="Next month"
         class="text-gray-600 hover:text-gray-900 focus:outline-none box-content border border-gray-300 rounded p-1">
@@ -32,7 +32,7 @@
     <div class="grid grid-cols-7 border-b border-gray-300 mb-2">
       <div v-for="(day, idx) in daysOfWeek" :key="day" :class="[
         'py-2 text-center text-xl font-medium text-gray-500 uppercase tracking-wider',
-        idx === 5 || idx === 6 ? 'text-red-600' : ''
+        idx === 0 || idx === 6 ? 'text-red-600' : ''
       ]">
         {{ day }}
       </div>
@@ -174,7 +174,7 @@ const isAbsent = (date) => {
 const isWeekend = (dateString) => {
   const date = new Date(dateString)
   const day = date.getDay()
-  return day === 5 || day === 6
+  return day === 0 || day === 6
 }
 
 const getAbsenceDetails = (date) => {
