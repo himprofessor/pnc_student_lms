@@ -116,10 +116,6 @@ const monthNames = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ]
 
-const showRequestModal = ref(false)
-const requestDate = ref(null)
-
-
 const monthName = computed(() => monthNames[month.value])
 
 const calendarDays = computed(() => {
@@ -215,13 +211,6 @@ const nextMonth = () => {
   if (month.value > 11) {
     month.value = 0
     year.value++
-  }
-}
-
-const showAbsenceDetails = (date) => {
-  const details = getAbsenceDetails(date)
-  if (details) {
-    selectedAbsence.value = { ...details, date }
   }
 }
 
