@@ -10,6 +10,12 @@ use Telegram\Bot\Objects\Update;
 
 class TelegramController extends Controller
 {
+    // List of allowed admin Telegram user IDs
+    private $allowedAdmins = [
+        123456789, // replace with real Telegram user ID of admin 1
+        987654321, // replace with real Telegram user ID of admin 2
+    ];
+
     public function handleWebhook(Request $request)
     {
         $update = Telegram::commandsHandler(true);
@@ -19,7 +25,7 @@ class TelegramController extends Controller
             return $this->handleCallbackQuery($update);
         }
 
-        // Handle regular messages (optional)
+        // Handle regular messages (approve/reject commands)
         if ($update->isType('message')) {
             return $this->handleMessage($update->getMessage());
         }
@@ -44,22 +50,31 @@ class TelegramController extends Controller
             $action = $matches[1];
             $requestId = $matches[2];
             
-            return $this->processLeaveRequestAction($requestId, $action, $message);
+            return $this->processLeaveRequestAction($requestId, $action, $message, $user);
         }
 
         return response()->json(['status' => 'invalid_command']);
     }
 
-    private function processLeaveRequestAction($requestId, $action, $message)
+    private function processLeaveRequestAction($requestId, $action, $message, $fromUser)
     {
         try {
+            // Check if user is allowed
+            if (!in_array($fromUser->getId(), $this->allowedAdmins)) {
+                Telegram::sendMessage([
+                    'chat_id' => $message->getChat()->getId(),
+                    'text' => "⛔ You are not authorized to approve/reject requests."
+                ]);
+                return response()->json(['status' => 'unauthorized']);
+            }
+
             $leaveRequest = LeaveRequest::findOrFail($requestId);
-            $approverName = $message->getFrom()->getFirstName();
+            $approverName = $fromUser->getFirstName();
 
             // Update status
             $leaveRequest->update([
                 'status' => $action === 'approve' ? 'approved' : 'rejected',
-                'approved_by' => $message->getFrom()->getId(),
+                'approved_by' => $fromUser->getId(),
                 'approved_at' => now()
             ]);
 
@@ -71,7 +86,7 @@ class TelegramController extends Controller
                 'parse_mode' => 'Markdown'
             ]);
 
-            // Send confirmation to user
+            // Notify student
             $this->notifyStudent($leaveRequest, $action);
 
             return response()->json(['status' => 'success']);
@@ -104,24 +119,43 @@ class TelegramController extends Controller
                 'parse_mode' => 'Markdown'
             ]);
         }
-
-        // Alternative: Send email notification
-        // $leaveRequest->user->notify(new LeaveRequestProcessed($leaveRequest));
     }
 
     private function handleMessage($message)
     {
-        // Optional: Handle direct messages to bot
-        $text = $message->getText();
+        $text = trim($message->getText());
         $chatId = $message->getChat()->getId();
+        $from = $message->getFrom();
 
+        // Start command
         if (strtolower($text) === '/start') {
             Telegram::sendMessage([
                 'chat_id' => $chatId,
-                'text' => 'Welcome to PNC LMS Bot!',
+                'text' => 'Welcome to PNC LMS Bot! Use commands: approve <id> or reject <id> to manage leave requests.',
                 'parse_mode' => 'Markdown'
             ]);
+            return response()->json(['status' => 'message_handled']);
         }
+
+        // Match approve/reject command from message
+        if (preg_match('/^(approve|reject)\s+(\d+)$/i', $text, $matches)) {
+            $action = strtolower($matches[1]);
+            $requestId = (int) $matches[2];
+
+            // Process request
+            return $this->processLeaveRequestAction(
+                $requestId,
+                $action,
+                $message,
+                $from
+            );
+        }
+
+        // Unknown command
+        Telegram::sendMessage([
+            'chat_id' => $chatId,
+            'text' => "Unknown command. Use: approve <id> or reject <id>"
+        ]);
 
         return response()->json(['status' => 'message_handled']);
     }
