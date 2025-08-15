@@ -19,8 +19,12 @@ class LoginController extends Controller
         $user = Auth::user();
         return response()->json([
             'token' => $user->createToken('auth_token')->plainTextToken,
+            'message' => 'Login successful',
+            'role' => $user->role->name ?? 'student', // add role
+            'dashboard_url' => '/dashboard',          // add dashboard_url
             'user' => $user,
         ]);
+        
     }
 
     // Log failed login attempt
