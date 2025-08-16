@@ -150,6 +150,30 @@ const handleFileChange = (event) => {
   importErrors.value = [];
 };
 
+const getAuthToken = () => {
+  // Check multiple possible token storage keys
+  const possibleKeys = ['token', 'authToken', 'auth_token', 'accessToken', 'access_token'];
+  
+  for (const key of possibleKeys) {
+    const token = localStorage.getItem(key);
+    if (token) {
+      console.log(`[v0] Found token with key: ${key}`);
+      // Basic token validation - check if it's not empty and has reasonable length
+      if (token.length > 10) {
+        return { token, key };
+      } else {
+        console.log(`[v0] Token found but appears invalid (too short): ${token.substring(0, 10)}...`);
+        // Remove invalid token
+        localStorage.removeItem(key);
+      }
+    }
+  }
+  
+  // Debug: Log all localStorage keys to help identify the issue
+  console.log('[v0] Available localStorage keys:', Object.keys(localStorage));
+  return null;
+};
+
 const importStudents = async () => {
   if (!selectedFile.value) {
     errorMessage.value = 'Please select a CSV file.';
@@ -164,19 +188,26 @@ const importStudents = async () => {
   const formData = new FormData();
   formData.append('excel_file', selectedFile.value);
 
-  const token = localStorage.getItem('token');
-  if (!token) {
-    errorMessage.value = 'No authentication token found. Please log in.';
+  const authResult = getAuthToken();
+  if (!authResult) {
+    console.log('[v0] No valid authentication token found in localStorage');
+    errorMessage.value = 'Authentication required. Please log in to continue.';
     isUploading.value = false;
     return;
   }
+
+  const { token, key } = authResult;
+  console.log(`[v0] Using token from localStorage key: ${key}`);
 
   try {
     const response = await axios.post('http://localhost:8000/api/educator/students/import', formData, {
       headers: {
         'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
       },
     });
+
+    console.log('[v0] Import request successful:', response.status);
 
     if (response.status === 200) {
       successMessage.value = response.data.message;
@@ -187,7 +218,18 @@ const importStudents = async () => {
       errorMessage.value = 'Unexpected response from server.';
     }
   } catch (error) {
-    errorMessage.value = error.response?.data?.message || 'An error occurred during import.';
+    console.log('[v0] Import request failed:', error.response?.status, error.response?.data);
+    
+    if (error.response?.status === 401) {
+      // Token is invalid or expired, remove it
+      localStorage.removeItem(authResult.key);
+      errorMessage.value = 'Your session has expired. Please log in again.';
+    } else if (error.response?.status === 403) {
+      errorMessage.value = 'You do not have permission to import data.';
+    } else {
+      errorMessage.value = error.response?.data?.message || 'An error occurred during import.';
+    }
+    
     importErrors.value = error.response?.data?.errors || [error.message];
   } finally {
     isUploading.value = false;
