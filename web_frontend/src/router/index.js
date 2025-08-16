@@ -8,6 +8,7 @@ import DashboardPage from '@/views/student/DashboardPage.vue'
 import RequestLeavePage from '@/views/student/RequestLeavePage.vue'
 import HistoryPage from '@/views/student/HistoryPage.vue'
 import ProfilePage from '@/views/student/ProfilePage.vue'
+import CalendarPage from '@/views/student/CalendarPage.vue'
 
 import EducatorDashboard from '@/views/educator/EducatorDashboard.vue'
 import EducatorHistory from '@/views/educator/EducatorHistory.vue'
@@ -23,6 +24,7 @@ const routes = [
   { path: '/request-leave', component: RequestLeavePage, meta: { requiresAuth: true, role: 'student' } },
   { path: '/history', component: HistoryPage, meta: { requiresAuth: true, role: 'student' } },
   { path: '/profile', component: ProfilePage, meta: { requiresAuth: true, role: 'student' } },
+  { path: '/calendar', component: CalendarPage, meta: { requiresAuth: true, role: 'student' } },
 
   // Teacher routes
   { path: '/educator-dashboard', component: EducatorDashboard, meta: { requiresAuth: true, role: 'teacher' } },
