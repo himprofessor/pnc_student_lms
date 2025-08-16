@@ -540,7 +540,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import axios from "axios";
-import Calendar from "@/components/Calendar.vue";
+import Calendar from "@/views/student/Calendar.vue";
 
 
 const user = ref({});
