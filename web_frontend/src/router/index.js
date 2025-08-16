@@ -9,9 +9,9 @@ import RequestLeavePage from '@/views/student/RequestLeavePage.vue'
 import HistoryPage from '@/views/student/HistoryPage.vue'
 import ProfilePage from '@/views/student/ProfilePage.vue'
 
-import EducatorDashboard from '@/views/educator/EducatorDashboard.vue'
-import EducatorHistory from '@/views/educator/EducatorHistory.vue'
-import EducatorProfile from '@/views/educator/EducatorProfile.vue'
+import EducatorDashboard from '@/views/EducatorDashboard.vue'
+import EducatorHistory from '@/views/EducatorDashboard.vue'
+import EducatorProfile from '@/views/EducatorDashboard.vue'
 import Calendar from '@/components/Calendar.vue'
 
 const routes = [
