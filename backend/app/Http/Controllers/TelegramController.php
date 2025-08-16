@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\LeaveRequest;
+use App\Models\Notification; // <--- ADDED: Import the new Notification model
 use Telegram\Bot\Laravel\Facades\Telegram;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -14,12 +15,10 @@ class TelegramController extends Controller
     {
         $update = Telegram::commandsHandler(true);
         
-        // Handle button callbacks
         if ($update->isType('callback_query')) {
             return $this->handleCallbackQuery($update);
         }
 
-        // Handle regular messages (optional)
         if ($update->isType('message')) {
             return $this->handleMessage($update->getMessage());
         }
@@ -39,7 +38,6 @@ class TelegramController extends Controller
             'data' => $data
         ]);
 
-        // Extract request ID and action
         if (preg_match('/^(approve|reject)_(\d+)$/', $data, $matches)) {
             $action = $matches[1];
             $requestId = $matches[2];
@@ -55,24 +53,50 @@ class TelegramController extends Controller
         try {
             $leaveRequest = LeaveRequest::findOrFail($requestId);
             $approverName = $message->getFrom()->getFirstName();
+            $newStatus = ($action === 'approve') ? 'approved' : 'rejected';
 
             // Update status
             $leaveRequest->update([
-                'status' => $action === 'approve' ? 'approved' : 'rejected',
+                'status' => $newStatus,
                 'approved_by' => $message->getFrom()->getId(),
                 'approved_at' => now()
             ]);
+            
+            // <--- ADDED: Create a notification for the student
+            $notificationType = ($newStatus === 'approved') ? 'leave_approved' : 'leave_rejected';
+            $messageText = "Your leave request for '" . $leaveRequest->leaveType->name . "' has been " . $newStatus . ".";
+            
+            Notification::create([
+                'user_id' => $leaveRequest->student_id,
+                'type' => $notificationType,
+                'message' => $messageText,
+                'data' => json_encode(['leave_request_id' => $leaveRequest->id]),
+                'read' => false,
+            ]);
+            
+            // <--- END ADDITION
 
             // Edit original message
+            $messageTextToEdit = $message->getText();
+            $statusEmoji = ($action === 'approve') ? '🟢' : '🔴';
+            
             Telegram::editMessageText([
                 'chat_id' => $message->getChat()->getId(),
                 'message_id' => $message->getMessageId(),
-                'text' => $message->getText() . "\n\n🟢 *Status:* {$action}d by {$approverName}",
-                'parse_mode' => 'Markdown'
+                'text' => $messageTextToEdit . "\n\n{$statusEmoji} *Status:* {$action}d by {$approverName}",
+                'parse_mode' => 'Markdown',
+                'reply_markup' => null, // This removes the inline keyboard
             ]);
 
-            // Send confirmation to user
-            $this->notifyStudent($leaveRequest, $action);
+            // Answer the callback query to stop the button's loading animation
+            Telegram::answerCallbackQuery([
+                'callback_query_id' => $message->callbackQuery->getId(),
+                'text' => "Leave request {$newStatus}d.",
+                'show_alert' => false,
+            ]);
+
+            // Send confirmation to user (optional, can be done via new notification system)
+            // $this->notifyStudent($leaveRequest, $action);
 
             return response()->json(['status' => 'success']);
 
@@ -82,6 +106,7 @@ class TelegramController extends Controller
                 'request_id' => $requestId
             ]);
 
+            // Send a failure message to the teacher's bot chat
             Telegram::sendMessage([
                 'chat_id' => $message->getChat()->getId(),
                 'text' => "❌ Failed to process request: " . $e->getMessage()
@@ -96,7 +121,6 @@ class TelegramController extends Controller
         $status = $action === 'approve' ? 'approved ✅' : 'rejected ❌';
         $message = "Your leave request #{$leaveRequest->id} has been {$status}";
 
-        // If student has Telegram chat_id stored
         if ($leaveRequest->user->telegram_chat_id) {
             Telegram::sendMessage([
                 'chat_id' => $leaveRequest->user->telegram_chat_id,
@@ -104,14 +128,10 @@ class TelegramController extends Controller
                 'parse_mode' => 'Markdown'
             ]);
         }
-
-        // Alternative: Send email notification
-        // $leaveRequest->user->notify(new LeaveRequestProcessed($leaveRequest));
     }
 
     private function handleMessage($message)
     {
-        // Optional: Handle direct messages to bot
         $text = $message->getText();
         $chatId = $message->getChat()->getId();
 
