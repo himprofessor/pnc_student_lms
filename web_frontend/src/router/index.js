@@ -14,6 +14,7 @@ import EducatorHistory from '@/views/Educator/EducatorHistory.vue'
 import EducatorProfile from '@/views/Educator/EducatorProfile.vue'
 import CreateAccountStudent from '@/views/Educator/CreatAccount.vue'
 import Calendar from '@/components/Calendar.vue'
+import ImportStudent from '@/views/Educator/ImprotData.vue'
 
 const routes = [
   { path: '/', component: Home, meta: { hideStudentNavbar: true } },
@@ -37,6 +38,11 @@ const routes = [
     name: 'CreateAccount',
     component: CreateAccountStudent,
     // ⚠️ CORRECTED ROLE: The role is 'teacher', not 'educator'
+    meta: { requiresAuth: true, role: 'teacher' }
+  },
+  {
+    path: '/educator-importdata',
+    component: ImportStudent,
     meta: { requiresAuth: true, role: 'teacher' }
   },
 ]
