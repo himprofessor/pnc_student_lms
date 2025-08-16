@@ -12,9 +12,9 @@ import ProfilePage from '@/views/student/ProfilePage.vue'
 import EducatorDashboard from '@/views/Educator/EducatorDashboard.vue'
 import EducatorHistory from '@/views/Educator/EducatorHistory.vue'
 import EducatorProfile from '@/views/Educator/EducatorProfile.vue'
-import CreateAccountStudent from '@/views/Educator/CreatAccount.vue'
 import Calendar from '@/components/Calendar.vue'
 import ImportStudent from '@/views/Educator/ImprotData.vue'
+import CreateAccountStudent from '@/views/Educator/CreatAccount.vue'
 
 const routes = [
   { path: '/', component: Home, meta: { hideStudentNavbar: true } },
