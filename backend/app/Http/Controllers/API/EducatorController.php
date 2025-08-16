@@ -14,7 +14,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
-
+use App\Imports\StudentsImport; // Import the new import class
+use Maatwebsite\Excel\Facades\Excel; // Import the Excel facade
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use League\Csv\Reader;
+use Illuminate\Support\Facades\Log;
 class EducatorController extends Controller
 {
     // Educator: View all student leave requests
@@ -130,8 +136,8 @@ class EducatorController extends Controller
             ]
         ]);
     }
-  // In your EducatorController.php
 
+    // Educator: Create student account one by one 
     public function createStudentAccount(Request $request)
     {
         try {
@@ -160,6 +166,81 @@ class EducatorController extends Controller
                 'message' => 'An error occurred.',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+   // Import from Excel
+    public function __construct()
+        {
+            $this->middleware('auth:sanctum');
+            $this->middleware('role:2')->only('importStudents'); // Assuming role 2 is educator
+        }
+
+    public function importStudents(Request $request)
+    {
+        try {
+            $request->validate([
+                'excel_file' => 'required|mimes:csv,txt'
+            ]);
+
+            $file = $request->file('excel_file');
+            Log::info('File received', [
+                'path' => $file->getPathname(),
+                'originalName' => $file->getClientOriginalName(),
+                'size' => $file->getSize()
+            ]);
+
+            $csv = Reader::createFromPath($file->getPathname(), 'r');
+            $csv->setHeaderOffset(0); // Use first row as headers
+            $csv->setDelimiter(','); // Explicitly set comma as delimiter
+
+            $headers = $csv->getHeader();
+            Log::info('CSV Headers', ['headers' => $headers]);
+
+            if (count($headers) < 3 || !in_array('Name', $headers) || !in_array('Email', $headers) || !in_array('Password', $headers)) {
+                throw new \Exception('Invalid CSV header format. Expected "Name", "Email", "Password".');
+            }
+
+            $records = $csv->getRecords();
+            $errors = [];
+
+            foreach ($records as $index => $record) {
+                $rowNumber = $index + 2; // +2 because header is offset 0, and index starts at 0
+                Log::info('Processing row', ['rowNumber' => $rowNumber, 'data' => (array) $record]);
+
+                $name = trim($record['Name'] ?? ''); // Match the exact header case
+                $email = trim($record['Email'] ?? '');
+                $password = trim($record['Password'] ?? '');
+
+                if (empty($name) || empty($email) || empty($password)) {
+                    $errors[] = "Row {$rowNumber}: Name, email, and password are required. Data: " . json_encode((array) $record);
+                    continue;
+                }
+
+                try {
+                    $educator = new Educator();
+                    $userData = ['name' => $name, 'password' => $password, 'password_confirmation' => $password];
+                    $user = $educator->createStudentAccount($userData);
+                    $user->role_id = 3; // Ensure student role
+                    $user->save();
+                    Log::info('User created', ['email' => $email, 'id' => $user->id]);
+                } catch (ValidationException $e) {
+                    $errors[] = "Row {$rowNumber}: Validation failed. " . json_encode($e->errors());
+                    continue;
+                } catch (\Exception $e) {
+                    $errors[] = "Row {$rowNumber}: Error creating user. " . $e->getMessage();
+                    continue;
+                }
+            }
+
+            if (!empty($errors)) {
+                Log::warning('Import errors', ['errors' => $errors]);
+                return response()->json(['message' => 'Import completed with some errors.', 'errors' => $errors], 206);
+            }
+
+            return response()->json(['message' => 'Students imported successfully.'], 200);
+        } catch (\Exception $e) {
+            Log::error('Import failed', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json(['message' => 'An error occurred during import.', 'error' => $e->getMessage()], 500);
         }
     }
 }

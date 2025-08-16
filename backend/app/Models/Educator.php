@@ -33,37 +33,33 @@ class Educator extends Model
      * @return User
      * @throws ValidationException
      */
-    public function createStudentAccount(array $data)
-    {
-        // 1. Validate the incoming data
-        $validator = validator($data, [
-            'name' => 'required|string|max:255',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
+   public function createStudentAccount(array $data)
+{
+    $validator = validator($data, [
+        'name' => 'required|string|max:255',
+        'password' => 'required|string|min:8', // Removed 'confirmed' for CSV compatibility
+    ]);
 
-        if ($validator->fails()) {
-            throw new ValidationException($validator);
-        }
-
-        // 2. Generate the student's email address
-        $email_prefix = Str::slug($data['name'], '.');
-        $email = $email_prefix . '@student.passerellesnumeriques.org';
-
-        // 3. Check if the generated email already exists
-        if (User::where('email', $email)->exists()) {
-            throw ValidationException::withMessages([
-                'name' => ['A user with this name already exists. Please choose a different name.'],
-            ]);
-        }
-
-        // 4. Create the new user account using the User model
-        $student = User::create([
-            'name' => $data['name'],
-            'email' => $email,
-            'password' => Hash::make($data['password']),
-            'role_id' => 3, // Assuming role 3 corresponds to 'student' based on your isStudent() method
-        ]);
-
-        return $student;
+    if ($validator->fails()) {
+        throw new ValidationException($validator);
     }
+
+    $email_prefix = Str::slug($data['name'], '.');
+    $email = $email_prefix . '@student.passerellesnumeriques.org';
+
+    if (User::where('email', $email)->exists()) {
+        throw ValidationException::withMessages([
+            'name' => ['A user with this name already exists. Please choose a different name.'],
+        ]);
+    }
+
+    $student = User::create([
+        'name' => $data['name'],
+        'email' => $email,
+        'password' => Hash::make($data['password']),
+        'role_id' => 3,
+    ]);
+
+    return $student;
+}
 }

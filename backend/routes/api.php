@@ -46,6 +46,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Educator: Create student account
 
 Route::post('/educator/students', [EducatorController::class, 'createStudentAccount'])->middleware(['auth:sanctum', 'role:2']);
+Route::post('/educator/students/import', [EducatorController::class, 'importStudents'])->middleware(['auth:sanctum', 'role:2']);
+
+
+
 
     Route::post('/logout', [AuthController::class, 'logout']);
     
