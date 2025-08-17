@@ -13,6 +13,8 @@ import CalendarPage from '@/views/student/CalendarPage.vue'
 import EducatorDashboard from '@/views/educator/EducatorDashboard.vue'
 import EducatorHistory from '@/views/educator/EducatorHistory.vue'
 import EducatorProfile from '@/views/educator/EducatorProfile.vue'
+import ImportStudent from '@/views/educator/ImprotData.vue'
+import CreateAccountStudent from '@/views/educator/CreatAccount.vue'
 
 const routes = [
   { path: '/', component: Home, meta: { hideStudentNavbar: true } },
@@ -29,7 +31,20 @@ const routes = [
   // Teacher routes
   { path: '/educator-dashboard', component: EducatorDashboard, meta: { requiresAuth: true, role: 'teacher' } },
   { path: '/educator-history', component: EducatorHistory, meta: { requiresAuth: true, role: 'teacher' } },
-  { path: '/educator-profile', component: EducatorProfile, meta: { requiresAuth: true, role: 'teacher'}}
+  { path: '/educator-profile', component: EducatorProfile, meta: { requiresAuth: true, role: 'teacher'}},
+  {
+    // ⚠️ CORRECTED PATH: Must match the router-link's `to` attribute
+    path: '/create-account',
+    name: 'CreateAccount',
+    component: CreateAccountStudent,
+    // ⚠️ CORRECTED ROLE: The role is 'teacher', not 'educator'
+    meta: { requiresAuth: true, role: 'teacher' }
+  },
+  {
+    path: '/educator-importdata',
+    component: ImportStudent,
+    meta: { requiresAuth: true, role: 'teacher' }
+  },
 ]
 
 const router = createRouter({
@@ -46,7 +61,7 @@ router.beforeEach((to, from, next) => {
   }
 
   if (to.meta.role && to.meta.role !== role) {
-    // Prevent redirect loop if already on the correct dashboard
+    // Corrected logic for redirection based on roles
     if (role === 'teacher' && to.path !== '/educator-dashboard') {
       return next('/educator-dashboard')
     } else if (role === 'student' && to.path !== '/dashboard') {
@@ -54,6 +69,8 @@ router.beforeEach((to, from, next) => {
     } else if (!role) {
       return next('/login')
     } else {
+      // This handles cases where a logged-in user with a specific role tries to access
+      // a page meant for a different role.
       return next(false)
     }
   }
