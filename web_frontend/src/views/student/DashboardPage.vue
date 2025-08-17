@@ -537,8 +537,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import axios from "axios";
-import Calendar from "@/components/Calendar.vue";
-
 
 const user = ref({});
 const notifications = ref([]);
