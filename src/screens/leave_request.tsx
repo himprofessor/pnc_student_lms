@@ -475,18 +475,18 @@ const RequestLeaveScreen = () => {
           <TouchableOpacity style={styles.cancelButton} onPress={resetForm}>
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.submitButton}
-            onPress={submitLeaveRequest}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text style={styles.submitButtonText}>Submit Request</Text>
-            )}
-          </TouchableOpacity>
         </View>
+        <TouchableOpacity
+          style={styles.submitButton}
+          onPress={submitLeaveRequest}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text style={styles.submitButtonText}>Submit Request</Text>
+          )}
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 20,
-    marginTop: 10,
+    marginTop: 20,
   },
   headerTitle: {
     fontSize: 24,
@@ -596,9 +596,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#E5E7EB",
     borderRadius: 6,
     padding: 12,
-    marginRight: 12,
-    minWidth: 100,
+    minWidth: 295,
     alignItems: "center",
+    marginBottom: 16,
   },
   cancelButtonText: {
     color: "#111827",
@@ -610,6 +610,7 @@ const styles = StyleSheet.create({
     padding: 12,
     minWidth: 150,
     alignItems: "center",
+    marginBottom: 50,
   },
   submitButtonText: {
     color: "white",

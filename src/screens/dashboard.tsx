@@ -63,6 +63,11 @@ const LeaveRequestCard = ({
       <Text style={styles.leaveTitle}>{title}</Text>
       <Text style={styles.leaveText}>{date}</Text>
       <Text style={styles.leaveText}>{reason}</Text>
+      {canCancel && (
+        <TouchableOpacity onPress={onCancel}>
+          <Text style={styles.cancelBtn}>Cancel</Text>
+        </TouchableOpacity>
+      )}
     </View>
     <View style={{ alignItems: "flex-end" }}>
       <Text
@@ -73,11 +78,6 @@ const LeaveRequestCard = ({
       >
         {status}
       </Text>
-      {canCancel && (
-        <TouchableOpacity onPress={onCancel}>
-          <Text style={styles.cancelBtn}>Cancel</Text>
-        </TouchableOpacity>
-      )}
     </View>
   </View>
 );
