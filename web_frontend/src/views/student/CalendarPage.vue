@@ -59,24 +59,25 @@
       </div>
     </div>
 
-    <!-- Weekday headers - Sunday to Saturday -->
-    <div class="grid grid-cols-7 gap-px mb-2 bg-gray-100 dark:bg-gray-700 rounded-t-lg overflow-hidden">
+    <!-- Weekday headers - Monday to Saturday -->
+    <div class="grid grid-cols-6 gap-px mb-2 bg-gray-100 dark:bg-gray-700 rounded-t-lg overflow-hidden">
       <div v-for="day in daysOfWeek" :key="day" 
            class="py-3 text-center text-sm font-medium text-gray-600 dark:text-gray-300">
         {{ day }}
       </div>
     </div>
 
-    <!-- Calendar grid - Sunday to Saturday (7 columns) -->
-    <div class="grid grid-cols-7 gap-px bg-gray-100 dark:bg-gray-700 rounded-b-lg overflow-hidden shadow-sm">
+    <!-- Calendar grid - Monday to Saturday (6 columns) -->
+    <div class="grid grid-cols-6 gap-px bg-gray-100 dark:bg-gray-700 rounded-b-lg overflow-hidden shadow-sm">
       <template v-for="day in calendarDays" :key="day.date">
-        <div
+        <!-- Skip Sunday (day.date's day of week is 0) -->
+        <div v-if="new Date(day.date).getDay() !== 0"
              :class="[
                'min-h-[100px] p-2 flex flex-col transition-colors duration-150',
                day.isCurrentMonth ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500',
                isToday(day.date) ? 'ring-2 ring-indigo-500 dark:ring-indigo-400' : '',
                getAbsenceDetails(day.date) ? getStatusBg(getAbsenceDetails(day.date).status) : 'bg-white dark:bg-gray-800',
-               new Date(day.date).getDay() === 0 || new Date(day.date).getDay() === 6 ? 'bg-gray-50 dark:bg-gray-700' : '',
+               new Date(day.date).getDay() === 6 ? 'bg-gray-50 dark:bg-gray-700' : '',
                'hover:bg-gray-50 dark:hover:bg-gray-700/50'
              ]"
              @click="handleDayClick(day.date)" 
@@ -264,8 +265,8 @@ const currentDate = ref(new Date())
 const year = ref(currentDate.value.getFullYear())
 const month = ref(currentDate.value.getMonth())
 
-// Sunday to Saturday
-const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+// Monday to Saturday only
+const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const monthNames = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
@@ -280,8 +281,8 @@ const calendarDays = computed(() => {
   const startDay = firstDayOfMonth.getDay()
   const totalDays = lastDayOfMonth.getDate()
 
-  // Adjust for Sunday start (0)
-  const daysFromPrevMonth = startDay === 0 ? 0 : startDay
+  // Adjust for Monday start (1) instead of Sunday (0)
+  const daysFromPrevMonth = startDay === 0 ? 6 : startDay - 1
   
   const prevMonthLastDay = new Date(year.value, month.value, 0).getDate()
   for (let i = daysFromPrevMonth; i > 0; i--) {
@@ -302,8 +303,8 @@ const calendarDays = computed(() => {
     })
   }
 
-  // Adjust remaining days to maintain 7 columns (Sunday-Saturday)
-  const remainingDays = (7 - (days.length % 7)) % 7
+  // Adjust remaining days to maintain 6 columns (Monday-Saturday)
+  const remainingDays = (6 - (days.length % 6)) % 6
   for (let i = 1; i <= remainingDays; i++) {
     const date = new Date(year.value, month.value + 1, i)
     days.push({
@@ -344,7 +345,7 @@ const isAbsent = (date) => {
 const isWeekend = (dateString) => {
   const date = new Date(dateString)
   const day = date.getDay()
-  return day === 0 || day === 6 // Sunday or Saturday
+  return day === 6 // Saturday only (Sunday is already hidden)
 }
 
 const getAbsenceDetails = (date) => {

@@ -19,6 +19,12 @@ class LeaveRequest extends Model
         'status',
     ];
 
+    // Add this protected property
+    protected $casts = [
+        'from_date' => 'datetime',
+        'to_date' => 'datetime',
+    ];
+
     public function leaveType()
     {
         return $this->belongsTo(LeaveType::class, 'leave_type_id');
@@ -30,9 +36,9 @@ class LeaveRequest extends Model
 
 
     public function student()
-{
-    return $this->belongsTo(User::class, 'student_id');
-}
+    {
+        return $this->belongsTo(User::class, 'student_id');
+    }
 
 
 public function approver()
