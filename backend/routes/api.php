@@ -9,6 +9,8 @@ use App\Http\Controllers\API\StudentLeaveController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Api\LeaveTypeController;
+use App\Http\Controllers\Api\NotificationController;
+
 // Public Routes
 Route::post('/register/student', [AuthController::class, 'registerStudent']);
 Route::post('/register/teacher', [AuthController::class, 'registerTeacher']);
@@ -31,12 +33,23 @@ Route::get('/test', function () {
 Route::get('/leave-types', [LeaveTypeController::class, 'index']);
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
+
+    // Notification Routes
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     
     // This route is accessible to authenticated users with the 'educator' role
     Route::get('/educator/leave-requests', [EducatorController::class, 'getAllLeaveRequests']);
     Route::get('/educator/leave-request/{id}', [EducatorController::class, 'getLeaveRequest']);
     Route::post('/educator/leave-request/{id}/approve', [EducatorController::class, 'approveLeaveRequest']);
     Route::post('/educator/leave-request/{id}/reject', [EducatorController::class, 'rejectLeaveRequest']);
+    // Educator: Create student account
+
+Route::post('/educator/students', [EducatorController::class, 'createStudentAccount'])->middleware(['auth:sanctum', 'role:2']);
+Route::post('/educator/students/import', [EducatorController::class, 'importStudents'])->middleware(['auth:sanctum', 'role:2']);
+
+
+
 
     Route::post('/logout', [AuthController::class, 'logout']);
     
