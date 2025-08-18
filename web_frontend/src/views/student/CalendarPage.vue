@@ -86,7 +86,7 @@
 
           <!-- Display leave type with status-based colors and bold text -->
           <div v-if="getAbsenceDetails(day.date)" class="mt-auto">
-            <p class="text-xs rounded px-1.5 py-1 truncate text-left font-bold"
+            <p class="text-m rounded px-1.5 py-1 truncate text-left "
               :class="getStatusTextBg(getAbsenceDetails(day.date).status)"
               :title="typeof getAbsenceDetails(day.date).leave_type === 'object' ? getAbsenceDetails(day.date).leave_type.name : getAbsenceDetails(day.date).leave_type || 'Unknown'">
               {{ typeof getAbsenceDetails(day.date).leave_type === 'object' ?
