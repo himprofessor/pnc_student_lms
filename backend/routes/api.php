@@ -45,6 +45,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/educator/leave-request/{id}', [EducatorController::class, 'getLeaveRequest']);
     Route::post('/educator/leave-request/{id}/approve', [EducatorController::class, 'approveLeaveRequest']);
     Route::post('/educator/leave-request/{id}/reject', [EducatorController::class, 'rejectLeaveRequest']);
+    // Educator: Create student account
+
+Route::post('/educator/students', [EducatorController::class, 'createStudentAccount'])->middleware(['auth:sanctum', 'role:2']);
+Route::post('/educator/students/import', [EducatorController::class, 'importStudents'])->middleware(['auth:sanctum', 'role:2']);
+
+
+
 
     Route::post('/logout', [AuthController::class, 'logout']);
     

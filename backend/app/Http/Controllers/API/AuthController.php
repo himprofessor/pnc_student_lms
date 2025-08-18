@@ -58,9 +58,8 @@ class AuthController extends Controller
         return response()->json(['message' => 'Teacher account created successfully.']);
     }
 
-  public function login(Request $request)
+ public function login(Request $request)
 {
-    // 1) Validate
     $validator = Validator::make($request->all(), [
         'email'    => 'required|email',
         'password' => 'required|string',
@@ -70,30 +69,37 @@ class AuthController extends Controller
         return response()->json(['errors' => $validator->errors()], 422);
     }
 
-    // 2) Check allowed domains
-    if (
-        !str_ends_with($request->email, '@student.passerellesnumeriques.org') &&
-        !str_ends_with($request->email, '@passerellesnumeriques.org')
-    ) {
-        return response()->json(['message' => 'Invalid email domain'], 401);
+    // Allow admin email without domain check
+    if ($request->email !== 'admin@gmail.com') {
+        if (
+            !str_ends_with($request->email, '@student.passerellesnumeriques.org') &&
+            !str_ends_with($request->email, '@passerellesnumeriques.org')
+        ) {
+            return response()->json(['message' => 'Invalid email domain'], 401);
+        }
     }
 
-    // 3) Try to auth
     if (!Auth::attempt($request->only('email', 'password'))) {
         return response()->json(['message' => 'Invalid credentials'], 401);
     }
 
-    // 4) Build response
     $user  = Auth::user();
     $token = $user->createToken('auth_token')->plainTextToken;
 
-    // Map role + dashboard
-    $role = $user->role_id == 2 ? 'teacher' : 'student';
+    // Determine role
+    if ($user->role_id == 1) {
+        $role = 'admin';
+    } elseif ($user->role_id == 2) {
+        $role = 'teacher';
+    } else {
+        $role = 'student';
+    }
 
-    // use your existing frontend paths
-    $dashboardUrl = $role === 'teacher'
-        ? '/educator-dashboard'
-        : '/dashboard'; // student dashboard in your router is "/dashboard"
+    $dashboardUrl = match ($role) {
+        'admin'   => '/admin-dashboard',
+        'teacher' => '/educator-dashboard',
+        default   => '/dashboard',
+    };
 
     return response()->json([
         'token'          => $token,
@@ -108,6 +114,7 @@ class AuthController extends Controller
         ],
     ], 200);
 }
+
 
     public function logout(Request $request)
     {
