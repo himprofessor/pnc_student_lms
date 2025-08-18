@@ -32,4 +32,4 @@ class LeaveApprovedNotification extends Mailable
                         'approverName' => $this->approverName,
                     ]);
     }
-}
+};

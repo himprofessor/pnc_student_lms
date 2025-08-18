@@ -40,7 +40,7 @@ class TelegramController extends Controller
         $message = $callbackQuery->getMessage();
         $user = $callbackQuery->getFrom();
 
-        Log::info('Telegram callback received', [
+        Log::info('Telegram callback received', [ 
             'user' => $user->getUsername(),
             'data' => $data
         ]);
