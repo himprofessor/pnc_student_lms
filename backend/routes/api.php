@@ -3,15 +3,17 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\Api\EducatorController;
+use App\Http\Controllers\API\EducatorController;
 use App\Http\Controllers\API\TeacherController;
 use App\Http\Controllers\API\StudentLeaveController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Api\LeaveTypeController;
-use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\API\LeaveTypeController;
+use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\LeaveRequestController;
-use App\Http\Controllers\TelegramController;
+
+
+use App\Http\Controllers\TelegramWebhookController;
 
 // Public Routes
 Route::post('/register/student', [AuthController::class, 'registerStudent']);
@@ -112,8 +114,12 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/leave-requests', [LeaveRequestController::class, 'index']);
 });
 
-// routes/api.php
-Route::post('/telegram/webhook', [TelegramController::class, 'handleWebhook']);
-
-// routes/api.php
+// This is the route your frontend calls to submit a leave request.
 Route::post('/student/request-leave', [LeaveRequestController::class, 'storeApi'])->middleware('auth:sanctum');
+
+// This is the correct route for the Telegram webhook.
+// It will receive all updates from your bot, including button clicks.
+Route::post('/telegram/webhook', [TelegramWebhookController::class, 'handle']);
+Route::post('/api/link-telegram', [App\Http\Controllers\UserController::class, 'linkTelegramAccount']);
+Route::get('/link-telegram', 'Auth\LoginController@linkTelegramAccount')->name('link.telegram');
+
