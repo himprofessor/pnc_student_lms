@@ -5,30 +5,20 @@
         <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Attendance Calendar</h1>
         <p class="text-gray-600 dark:text-gray-400 mt-1">Track your leaves and attendance</p>
       </div>
-      
+
       <button
         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-1 transition-colors duration-200"
-        @click="$router.push('/request-leave')"
-      >
-        <svg
-          class="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 4v16m8-8H4"
-          />
+        @click="$router.push('/request-leave')">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
         <span>New Leave Request</span>
       </button>
     </div>
 
     <!-- Month Navigation -->
-    <div class="flex items-center justify-between mb-6 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+    <div
+      class="flex items-center justify-between mb-6 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
       <button @click="prevMonth" aria-label="Previous month"
         class="text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-gray-700 focus:outline-none p-2 rounded-full transition-colors duration-200">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
@@ -51,54 +41,56 @@
     <!-- Loading -->
     <div v-if="loading" class="text-center py-8">
       <div class="inline-flex items-center gap-2 text-gray-500 dark:text-gray-400">
-        <svg class="animate-spin h-5 w-5 text-indigo-600 dark:text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <svg class="animate-spin h-5 w-5 text-indigo-600 dark:text-indigo-400" xmlns="http://www.w3.org/2000/svg"
+          fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <path class="opacity-75" fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+          </path>
         </svg>
         Loading attendance data...
       </div>
     </div>
 
-    <!-- Weekday headers - Monday to Saturday -->
-    <div class="grid grid-cols-6 gap-px mb-2 bg-gray-100 dark:bg-gray-700 rounded-t-lg overflow-hidden">
-      <div v-for="day in daysOfWeek" :key="day" 
-           class="py-3 text-center text-sm font-medium text-gray-600 dark:text-gray-300">
+    <!-- Weekday headers - Sunday to Saturday -->
+    <div class="grid grid-cols-7 gap-px mb-2 bg-gray-100 dark:bg-gray-700 rounded-t-lg overflow-hidden">
+      <div v-for="(day, index) in daysOfWeek" :key="index" :class="[
+        'py-3 text-center text-sm font-medium',
+        (index === 0 || index === 6)
+          ? 'text-red-500 dark:text-red-400'
+          : 'text-gray-600 dark:text-gray-300'
+      ]">
         {{ day }}
       </div>
     </div>
 
-    <!-- Calendar grid - Monday to Saturday (6 columns) -->
-    <div class="grid grid-cols-6 gap-px bg-gray-100 dark:bg-gray-700 rounded-b-lg overflow-hidden shadow-sm">
+
+    <!-- Calendar grid - Sunday to Saturday (7 columns) -->
+    <div class="grid grid-cols-7 gap-px bg-gray-100 dark:bg-gray-700 rounded-b-lg overflow-hidden shadow-sm">
       <template v-for="day in calendarDays" :key="day.date">
-        <!-- Skip Sunday (day.date's day of week is 0) -->
-        <div v-if="new Date(day.date).getDay() !== 0"
-             :class="[
-               'min-h-[100px] p-2 flex flex-col transition-colors duration-150',
-               day.isCurrentMonth ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500',
-               isToday(day.date) ? 'ring-2 ring-indigo-500 dark:ring-indigo-400' : '',
-               getAbsenceDetails(day.date) ? getStatusBg(getAbsenceDetails(day.date).status) : 'bg-white dark:bg-gray-800',
-               new Date(day.date).getDay() === 6 ? 'bg-gray-50 dark:bg-gray-700' : '',
-               'hover:bg-gray-50 dark:hover:bg-gray-700/50'
-             ]"
-             @click="handleDayClick(day.date)" 
-             role="button" 
-             tabindex="0" 
-             @keydown.enter.prevent="handleDayClick(day.date)">
+        <div :class="[
+          'min-h-[100px] p-2 flex flex-col transition-colors duration-150',
+          day.isCurrentMonth ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500',
+          isToday(day.date) ? 'ring-2 ring-indigo-500 dark:ring-indigo-400' : '',
+          getAbsenceDetails(day.date) ? getStatusBg(getAbsenceDetails(day.date).status) : 'bg-white dark:bg-gray-800',
+          isWeekend(day.date) ? 'bg-gray-50 dark:bg-gray-700 text-red-500 dark:text-red-400' : '',
+          'hover:bg-gray-50 dark:hover:bg-gray-700/50'
+        ]" @click="handleDayClick(day.date)" role="button" tabindex="0"
+          @keydown.enter.prevent="handleDayClick(day.date)">
           <div class="flex justify-between items-start mb-1">
             <span class="text-sm font-medium">{{ day.day }}</span>
-            <span v-if="getAbsenceDetails(day.date)" 
-                  class="w-2 h-2 rounded-full mt-1.5"
-                  :class="getStatusDot(getAbsenceDetails(day.date).status)" 
-                  :title="getAbsenceDetails(day.date).status">
+            <span v-if="getAbsenceDetails(day.date)" class="w-2 h-2 rounded-full mt-1.5"
+              :class="getStatusDot(getAbsenceDetails(day.date).status)" :title="getAbsenceDetails(day.date).status">
             </span>
           </div>
 
           <!-- Display leave type with status-based colors and bold text -->
           <div v-if="getAbsenceDetails(day.date)" class="mt-auto">
-            <p class="text-m rounded px-1.5 py-1 truncate text-left "
-               :class="getStatusTextBg(getAbsenceDetails(day.date).status)"
-               :title="typeof getAbsenceDetails(day.date).leave_type === 'object' ? getAbsenceDetails(day.date).leave_type.name : getAbsenceDetails(day.date).leave_type || 'Unknown'">
-              {{ typeof getAbsenceDetails(day.date).leave_type === 'object' ? getAbsenceDetails(day.date).leave_type.name : getAbsenceDetails(day.date).leave_type || 'Unknown' }}
+            <p class="text-xs rounded px-1.5 py-1 truncate text-left font-bold"
+              :class="getStatusTextBg(getAbsenceDetails(day.date).status)"
+              :title="typeof getAbsenceDetails(day.date).leave_type === 'object' ? getAbsenceDetails(day.date).leave_type.name : getAbsenceDetails(day.date).leave_type || 'Unknown'">
+              {{ typeof getAbsenceDetails(day.date).leave_type === 'object' ?
+                getAbsenceDetails(day.date).leave_type.name : getAbsenceDetails(day.date).leave_type || 'Unknown' }}
             </p>
           </div>
         </div>
@@ -106,9 +98,11 @@
     </div>
 
     <!-- Modern Absence Details Modal -->
-    <div v-if="selectedAbsence" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-         @click.self="selectedAbsence = null">
-      <div class="relative w-full max-w-2xl overflow-hidden rounded-3xl bg-white dark:bg-gray-800 shadow-2xl animate-modal-in max-h-[90vh] flex flex-col border border-gray-200/50 dark:border-gray-700/50">
+    <div v-if="selectedAbsence"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      @click.self="selectedAbsence = null">
+      <div
+        class="relative w-full max-w-2xl overflow-hidden rounded-3xl bg-white dark:bg-gray-800 shadow-2xl animate-modal-in max-h-[90vh] flex flex-col border border-gray-200/50 dark:border-gray-700/50">
         <!-- Header with gradient and improved close button -->
         <div class="bg-blue-500 px-8 py-6 flex items-center justify-between">
           <div class="flex items-center space-x-3">
@@ -169,8 +163,8 @@
           <!-- Date information in timeline style -->
           <div class="bg-gray-50 p-6 rounded-xl border border-gray-100 shadow-sm">
             <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none"
-                viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
@@ -201,8 +195,8 @@
           <!-- Reason with improved styling -->
           <div class="bg-gray-50 p-6 rounded-xl border border-gray-100 shadow-sm">
             <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none"
-                viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
               </svg>
@@ -226,10 +220,12 @@
     </div>
 
     <!-- Error message -->
-    <div v-if="error" class="mt-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-900/30">
+    <div v-if="error" class="mt-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-900/30">
       <div class="flex items-center gap-3 text-red-600 dark:text-red-400">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          <path fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+            clip-rule="evenodd" />
         </svg>
         <p class="font-medium">{{ error }}</p>
       </div>
@@ -253,8 +249,8 @@ const currentDate = ref(new Date())
 const year = ref(currentDate.value.getFullYear())
 const month = ref(currentDate.value.getMonth())
 
-// Monday to Saturday only
-const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+// Sunday to Saturday
+const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const monthNames = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
@@ -266,17 +262,17 @@ const calendarDays = computed(() => {
   const days = []
   const firstDayOfMonth = new Date(year.value, month.value, 1)
   const lastDayOfMonth = new Date(year.value, month.value + 1, 0)
-  const startDay = firstDayOfMonth.getDay()
+  const startDay = firstDayOfMonth.getDay() // Starts with Sunday (0)
   const totalDays = lastDayOfMonth.getDate()
 
-  // Adjust for Monday start (1) instead of Sunday (0)
-  const daysFromPrevMonth = startDay === 0 ? 6 : startDay - 1
-  
+  // Adjust for Sunday start (0)
+  const daysFromPrevMonth = startDay
+
   const prevMonthLastDay = new Date(year.value, month.value, 0).getDate()
-  for (let i = daysFromPrevMonth; i > 0; i--) {
-    const date = new Date(year.value, month.value - 1, prevMonthLastDay - i + 1)
+  for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
+    const date = new Date(year.value, month.value - 1, prevMonthLastDay - i)
     days.push({
-      day: prevMonthLastDay - i + 1,
+      day: prevMonthLastDay - i,
       date: formatYMD(date),
       isCurrentMonth: false
     })
@@ -291,8 +287,16 @@ const calendarDays = computed(() => {
     })
   }
 
-  // Adjust remaining days to maintain 6 columns (Monday-Saturday)
-  const remainingDays = (6 - (days.length % 6)) % 6
+
+  const isWeekendHeader = (i, number) => {
+    // adjust depending on whether your week starts Sunday (0) or Monday (1)
+    return i === 0 || i === 6
+  }
+
+
+
+  // Adjust remaining days to maintain 7 columns (Sunday-Saturday)
+  const remainingDays = (7 - (days.length % 7)) % 7
   for (let i = 1; i <= remainingDays; i++) {
     const date = new Date(year.value, month.value + 1, i)
     days.push({
@@ -318,10 +322,10 @@ function formatDate(dateStr) {
   return isNaN(d)
     ? dateStr
     : d.toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      })
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
 }
 
 const isAbsent = (date) => {
@@ -333,7 +337,7 @@ const isAbsent = (date) => {
 const isWeekend = (dateString) => {
   const date = new Date(dateString)
   const day = date.getDay()
-  return day === 6 // Saturday only (Sunday is already hidden)
+  return day === 0 || day === 6 // Sunday (0) or Saturday (6)
 }
 
 const getAbsenceDetails = (date) => {
@@ -457,6 +461,7 @@ watch([month, year], fetchAbsences)
     opacity: 0;
     transform: scale(0.95) translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
@@ -468,7 +473,9 @@ watch([month, year], fetchAbsences)
 }
 
 @keyframes ping-slow {
-  75%, 100% {
+
+  75%,
+  100% {
     transform: scale(1.5);
     opacity: 0;
   }
