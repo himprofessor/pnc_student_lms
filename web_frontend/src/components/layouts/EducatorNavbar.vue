@@ -16,31 +16,54 @@
 
       <!-- Navigation with pill-shaped active state -->
       <nav>
-        <ul class="flex space-x-1">
-          <li>
-            <router-link
-              to="/educator-dashboard"
-              class="px-4 py-2 text-gray-600 font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:shadow-sm"
-              active-class="bg-blue-50 text-blue-600 shadow-inner"
-              exact-active-class="bg-blue-50 text-blue-600 shadow-inner"
-              @click.native="closeDropdown"
-            >
-              Dashboard
-            </router-link>
-          </li>
-          <li>
-            <router-link
-              to="/educator-history"
-              class="px-4 py-2 text-gray-600 font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:shadow-sm"
-              active-class="bg-blue-50 text-blue-600 shadow-inner"
-              exact-active-class="bg-blue-50 text-blue-600 shadow-inner"
-              @click.native="closeDropdown"
-            >
-              History
-            </router-link>
-          </li>
-        </ul>
-      </nav>
+      <ul class="flex space-x-1">
+        <li>
+          <router-link
+            to="/educator-dashboard"
+            class="px-4 py-2 text-gray-600 font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:shadow-sm"
+            active-class="bg-blue-50 text-blue-600 shadow-inner"
+            exact-active-class="bg-blue-50 text-blue-600 shadow-inner"
+            @click="closeDropdown"
+          >
+            Dashboard
+          </router-link>
+        </li>
+        <li>
+          <router-link
+            to="/educator-history"
+            class="px-4 py-2 text-gray-600 font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:shadow-sm"
+            active-class="bg-blue-50 text-blue-600 shadow-inner"
+            exact-active-class="bg-blue-50 text-blue-600 shadow-inner"
+            @click="closeDropdown"
+          >
+            History
+          </router-link>
+        </li>
+        <li>
+          <router-link
+            to="/create-account"
+            class="px-4 py-2 text-gray-600 font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:shadow-sm"
+            active-class="bg-blue-50 text-blue-600 shadow-inner"
+            exact-active-class="bg-blue-50 text-blue-600 shadow-inner"
+            @click="closeDropdown"
+          >
+            CreateAccountStudent
+          </router-link>
+        </li>
+        <li>
+          <router-link
+            to="/educator-importdata"
+            class="px-4 py-2 text-gray-600 font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 hover:shadow-sm"
+            active-class="bg-blue-50 text-blue-600 shadow-inner"
+            exact-active-class="bg-blue-50 text-blue-600 shadow-inner"
+            @click="closeDropdown"
+          >
+            ImportStudent
+          </router-link>
+        </li>
+      </ul>
+</nav>
+
 
       <!-- User dropdown with card-style design -->
       <div class="relative" @click.stop="toggleDropdown">
@@ -91,15 +114,21 @@
               <p class="text-sm text-gray-500 truncate">{{ user?.email || 'user@example.com' }}</p>
             </div>
             <router-link 
-              to="/educator-profile" 
-              class="block px-4 py-2.5 text-gray-700 hover:bg-blue-50 transition-all duration-150 flex items-center space-x-3"
-              @click.native="closeDropdown"
-            >
-              <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span>Your Profile</span>
-            </router-link>
+            to="/educator-profile" 
+            class="block px-4 py-2.5 text-gray-700 hover:bg-blue-50 transition-all duration-150 flex items-center space-x-3"
+            @click="closeDropdown"
+          >
+            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path 
+                stroke-linecap="round" 
+                stroke-linejoin="round" 
+                stroke-width="2" 
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" 
+              />
+            </svg>
+            <span>Your Profile</span>
+              </router-link>
+
             <button 
               @click="handleSignOut" 
               class="w-full text-left px-4 py-2.5 text-gray-700 hover:bg-blue-50 transition-all duration-150 flex items-center space-x-3 border-t border-gray-100"
