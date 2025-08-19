@@ -6,11 +6,11 @@
 
       <div class="bg-white p-6 rounded-lg shadow border">
         <div v-if="successMessage" class="fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        {{ successMessage }}
-      </div>
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {{ successMessage }}
+        </div>
         <div v-if="errorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
           role="alert">
           <span class="block sm:inline">{{ errorMessage }}</span>
@@ -138,9 +138,10 @@
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue';
 import axios from 'axios';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
 const router = useRouter();
+const route = useRoute(); // Add useRoute to access query parameters
 
 const leaveTypes = ref([]);
 const loading = ref(false);
@@ -172,9 +173,22 @@ const today = computed(() => {
   return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD
 });
 
-// Fetch leave types on component mount
+// Set the initial from_date from the query parameter
 onMounted(() => {
   fetchLeaveTypes();
+  // Check if a date query parameter exists and is valid
+  if (route.query.date) {
+    const date = route.query.date;
+    // Validate date format (YYYY-MM-DD)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      const selectedDate = new Date(date);
+      // Ensure the date is not before today and is valid
+      if (!isNaN(selectedDate) && selectedDate >= new Date(today.value)) {
+        form.from_date = date;
+        calculateDays(); // Recalculate days if needed
+      }
+    }
+  }
 });
 
 // Fetch leave types from API

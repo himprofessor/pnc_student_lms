@@ -7,11 +7,11 @@
     "require": {
         "php": "^8.1",
         "guzzlehttp/guzzle": "^7.2",
-        "irazasyed/telegram-bot-sdk": "^3.15",
+        "irazasyed/telegram-bot-sdk": "*",
         "laravel/framework": "^10.0",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
-        "league/csv": "^9.24"
+        "league/csv": "*"
     },
     "require-dev": {
         "beyondcode/expose": "^3.0",

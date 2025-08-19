@@ -110,10 +110,10 @@ class LeaveRequestController extends Controller
                 'parse_mode' => 'Markdown',
                 'reply_markup' => json_encode([
                     'inline_keyboard' => [
-                        [
-                            ['text' => '✅ Approve', 'callback_data' => "approve_{$leaveRequest->id}"],
-                            ['text' => '❌ Reject', 'callback_data' => "reject_{$leaveRequest->id}"],
-                        ]
+                        // [
+                        //     ['text' => '✅ Approve', 'callback_data' => "approve_{$leaveRequest->id}"],
+                        //     ['text' => '❌ Reject', 'callback_data' => "reject_{$leaveRequest->id}"],
+                        // ]
                     ]
                 ])
             ]);
