@@ -15,6 +15,7 @@ import EducatorHistory from '@/views/educator/EducatorHistory.vue'
 import EducatorProfile from '@/views/educator/EducatorProfile.vue'
 import ImportStudent from '@/views/educator/ImprotData.vue'
 import CreateAccountStudent from '@/views/educator/CreatAccount.vue'
+import StudentManageMent from '@/views/educator/StudentManangeMent.vue'
 
 const routes = [
   { path: '/', component: Home, meta: { hideStudentNavbar: true } },
@@ -45,6 +46,7 @@ const routes = [
     component: ImportStudent,
     meta: { requiresAuth: true, role: 'teacher' }
   },
+  { path: '/student-management', component: StudentManageMent, meta: { requiresAuth: true, role: 'teacher'}},
 ]
 
 const router = createRouter({
