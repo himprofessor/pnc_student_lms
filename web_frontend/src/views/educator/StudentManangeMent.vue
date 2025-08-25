@@ -1,24 +1,40 @@
 <template>
   <div class="flex h-screen bg-gray-100">
+    <!-- Sidebar -->
     <aside class="w-64 bg-white shadow-md p-4 flex flex-col">
       <h2 class="text-xl font-bold mb-6">Student Generations</h2>
 
-      <div class="mt-2 mb-6">
+      <!-- New Generation Button + Dropdown -->
+      <div class="mt-2 mb-6 relative">
         <button
-          @click="createNewGeneration"
+          @click="toggleDropdown"
           class="w-full bg-green-500 text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition duration-300"
         >
           + New Generation
         </button>
+
+        <!-- Dropdown for Selecting Year -->
+        <div
+          v-if="showDropdown"
+          class="absolute mt-2 w-full bg-white border rounded-lg shadow-md z-50"
+        >
+          <ul>
+            <li
+              v-for="year in availableYears"
+              :key="year"
+              @click="goToCreateForm(year)"
+              class="px-4 py-2 hover:bg-green-100 cursor-pointer"
+            >
+              {{ year }}
+            </li>
+          </ul>
+        </div>
       </div>
 
+      <!-- List of Existing Generations -->
       <nav class="flex-grow">
         <ul>
-          <li
-            v-for="year in visibleGenerations"
-            :key="year"
-            class="mb-2"
-          >
+          <li v-for="year in visibleGenerations" :key="year" class="mb-2">
             <a
               href="#"
               @click.prevent="selectGeneration(year)"
@@ -42,25 +58,27 @@
       </nav>
     </aside>
 
+    <!-- Main Content -->
     <main class="flex-1 p-8 overflow-y-auto">
       <header class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold">Students {{ selectedGeneration }}</h1>
         <div class="flex space-x-4">
           <router-link
-            to="/create-account"
-            class="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition duration-300"
+            :to="`/create-account?generation=${selectedGeneration}`"
+            class="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-600 transition duration-300"
           >
             Create Student
           </router-link>
           <router-link
             to="/educator-importdata"
-            class="bg-purple-500 text-white font-bold py-2 px-4 rounded-md hover:bg-purple-600 transition duration-300"
+            class="bg-gray-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition duration-300"
           >
             Import Students
           </router-link>
         </div>
       </header>
 
+      <!-- Students Table -->
       <div class="bg-white shadow-md rounded-lg p-6">
         <table class="min-w-full">
           <thead>
@@ -68,14 +86,20 @@
               <th class="py-2 px-4 border-b text-left">ID</th>
               <th class="py-2 px-4 border-b text-left">Name</th>
               <th class="py-2 px-4 border-b text-left">Email</th>
+              <th class="py-2 px-4 border-b text-left">Generation</th>
               <th class="py-2 px-4 border-b text-left">Action</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="student in filteredStudents" :key="student.id">
-              <td class="py-2 px-4 border-b">{{ student.id }}</td>
+            <tr
+              v-for="(student, index) in filteredStudents"
+              :key="student.id"
+            >
+              <!-- FIXED: ID starts from 1 for each generation -->
+              <td class="py-2 px-4 border-b">{{ index + 1 }}</td>
               <td class="py-2 px-4 border-b">{{ student.name }}</td>
               <td class="py-2 px-4 border-b">{{ student.email }}</td>
+              <td class="py-2 px-4 border-b">{{ student.generation }}</td>
               <td class="py-2 px-4 border-b">
                 <button
                   @click="editStudent(student.id)"
@@ -99,23 +123,60 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import axios from 'axios';
+import { useRouter } from 'vue-router';
 
-const generations = ref([2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032]);
-const selectedGeneration = ref(2025);
-const students = ref([
-  // Mock student data
-  { id: 'S001', name: 'Alice Johnson', email: 'alice.j@school.edu', generation: 2025 },
-  { id: 'S002', name: 'Bob Williams', email: 'bob.w@school.edu', generation: 2026 },
-  { id: 'S003', name: 'Charlie Brown', email: 'charlie.b@school.edu', generation: 2025 },
-  { id: 'S004', name: 'Diana Miller', email: 'diana.m@school.edu', generation: 2027 },
-]);
-
+const router = useRouter();
+const generations = ref([]);
+const selectedGeneration = ref(null);
+const students = ref([]);
 const maxVisibleGenerations = ref(5);
 const showAllGenerations = ref(false);
+const showDropdown = ref(false);
 
+// Predefined Years
+const availableYears = [2025, 2026, 2027, 2028, 2029, 2030];
+
+// Fetch Students Data
+const fetchStudents = async () => {
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await axios.get(
+      'http://127.0.0.1:8000/api/educator/students',
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    students.value = response.data.students;
+
+    // Extract unique generations from students
+    const uniqueGenerations = [
+      ...new Set(students.value.map((student) => student.generation)),
+    ].sort();
+
+    generations.value =
+      uniqueGenerations.length > 0
+        ? uniqueGenerations
+        : [new Date().getFullYear()];
+
+    if (generations.value.length > 0 && !selectedGeneration.value) {
+      selectedGeneration.value = Math.max(...generations.value);
+    }
+  } catch (error) {
+    console.error('Error fetching students:', error);
+  }
+};
+
+// Filter students by selected generation
 const filteredStudents = computed(() => {
-  return students.value.filter(student => student.generation === selectedGeneration.value);
+  if (!selectedGeneration.value) return [];
+  return students.value
+    .filter((student) => student.generation === selectedGeneration.value)
+    .sort((a, b) => a.id - b.id);
 });
 
 const visibleGenerations = computed(() => {
@@ -132,27 +193,45 @@ function selectGeneration(year) {
   selectedGeneration.value = year;
 }
 
-function createNewGeneration() {
-  const newYear = generations.value.length > 0
-    ? Math.max(...generations.value) + 1
-    : new Date().getFullYear();
-  generations.value.push(newYear);
-  selectedGeneration.value = newYear;
+function toggleDropdown() {
+  showDropdown.value = !showDropdown.value;
+}
+
+function goToCreateForm(year) {
+  selectedGeneration.value = year;
+  showDropdown.value = false;
+  router.push(`/create-account?generation=${year}`);
 }
 
 function editStudent(studentId) {
   console.log(`Editing student with ID: ${studentId}`);
-  // Implement your edit logic here (e.g., open a modal, redirect to an edit page)
 }
 
-function deleteStudent(studentId) {
-  if (confirm(`Are you sure you want to delete student with ID: ${studentId}?`)) {
-    students.value = students.value.filter(student => student.id !== studentId);
-    console.log(`Deleted student with ID: ${studentId}`);
+async function deleteStudent(studentId) {
+  if (
+    confirm(`Are you sure you want to delete student with ID: ${studentId}?`)
+  ) {
+    try {
+      const token = localStorage.getItem('authToken');
+      await axios.delete(
+        `http://127.0.0.1:8000/api/educator/students/${studentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      students.value = students.value.filter(
+        (student) => student.id !== studentId
+      );
+    } catch (error) {
+      console.error('Error deleting student:', error);
+      alert('Failed to delete student');
+    }
   }
 }
-</script>
 
-<style scoped>
-/* No changes to styles needed, as the new elements use existing classes. */
-</style>
+onMounted(() => {
+  fetchStudents();
+});
+</script>
