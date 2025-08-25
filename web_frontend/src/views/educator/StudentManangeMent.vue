@@ -34,7 +34,11 @@
       <!-- List of Existing Generations -->
       <nav class="flex-grow">
         <ul>
-          <li v-for="year in visibleGenerations" :key="year" class="mb-2">
+          <li
+            v-for="year in visibleGenerations"
+            :key="year"
+            class="mb-2"
+          >
             <a
               href="#"
               @click.prevent="selectGeneration(year)"
@@ -83,7 +87,7 @@
         <table class="min-w-full">
           <thead>
             <tr>
-              <th class="py-2 px-4 border-b text-left">ID</th>
+              <th class="py-2 px-4 border-b text-left">#</th>
               <th class="py-2 px-4 border-b text-left">Name</th>
               <th class="py-2 px-4 border-b text-left">Email</th>
               <th class="py-2 px-4 border-b text-left">Generation</th>
@@ -91,11 +95,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="(student, index) in filteredStudents"
-              :key="student.id"
-            >
-              <!-- FIXED: ID starts from 1 for each generation -->
+            <tr v-for="(student, index) in filteredStudents" :key="student.id">
               <td class="py-2 px-4 border-b">{{ index + 1 }}</td>
               <td class="py-2 px-4 border-b">{{ student.name }}</td>
               <td class="py-2 px-4 border-b">{{ student.email }}</td>
@@ -103,7 +103,7 @@
               <td class="py-2 px-4 border-b">
                 <button
                   @click="editStudent(student.id)"
-                  class="text-blue-500 hover:underline mr-2"
+                  class="text-blue-500 hover:underline mr-4"
                 >
                   Edit
                 </button>
@@ -115,6 +115,11 @@
                 </button>
               </td>
             </tr>
+            <tr v-if="filteredStudents.length === 0">
+              <td colspan="5" class="text-center py-4 text-gray-500">
+                No students found for this generation.
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -123,9 +128,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted } from "vue";
+import axios from "axios";
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 const generations = ref([]);
@@ -138,46 +143,58 @@ const showDropdown = ref(false);
 // Predefined Years
 const availableYears = [2025, 2026, 2027, 2028, 2029, 2030];
 
-// Fetch Students Data
+// Fetch Students from API
 const fetchStudents = async () => {
   try {
-    const token = localStorage.getItem('authToken');
-    const response = await axios.get(
-      'http://127.0.0.1:8000/api/educator/students',
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const token = localStorage.getItem("authToken");
+    const response = await axios.get("http://127.0.0.1:8000/api/educator/students", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     students.value = response.data.students;
 
-    // Extract unique generations from students
-    const uniqueGenerations = [
-      ...new Set(students.value.map((student) => student.generation)),
-    ].sort();
-
-    generations.value =
-      uniqueGenerations.length > 0
-        ? uniqueGenerations
-        : [new Date().getFullYear()];
+    const uniqueGenerations = [...new Set(students.value.map((student) => student.generation))].sort();
+    generations.value = uniqueGenerations.length > 0 ? uniqueGenerations : [new Date().getFullYear()];
 
     if (generations.value.length > 0 && !selectedGeneration.value) {
       selectedGeneration.value = Math.max(...generations.value);
     }
   } catch (error) {
-    console.error('Error fetching students:', error);
+    console.error("Error fetching students:", error);
   }
 };
 
-// Filter students by selected generation
+// Filter Students by Selected Generation
 const filteredStudents = computed(() => {
   if (!selectedGeneration.value) return [];
-  return students.value
-    .filter((student) => student.generation === selectedGeneration.value)
-    .sort((a, b) => a.id - b.id);
+  return students.value.filter((student) => student.generation === selectedGeneration.value);
 });
+
+// Delete Student from API
+const deleteStudent = async (studentId) => {
+  if (confirm("Are you sure you want to delete this student?")) {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await axios.delete(`http://127.0.0.1:8000/api/users/${studentId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        students.value = students.value.filter((student) => student.id !== studentId);
+        alert("Student deleted successfully!");
+      } else {
+        alert(response.data.message || "Failed to delete student.");
+      }
+    } catch (error) {
+      console.error("Error deleting student:", error);
+      alert("An error occurred while deleting the student.");
+    }
+  }
+};
 
 const visibleGenerations = computed(() => {
   return showAllGenerations.value
@@ -204,31 +221,7 @@ function goToCreateForm(year) {
 }
 
 function editStudent(studentId) {
-  console.log(`Editing student with ID: ${studentId}`);
-}
-
-async function deleteStudent(studentId) {
-  if (
-    confirm(`Are you sure you want to delete student with ID: ${studentId}?`)
-  ) {
-    try {
-      const token = localStorage.getItem('authToken');
-      await axios.delete(
-        `http://127.0.0.1:8000/api/educator/students/${studentId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      students.value = students.value.filter(
-        (student) => student.id !== studentId
-      );
-    } catch (error) {
-      console.error('Error deleting student:', error);
-      alert('Failed to delete student');
-    }
-  }
+  router.push(`/edit-student/${studentId}`);
 }
 
 onMounted(() => {

@@ -8,7 +8,8 @@
   <div class="flex h-screen bg-gray-100">
     
     <!-- Sidebar -->
-    <aside class="w-64 bg-white shadow-md p-4 flex flex-col">
+    <aside class="w-64 bg-white shadow-md p-4 flex flex-col -mt-0">
+
       <h2 class="text-xl font-bold mb-6">Student Generations</h2>
 
       <!-- New Generation Button + Dropdown -->
@@ -19,7 +20,7 @@
         >
           + New Generation
         </button>
-
+        
         <!-- Dropdown for Selecting Year -->
         <div v-if="showDropdown" class="absolute mt-2 w-full bg-white border rounded-lg shadow-md z-50">
           <ul>
@@ -67,8 +68,8 @@
     </aside>
 
     <!-- Main Form -->
-    <main class="flex-1  p-12 bg-gray-100 flex justify-center items-start">
-      <div class="w-full max-w-2xl p-12 space-y-8 bg-white rounded-2xl shadow-2xl border border-gray-200">
+    <main class="flex-1  p-4 bg-gray-100 flex justify-center items-start">
+      <div class="w-full max-w-2xl p-12 space-y-6 bg-white rounded-2xl shadow-2xl border border-gray-200">
         <h2 class="text-3xl font-bold text-center text-gray-800">Create Student Account</h2>
         <p class="text-center text-gray-600">Fill in the details to create a new student account.</p>
 
@@ -248,6 +249,7 @@ export default {
         this.showToast(firstError, 'error');
       }
     },
+
     resetForm() {
       this.student.name = '';
       this.student.email = '';
