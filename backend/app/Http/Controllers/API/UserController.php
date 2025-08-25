@@ -293,6 +293,23 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        // Check if user is logged in
+        $authUser = auth()->user();
+        if (!$authUser) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized - Please log in'
+            ], 401);
+        }
+    
+        // Allow only admin (role_id = 1) and educator (role_id = 2)
+        if (!in_array($authUser->role_id, [1, 2])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Forbidden - You are not allowed to create users'
+            ], 403);
+        }
+    
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
@@ -305,7 +322,7 @@ class UserController extends Controller
                 'emergency_contact' => 'sometimes|nullable|string|max:255',
                 'img' => 'sometimes|nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
-
+    
             if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
@@ -313,13 +330,13 @@ class UserController extends Controller
                     'errors' => $validator->errors()
                 ], 422);
             }
-
+    
             $roleId = $request->role_id;
             if ($request->has('role') && !$request->has('role_id')) {
                 $role = Role::where('name', $request->role)->first();
                 $roleId = $role->id;
             }
-
+    
             $userData = [
                 'name' => $request->name,
                 'email' => $request->email,
@@ -329,15 +346,15 @@ class UserController extends Controller
                 'contact_info' => $request->contact_info,
                 'emergency_contact' => $request->emergency_contact,
             ];
-
+    
             if ($request->hasFile('img')) {
                 $imagePath = $request->file('img')->store('profile-images', 'public');
                 $userData['img'] = $imagePath;
             }
-
+    
             $user = User::create($userData);
             $user->load('role');
-
+    
             return response()->json([
                 'success' => true,
                 'message' => 'User created successfully',
@@ -351,11 +368,35 @@ class UserController extends Controller
             ], 500);
         }
     }
-
+    
     /**
      * Show a specific user
      */
-    public function show(string $id)
+
+
+     public function storeStudent(Request $request)
+     {
+         $request->validate([
+             'name' => 'required|string|max:255',
+             'email' => 'required|email|unique:users,email',
+             'password' => 'required|min:6',
+             'generation_id' => 'required|exists:generations,id'
+         ]);
+     
+         $student = User::create([
+             'name' => $request->name,
+             'email' => $request->email,
+             'password' => bcrypt($request->password),
+             'role_id' => 3, // student
+             'generation_id' => $request->generation_id
+         ]);
+     
+         return response()->json([
+             'message' => 'Student created successfully!',
+             'student' => $student
+         ], 201);
+     }
+         public function show(string $id)
     {
         try {
             $user = User::with('role')->find($id);

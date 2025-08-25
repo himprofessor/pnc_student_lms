@@ -20,6 +20,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id',
+        'generation_id', // ✅ Added here
         'contact_info',
         'emergency_contact',
         'img',
@@ -36,42 +37,32 @@ class User extends Authenticatable
 
     protected $appends = ['role_name', 'display_name', 'initials', 'img_url'];
 
+    /**
+     * ======================
+     * RELATIONSHIPS
+     * ======================
+     */
+
+    // User → Role (Many-to-One)
     public function role()
     {
         return $this->belongsTo(Role::class);
     }
 
+    // ✅ User → Generation (Many-to-One)
+    public function generation()
+    {
+        return $this->belongsTo(Generation::class, 'generation_id');
+    }
+
+    /**
+     * ======================
+     * ATTRIBUTES
+     * ======================
+     */
     public function getRoleNameAttribute()
     {
         return $this->role ? $this->role->name : 'No Role';
-    }
-
-    public function hasRole($role)
-    {
-        if (is_string($role)) {
-            return $this->role && $this->role->name === $role;
-        }
-
-        if (is_numeric($role)) {
-            return $this->role_id == $role;
-        }
-
-        return false;
-    }
-
-    public function isAdmin()
-    {
-        return $this->hasRole('admin') || $this->hasRole(1);
-    }
-
-    public function isTeacher()
-    {
-        return $this->hasRole('teacher') || $this->hasRole(2);
-    }
-
-    public function isStudent()
-    {
-        return $this->hasRole('student') || $this->hasRole(3);
     }
 
     public function getDisplayNameAttribute()
@@ -107,11 +98,54 @@ class User extends Authenticatable
         return null;
     }
 
+    /**
+     * ======================
+     * ROLE CHECKS
+     * ======================
+     */
+    public function hasRole($role)
+    {
+        if (is_string($role)) {
+            return $this->role && $this->role->name === $role;
+        }
+
+        if (is_numeric($role)) {
+            return $this->role_id == $role;
+        }
+
+        return false;
+    }
+
+    public function isAdmin()
+    {
+        return $this->hasRole('admin') || $this->hasRole(1);
+    }
+
+    public function isTeacher()
+    {
+        return $this->hasRole('teacher') || $this->hasRole(2);
+    }
+
+    public function isStudent()
+    {
+        return $this->hasRole('student') || $this->hasRole(3);
+    }
+
+    /**
+     * ======================
+     * PROFILE IMAGE
+     * ======================
+     */
     public function hasProfileImage()
     {
         return $this->img && Storage::disk('public')->exists($this->img);
     }
 
+    /**
+     * ======================
+     * PROFILE UPDATE
+     * ======================
+     */
     public function updateProfile(Request $request)
     {
         try {
@@ -151,7 +185,7 @@ class User extends Authenticatable
             }
 
             $user->refresh();
-            $user->load('role');
+            $user->load('role', 'generation'); // ✅ Load generation too
 
             return response()->json([
                 'success' => true,
@@ -169,16 +203,15 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if the user has access to the teacher dashboard.
+     * ======================
+     * DASHBOARD ACCESS
+     * ======================
      */
     public function canAccessTeacherDashboard()
     {
         return $this->isTeacher() && str_ends_with($this->email, '@passerellesnumeriques.org');
     }
 
-    /**
-     * Check if the user has access to the student dashboard.
-     */
     public function canAccessStudentDashboard()
     {
         return $this->isStudent() && str_ends_with($this->email, '@student.passerellesnumeriques.org');

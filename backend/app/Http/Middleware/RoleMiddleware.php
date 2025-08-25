@@ -1,23 +1,20 @@
 <?php
- namespace App\Http\Middleware;
+
+namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class RoleMiddleware
 {
-        public function handle($request, Closure $next, $role)
-{
-    if (!Auth::check()) {
-        return response()->json(['error' => 'Unauthorized'], 403);
+    public function handle(Request $request, Closure $next, ...$roles)
+    {
+        $user = $request->user();
+
+        if (!$user || !in_array($user->role_id, $roles)) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        return $next($request);
     }
-
-    $userRole = Auth::user()->role ? Auth::user()->role->id : null; // Get the role ID
-
-    if ($userRole !== (int)$role) { // Check against the role ID
-        return response()->json(['error' => 'Unauthorized'], 403);
-    }
-
-    return $next($request);
-}
 }
