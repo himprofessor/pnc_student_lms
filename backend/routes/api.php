@@ -10,6 +10,8 @@ use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Api\LeaveTypeController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\LeaveRequestController;
+use App\Http\Controllers\TelegramController;
 
 // Public Routes
 Route::post('/register/student', [AuthController::class, 'registerStudent']);
@@ -101,3 +103,17 @@ Route::middleware(['auth:sanctum'])->get('/teacher-dashboard', function (Request
     });
     
 });
+
+Route::middleware('auth:api')->group(function () {
+    // Student submits leave request (API endpoint)
+    Route::post('/leave-requests', [LeaveRequestController::class, 'store']);
+    
+    // Educator lists pending requests (API endpoint)
+    Route::get('/leave-requests', [LeaveRequestController::class, 'index']);
+});
+
+// routes/api.php
+Route::post('/telegram/webhook', [TelegramController::class, 'handleWebhook']);
+
+// routes/api.php
+Route::post('/student/request-leave', [LeaveRequestController::class, 'storeApi'])->middleware('auth:sanctum');

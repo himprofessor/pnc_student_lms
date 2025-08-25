@@ -148,7 +148,7 @@
         <div
           class="relative w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl animate-fade-in-up max-h-[90vh] flex flex-col border border-white/20">
           <!-- Header with gradient and improved close button -->
-          <div class="bg-gradient-to-r from-blue-600 to-indigo-700 px-8 py-6 flex items-center justify-between">
+          <div class="bg-blue-600 px-8 py-6 flex items-center justify-between">
             <div class="flex items-center space-x-3">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white/90" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
@@ -263,19 +263,6 @@
                 {{ selectedLeave.reason || "No reason provided" }}
               </div>
             </div>
-          </div>
-
-          <!-- Footer with improved button -->
-          <div
-            class="sticky bottom-0 bg-gradient-to-r from-blue-50 to-indigo-50 px-8 py-5 border-t border-gray-100 flex justify-end space-x-4">
-            <button @click="showModal = false"
-              class="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-3 font-bold text-white shadow-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 transform hover:scale-[1.02] active:scale-95 flex items-center">
-              Close
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
           </div>
         </div>
       </div>
