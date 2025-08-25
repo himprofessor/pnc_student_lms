@@ -38,6 +38,7 @@ class Educator extends Model
     $validator = validator($data, [
         'name' => 'required|string|max:255',
         'password' => 'required|string|min:8', // Removed 'confirmed' for CSV compatibility
+        'generation' => 'required|digits:4', // Add generation validation
     ]);
 
     if ($validator->fails()) {
@@ -58,6 +59,7 @@ class Educator extends Model
         'email' => $email,
         'password' => Hash::make($data['password']),
         'role_id' => 3,
+        'generation' => $data['generation'], // Add generation
     ]);
 
     return $student;

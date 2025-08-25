@@ -30,6 +30,19 @@
         </div>
 
         <div class="space-y-2">
+          <label for="generation" class="block text-sm font-medium text-gray-700">Generation</label>
+          <select
+            id="generation"
+            v-model="student.generation"
+            required
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+          >
+            <option value="">Select Generation</option>
+            <option v-for="year in generations" :key="year" :value="year">{{ year }}</option>
+          </select>
+        </div>
+
+        <div class="space-y-2">
           <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
           <input
             type="password"
@@ -73,22 +86,25 @@
 
 <script>
 import axios from 'axios';
-import Toast from '@/components/Toast.vue'; // ⚠️ Import the new Toast component
+import Toast from '@/components/Toast.vue';
+import { ref } from 'vue';
 
 export default {
   name: 'CreateAccountStudent',
   components: {
-    Toast, // ⚠️ Register the Toast component
+    Toast,
   },
   data() {
     return {
       student: {
         name: '',
         email: '',
+        generation: '',
         password: '',
         password_confirmation: ''
       },
-      toast: { // ⚠️ New reactive object for toast messages
+      generations: [2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032],
+      toast: {
         isVisible: false,
         message: '',
         type: '',
@@ -98,7 +114,7 @@ export default {
   },
   methods: {
     async createAccount() {
-      this.toast.isVisible = false; // Hide any existing toasts
+      this.toast.isVisible = false;
       
       const token = localStorage.getItem('authToken');
 
@@ -141,6 +157,7 @@ export default {
     resetForm() {
       this.student.name = '';
       this.student.email = '';
+      this.student.generation = '';
       this.student.password = '';
       this.student.password_confirmation = '';
     },

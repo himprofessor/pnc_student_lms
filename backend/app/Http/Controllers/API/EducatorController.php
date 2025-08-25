@@ -175,7 +175,7 @@ class EducatorController extends Controller
             $this->middleware('role:2')->only('importStudents'); // Assuming role 2 is educator
         }
 
-    public function importStudents(Request $request)
+     public function importStudents(Request $request)
     {
         try {
             $request->validate([
@@ -190,39 +190,47 @@ class EducatorController extends Controller
             ]);
 
             $csv = Reader::createFromPath($file->getPathname(), 'r');
-            $csv->setHeaderOffset(0); // Use first row as headers
-            $csv->setDelimiter(','); // Explicitly set comma as delimiter
+            $csv->setHeaderOffset(0);
+            $csv->setDelimiter(',');
 
             $headers = $csv->getHeader();
             Log::info('CSV Headers', ['headers' => $headers]);
 
-            if (count($headers) < 3 || !in_array('Name', $headers) || !in_array('Email', $headers) || !in_array('Password', $headers)) {
-                throw new \Exception('Invalid CSV header format. Expected "Name", "Email", "Password".');
+            // Update validation to include Generation
+            if (count($headers) < 4 || !in_array('Name', $headers) || !in_array('Email', $headers) || 
+                !in_array('Password', $headers) || !in_array('Generation', $headers)) {
+                throw new \Exception('Invalid CSV header format. Expected "Name", "Email", "Password", "Generation".');
             }
 
             $records = $csv->getRecords();
             $errors = [];
 
             foreach ($records as $index => $record) {
-                $rowNumber = $index + 2; // +2 because header is offset 0, and index starts at 0
+                $rowNumber = $index + 2;
                 Log::info('Processing row', ['rowNumber' => $rowNumber, 'data' => (array) $record]);
 
-                $name = trim($record['Name'] ?? ''); // Match the exact header case
+                $name = trim($record['Name'] ?? '');
                 $email = trim($record['Email'] ?? '');
                 $password = trim($record['Password'] ?? '');
+                $generation = trim($record['Generation'] ?? '');
 
-                if (empty($name) || empty($email) || empty($password)) {
-                    $errors[] = "Row {$rowNumber}: Name, email, and password are required. Data: " . json_encode((array) $record);
+                if (empty($name) || empty($email) || empty($password) || empty($generation)) {
+                    $errors[] = "Row {$rowNumber}: Name, email, password, and generation are required. Data: " . json_encode((array) $record);
                     continue;
                 }
 
                 try {
                     $educator = new Educator();
-                    $userData = ['name' => $name, 'password' => $password, 'password_confirmation' => $password];
+                    $userData = [
+                        'name' => $name, 
+                        'password' => $password, 
+                        'password_confirmation' => $password,
+                        'generation' => $generation
+                    ];
                     $user = $educator->createStudentAccount($userData);
-                    $user->role_id = 3; // Ensure student role
+                    $user->role_id = 3;
                     $user->save();
-                    Log::info('User created', ['email' => $email, 'id' => $user->id]);
+                    Log::info('User created', ['email' => $email, 'id' => $user->id, 'generation' => $generation]);
                 } catch (ValidationException $e) {
                     $errors[] = "Row {$rowNumber}: Validation failed. " . json_encode($e->errors());
                     continue;
@@ -243,4 +251,16 @@ class EducatorController extends Controller
             return response()->json(['message' => 'An error occurred during import.', 'error' => $e->getMessage()], 500);
         }
     }
+
+
+
+    public function getStudents(Request $request)
+{
+    $students = User::where('role_id', 3)
+        ->orderBy('generation', 'desc')
+        ->orderBy('name')
+        ->get();
+    
+    return response()->json(['students' => $students]);
+}
 }

@@ -31,6 +31,10 @@ Route::get('/test', function () {
     ]);
 });
 
+
+// Get all students for educator
+Route::get('/educator/students', [EducatorController::class, 'getStudents'])->middleware(['auth:sanctum', 'role:2']);
+
 //Type of leave 
 Route::get('/leave-types', [LeaveTypeController::class, 'index']);
 // Protected Routes

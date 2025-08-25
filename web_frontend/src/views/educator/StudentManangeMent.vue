@@ -68,6 +68,7 @@
               <th class="py-2 px-4 border-b text-left">ID</th>
               <th class="py-2 px-4 border-b text-left">Name</th>
               <th class="py-2 px-4 border-b text-left">Email</th>
+              <th class="py-2 px-4 border-b text-left">Generation</th>
               <th class="py-2 px-4 border-b text-left">Action</th>
             </tr>
           </thead>
@@ -76,6 +77,7 @@
               <td class="py-2 px-4 border-b">{{ student.id }}</td>
               <td class="py-2 px-4 border-b">{{ student.name }}</td>
               <td class="py-2 px-4 border-b">{{ student.email }}</td>
+              <td class="py-2 px-4 border-b">{{ student.generation }}</td>
               <td class="py-2 px-4 border-b">
                 <button
                   @click="editStudent(student.id)"
@@ -99,22 +101,41 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import axios from 'axios';
 
-const generations = ref([2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032]);
-const selectedGeneration = ref(2025);
-const students = ref([
-  // Mock student data
-  { id: 'S001', name: 'Alice Johnson', email: 'alice.j@school.edu', generation: 2025 },
-  { id: 'S002', name: 'Bob Williams', email: 'bob.w@school.edu', generation: 2026 },
-  { id: 'S003', name: 'Charlie Brown', email: 'charlie.b@school.edu', generation: 2025 },
-  { id: 'S004', name: 'Diana Miller', email: 'diana.m@school.edu', generation: 2027 },
-]);
-
+const generations = ref([]);
+const selectedGeneration = ref(null);
+const students = ref([]);
 const maxVisibleGenerations = ref(5);
 const showAllGenerations = ref(false);
 
+// Fetch students and generations from API
+const fetchStudents = async () => {
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await axios.get('http://127.0.0.1:8000/api/educator/students', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    students.value = response.data.students;
+    
+    // Extract unique generations
+    const uniqueGenerations = [...new Set(students.value.map(student => student.generation))].sort();
+    generations.value = uniqueGenerations.length > 0 ? uniqueGenerations : [new Date().getFullYear()];
+    
+    // Set default selected generation
+    if (generations.value.length > 0 && !selectedGeneration.value) {
+      selectedGeneration.value = Math.max(...generations.value);
+    }
+  } catch (error) {
+    console.error('Error fetching students:', error);
+  }
+};
+
 const filteredStudents = computed(() => {
+  if (!selectedGeneration.value) return [];
   return students.value.filter(student => student.generation === selectedGeneration.value);
 });
 
@@ -142,17 +163,44 @@ function createNewGeneration() {
 
 function editStudent(studentId) {
   console.log(`Editing student with ID: ${studentId}`);
-  // Implement your edit logic here (e.g., open a modal, redirect to an edit page)
+  // Implement your edit logic here
 }
 
-function deleteStudent(studentId) {
+async function deleteStudent(studentId) {
   if (confirm(`Are you sure you want to delete student with ID: ${studentId}?`)) {
-    students.value = students.value.filter(student => student.id !== studentId);
-    console.log(`Deleted student with ID: ${studentId}`);
+    try {
+      const token = localStorage.getItem('authToken');
+      await axios.delete(`http://127.0.0.1:8000/api/educator/students/${studentId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      // Remove student from local list
+      students.value = students.value.filter(student => student.id !== studentId);
+      console.log(`Deleted student with ID: ${studentId}`);
+    } catch (error) {
+      console.error('Error deleting student:', error);
+      alert('Failed to delete student');
+    }
   }
 }
-</script>
 
-<style scoped>
-/* No changes to styles needed, as the new elements use existing classes. */
-</style>
+// Add API route to EducatorController for fetching students
+// Add this to your EducatorController
+/*
+public function getStudents(Request $request)
+{
+    $students = User::where('role_id', 3)
+        ->orderBy('generation', 'desc')
+        ->orderBy('name')
+        ->get();
+    
+    return response()->json(['students' => $students]);
+}
+*/
+
+onMounted(() => {
+  fetchStudents();
+});
+</script>

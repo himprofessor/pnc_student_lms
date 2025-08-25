@@ -20,6 +20,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id',
+        'generation', 
         'contact_info',
         'emergency_contact',
         'img',
