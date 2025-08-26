@@ -1,7 +1,13 @@
 <template>
   <!-- Buttons on top right -->
-  <div class="flex justify-end space-x-2 pt-6 pr-6 mb-4" v-if="student.generation">
-    <router-link to="/educator-importdata" class="bg-gray-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition duration-300" > Import Students </router-link>
+<!-- Import Students Button -->
+<div class="flex justify-end space-x-2 pt-6 pr-6 mb-4">
+  <router-link
+    to="/educator-importdata"
+    class="bg-gray-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-500 transition duration-300"
+  >
+    Import Students
+  </router-link>
 </div>
 
 
@@ -16,7 +22,7 @@
       <div class="mt-2 mb-6 relative">
         <button
           @click="toggleDropdown"
-          class="w-full bg-green-500 text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition duration-300"
+          class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-600 transition duration-300"
         >
           + New Generation
         </button>
