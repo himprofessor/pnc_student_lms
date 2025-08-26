@@ -95,6 +95,18 @@ Route::middleware(['auth:sanctum'])->get('/teacher-dashboard', function (Request
 
 
 });
+
+Route::middleware(['auth:sanctum', 'role:2'])->group(function () {
+    
+    // Student management routes
+    Route::get('/educator/students', [EducatorController::class, 'getStudents']);
+    Route::get('/educator/students/{id}', [EducatorController::class, 'getStudent']);
+    Route::put('/educator/students/{id}', [EducatorController::class, 'updateStudent']);
+    Route::delete('/educator/students/{id}', [EducatorController::class, 'deleteStudent']);
+});
+
+
+
     // Student Routes
     Route::middleware('role:3')->group(function () {
         Route::post('/student/request-leave', [StudentLeaveController::class, 'requestLeave']);

@@ -254,7 +254,8 @@ class EducatorController extends Controller
 
 
 
-    public function getStudents(Request $request)
+    // Get all students
+public function getStudents(Request $request)
 {
     $students = User::where('role_id', 3)
         ->orderBy('generation', 'desc')
@@ -262,5 +263,82 @@ class EducatorController extends Controller
         ->get();
     
     return response()->json(['students' => $students]);
+}
+
+// Get a specific student
+public function getStudent($id)
+{
+    $student = User::where('role_id', 3)->findOrFail($id);
+    return response()->json(['student' => $student]);
+}
+
+// Update a student
+public function updateStudent(Request $request, $id)
+{
+    try {
+        $student = User::where('role_id', 3)->findOrFail($id);
+        
+        $validator = Validator::make($request->all(), [
+            'name' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|email|unique:users,email,' . $id,
+            'generation' => 'sometimes|required|string|max:255',
+            'password' => 'sometimes|nullable|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation Error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $updateData = $request->only(['name', 'email', 'generation']);
+        
+        if ($request->filled('password')) {
+            $updateData['password'] = Hash::make($request->password);
+        }
+
+        $student->update($updateData);
+
+        return response()->json([
+            'message' => 'Student updated successfully',
+            'student' => $student
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'An error occurred',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+// Delete a student
+public function deleteStudent($id)
+{
+    try {
+        $student = User::where('role_id', 3)->findOrFail($id);
+        
+        // Check if student has any leave requests
+        $hasLeaveRequests = LeaveRequest::where('student_id', $id)->exists();
+        
+        if ($hasLeaveRequests) {
+            return response()->json([
+                'message' => 'Cannot delete student with existing leave requests'
+            ], 422);
+        }
+        
+        $student->delete();
+        
+        return response()->json([
+            'message' => 'Student deleted successfully'
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'An error occurred',
+            'error' => $e->getMessage()
+        ], 500);
+    }
 }
 }
