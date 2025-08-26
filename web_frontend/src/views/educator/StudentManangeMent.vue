@@ -2,62 +2,41 @@
   <div class="flex h-screen bg-gray-100">
     <!-- Sidebar -->
     <aside class="w-64 bg-white shadow-md p-4 flex flex-col -mt-0">
+  <h2 class="text-xl font-bold mb-6">Student Generations</h2>
 
-<h2 class="text-xl font-bold mb-6">Student Generations</h2>
+  <div class="mt-2 mb-6 relative">
+    <button
+      @click="addAndSelectNewGeneration"
+      class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-600 transition duration-300"
+    >
+      + New Generation
+    </button>
+  </div>
 
-<!-- New Generation Button + Dropdown -->
-<div class="mt-2 mb-6 relative">
-  <button
-    @click="toggleDropdown"
-    class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-600 transition duration-300"
-  >
-    + New Generation
-  </button>
-  
-  <!-- Dropdown for Selecting Year -->
-  <div v-if="showDropdown" class="absolute mt-2 w-full bg-white border rounded-lg shadow-md z-50">
+  <nav class="flex-grow">
     <ul>
-      <li
-        v-for="year in availableYears"
-        :key="year"
-        @click="goToCreateForm(year)"
-        class="px-4 py-2 hover:bg-green-100 cursor-pointer"
-      >
-        {{ year }}
+      <li v-for="year in visibleGenerations" :key="year" class="mb-2">
+        <a
+          href="#"
+          @click.prevent="selectGeneration(year)"
+          :class="{
+            'bg-gray-500 text-white rounded-md': selectedGeneration === year,
+            'text-gray-700 hover:bg-gray-300 p-2 block': true
+          }"
+        >
+          Student {{ year }}
+        </a>
+      </li>
+      <li v-if="generations.length > maxVisibleGenerations">
+        <button
+          @click="toggleShowAllGenerations"
+          class="text-blue-500 hover:underline mt-2 p-2 block w-full text-left"
+        >
+          {{ showAllGenerations ? 'Show Less' : 'See More' }}
+        </button>
       </li>
     </ul>
-  </div>
-</div>
-
-<!-- List of Existing Generations -->
-<nav class="flex-grow">
-  <ul>
-    <li
-      v-for="year in visibleGenerations"
-      :key="year"
-      class="mb-2"
-    >
-      <a
-        href="#"
-        @click.prevent="selectGeneration(year)"
-        :class="{
-          'bg-blue-500 text-white rounded-md': selectedGeneration === year,
-          'text-gray-700 hover:bg-gray-200 p-2 block': true
-        }"
-      >
-        Student {{ year }}
-      </a>
-    </li>
-    <li v-if="generations.length > maxVisibleGenerations">
-      <button
-        @click="toggleShowAllGenerations"
-        class="text-blue-500 hover:underline mt-2 p-2 block w-full text-left"
-      >
-        {{ showAllGenerations ? 'Show Less' : 'See More' }}
-      </button>
-    </li>
-  </ul>
-</nav>
+  </nav>
 </aside>
 
     <!-- Main content -->
@@ -120,28 +99,38 @@
           No students found for this generation.
         </div>
         <table v-else class="min-w-full">
-          <thead>
-            <tr>
-              <th class="py-2 px-4 border-b text-left">ID</th>
-              <th class="py-2 px-4 border-b text-left">Name</th>
-              <th class="py-2 px-4 border-b text-left">Email</th>
-              <th class="py-2 px-4 border-b text-left">Generation</th>
-              <th class="py-2 px-4 border-b text-left">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(student, index) in filteredStudents" :key="student.id">
-              <td class="py-2 px-4 border-b">{{ index + 1 }}</td>
-              <td class="py-2 px-4 border-b">{{ student.name }}</td>
-              <td class="py-2 px-4 border-b">{{ student.email }}</td>
-              <td class="py-2 px-4 border-b">{{ student.generation }}</td>
-              <td class="py-2 px-4 border-b">
-                <button @click="editStudent(student)" class="text-blue-500 hover:underline mr-2">Edit</button>
-                <button @click="deleteStudent(student.id)" class="text-red-500 hover:underline">Delete</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+  <thead>
+    <tr>
+      <th class="py-2 px-4 border-b text-left">ID</th>
+      <th class="py-2 px-4 border-b text-left">Name</th>
+      <th class="py-2 px-4 border-b text-left">Email</th>
+      <th class="py-2 px-4 border-b text-left">Generation</th>
+      <th class="py-2 px-4 border-b text-left">Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr v-for="(student, index) in filteredStudents" :key="student.id">
+      <td class="py-2 px-4 border-b">{{ index + 1 }}</td>
+      <td class="py-2 px-4 border-b">{{ student.name }}</td>
+      <td class="py-2 px-4 border-b">{{ student.email }}</td>
+      <td class="py-2 px-4 border-b">{{ student.generation }}</td>
+      <td class="py-2 px-4 border-b">
+        <div class="flex items-center space-x-2">
+          <button @click="editStudent(student)" class="text-blue-500 hover:text-blue-700 transition duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M13.586 3.586a2 2 0 112.828 2.828l-7.243 7.242a2 2 0 01-1.414.586H4a1 1 0 01-1-1v-2.172a2 2 0 01.586-1.414l7.243-7.242zM15 5l1.5-1.5" />
+            </svg>
+          </button>
+          <button @click="deleteStudent(student.id)" class="text-red-500 hover:text-red-700 transition duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
       </div>
 
       <!-- Edit Student Modal -->
@@ -187,9 +176,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
-import { useRouter } from 'vue-router'; // Import useRouter
+import { useRouter } from 'vue-router';
 
-const router = useRouter(); // Initialize router
+const router = useRouter();
 
 const generations = ref([]);
 const selectedGeneration = ref(null);
@@ -213,26 +202,19 @@ const editForm = ref({
   password_confirmation: ''
 });
 
-// New reactive variable for the dropdown
-const showDropdown = ref(false); 
-
-// Computed property to generate a list of available years for the dropdown
-const availableYears = computed(() => {
+// Function to add a new generation and select it automatically
+const addAndSelectNewGeneration = () => {
   const currentYear = new Date().getFullYear();
-  const nextThreeYears = [currentYear, currentYear + 1, currentYear + 2];
-  const uniqueYears = [...new Set([...nextThreeYears, ...generations.value])];
-  return uniqueYears.sort((a, b) => b - a); // Sort in descending order to show present/newest on top
-});
+  const latestGeneration = generations.value.length > 0 ? Math.max(...generations.value) : currentYear - 1;
+  const newYear = latestGeneration < currentYear ? currentYear : latestGeneration + 1;
 
-// Function to handle the new generation button and redirect
-const goToCreateForm = (year) => {
-  router.push({ name: 'CreateStudent', query: { generation: year } }); // Assuming 'CreateStudent' is the route name
-  showDropdown.value = false;
-};
-
-// Function to toggle the dropdown
-const toggleDropdown = () => {
-  showDropdown.value = !showDropdown.value;
+  // Add the new year only if it doesn't already exist
+  if (!generations.value.includes(newYear)) {
+    generations.value.push(newYear);
+    // Sort the generations array from newest to oldest
+    generations.value.sort((a, b) => b - a);
+  }
+  selectedGeneration.value = newYear;
 };
 
 // Fetch students from API
@@ -244,9 +226,15 @@ const fetchStudents = async () => {
       headers: { Authorization: `Bearer ${token}` }
     });
     students.value = res.data.students;
-    const uniqueGen = [...new Set(students.value.map(s => s.generation))].sort();
+    const uniqueGen = [...new Set(students.value.map(s => s.generation))];
     generations.value = uniqueGen.length > 0 ? uniqueGen : [new Date().getFullYear()];
-    if (!selectedGeneration.value) selectedGeneration.value = Math.max(...generations.value);
+    
+    // Sort generations from newest to oldest
+    generations.value.sort((a, b) => b - a);
+
+    if (!selectedGeneration.value) {
+      selectedGeneration.value = generations.value[0];
+    }
   } catch (err) {
     errorMessage.value = 'Failed to fetch students';
     setTimeout(() => errorMessage.value = '', 3000);
@@ -260,7 +248,7 @@ const filteredStudents = computed(() => {
   return students.value.filter(s => s.generation === selectedGeneration.value);
 });
 
-// Sort generations in descending order for display
+// Sort the visible generations in descending order for the sidebar list
 const visibleGenerations = computed(() => {
   const sortedGenerations = generations.value.slice().sort((a, b) => b - a);
   return showAllGenerations.value ? sortedGenerations : sortedGenerations.slice(0, maxVisibleGenerations.value);
@@ -268,8 +256,6 @@ const visibleGenerations = computed(() => {
 
 function toggleShowAllGenerations() { showAllGenerations.value = !showAllGenerations.value; }
 function selectGeneration(year) { selectedGeneration.value = year; }
-
-// Removed the old createNewGeneration function as it's now handled by the dropdown
 
 // Edit student
 function editStudent(student) {
@@ -315,6 +301,7 @@ async function deleteStudent(studentId) {
     students.value = students.value.filter(s => s.id !== studentId);
     const uniqueGen = [...new Set(students.value.map(s => s.generation))];
     generations.value = uniqueGen.length > 0 ? uniqueGen : [new Date().getFullYear()];
+    generations.value.sort((a, b) => b - a);
     successMessage.value = 'Student deleted successfully';
     setTimeout(() => successMessage.value = '', 2000);
   } catch (err) {

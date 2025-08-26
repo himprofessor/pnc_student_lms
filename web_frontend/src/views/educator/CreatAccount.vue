@@ -15,64 +15,42 @@
     
     <!-- Sidebar -->
     <aside class="w-64 bg-white shadow-md p-4 flex flex-col -mt-0">
+  <h2 class="text-xl font-bold mb-6">Student Generations</h2>
 
-      <h2 class="text-xl font-bold mb-6">Student Generations</h2>
+  <div class="mt-2 mb-6">
+    <button
+      @click="addAndSelectNewGeneration"
+      class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-600 transition duration-300"
+    >
+      + New Generation
+    </button>
+  </div>
 
-      <!-- New Generation Button + Dropdown -->
-      <div class="mt-2 mb-6 relative">
-        <button
-          @click="toggleDropdown"
-          class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-600 transition duration-300"
+  <nav class="flex-grow">
+    <ul>
+      <li v-for="year in visibleGenerations" :key="year" class="mb-2">
+        <a
+          href="#"
+          @click.prevent="selectGeneration(year)"
+          :class="{
+            'bg-gray-500 text-white rounded-md': selectedGeneration === year,
+            'text-gray-700 hover:bg-gray-300 p-2 block': true
+          }"
         >
-          + New Generation
+          Student {{ year }}
+        </a>
+      </li>
+      <li v-if="generations.length > maxVisibleGenerations">
+        <button
+          @click="toggleShowAllGenerations"
+          class="text-blue-500 hover:underline mt-2 p-2 block w-full text-left"
+        >
+          {{ showAllGenerations ? 'Show Less' : 'See More' }}
         </button>
-        
-        <!-- Dropdown for Selecting Year -->
-        <div v-if="showDropdown" class="absolute mt-2 w-full bg-white border rounded-lg shadow-md z-50">
-          <ul>
-            <li
-              v-for="year in availableYears"
-              :key="year"
-              @click="goToCreateForm(year)"
-              class="px-4 py-2 hover:bg-green-100 cursor-pointer"
-            >
-              {{ year }}
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- List of Existing Generations -->
-      <nav class="flex-grow">
-        <ul>
-          <li
-            v-for="year in visibleGenerations"
-            :key="year"
-            class="mb-2"
-          >
-            <a
-              href="#"
-              @click.prevent="selectGeneration(year)"
-              :class="{
-                'bg-blue-500 text-white rounded-md': selectedGeneration === year,
-                'text-gray-700 hover:bg-gray-200 p-2 block': true
-              }"
-            >
-              Student {{ year }}
-            </a>
-          </li>
-          <li v-if="generations.length > maxVisibleGenerations">
-            <button
-              @click="toggleShowAllGenerations"
-              class="text-blue-500 hover:underline mt-2 p-2 block w-full text-left"
-            >
-              {{ showAllGenerations ? 'Show Less' : 'See More' }}
-            </button>
-          </li>
-        </ul>
-      </nav>
-    </aside>
-
+      </li>
+    </ul>
+  </nav>
+</aside>
     <!-- Main Form -->
     <main class="flex-1  p-4 bg-gray-100 flex justify-center items-start">
       <div class="w-full max-w-2xl p-12 space-y-6 bg-white rounded-2xl shadow-2xl border border-gray-200">
@@ -87,7 +65,7 @@
               type="text"
               id="name"
               v-model="student.name"
-              placeholder="e.g., Jane Doe"
+              placeholder="Enter student name"
               required
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -100,7 +78,7 @@
               type="email"
               id="email"
               v-model="student.email"
-              placeholder="e.g., student@example.com"
+              placeholder="Enter your name@student.passerellessnumeriques.org"
               required
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -172,7 +150,6 @@
     </main>
   </div>
 </template>
-
 <script>
 import axios from 'axios';
 import Toast from '@/components/Toast.vue';
@@ -189,10 +166,8 @@ export default {
         password: '',
         password_confirmation: ''
       },
-      generations: [2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032],
+      generations: [], // Initialize as an empty array to be populated
       isGenerationLocked: false,
-      showDropdown: false,
-      availableYears: [2025, 2026, 2027, 2028, 2029, 2030],
       selectedGeneration: null,
       maxVisibleGenerations: 5,
       showAllGenerations: false,
@@ -200,6 +175,10 @@ export default {
     };
   },
   mounted() {
+    // Fetch generations from your backend or student data.
+    // For this example, I'll simulate it.
+    this.fetchGenerations();
+
     const generationFromQuery = this.$route.query.generation;
     if (generationFromQuery) {
       this.student.generation = parseInt(generationFromQuery);
@@ -208,19 +187,44 @@ export default {
   },
   computed: {
     visibleGenerations() {
+      // Sort the generations in descending order before displaying
+      const sortedGenerations = [...this.generations].sort((a, b) => b - a);
       return this.showAllGenerations
-        ? this.generations
-        : this.generations.slice(0, this.maxVisibleGenerations);
+        ? sortedGenerations
+        : sortedGenerations.slice(0, this.maxVisibleGenerations);
     }
   },
   methods: {
-    toggleDropdown() {
-      this.showDropdown = !this.showDropdown;
-    },
-    goToCreateForm(year) {
-      this.student.generation = year;
+    // New method to handle adding and selecting a new generation
+    addAndSelectNewGeneration() {
+      // Find the highest year in the current generations list
+      const latestGeneration = this.generations.length > 0
+        ? Math.max(...this.generations)
+        : new Date().getFullYear() - 1;
+
+      // Calculate the next generation year
+      const newYear = latestGeneration + 1;
+
+      // Add the new year to the generations list
+      if (!this.generations.includes(newYear)) {
+        this.generations.push(newYear);
+      }
+
+      // Select the new generation and lock the field
+      this.selectedGeneration = newYear;
+      this.student.generation = newYear;
       this.isGenerationLocked = true;
-      this.showDropdown = false;
+    },
+    // Simulating fetching generations from student data
+    fetchGenerations() {
+      // This part would be replaced with an actual API call
+      // For demonstration, I'll use a mock array of years
+      const mockGenerations = [2025, 2026, 2027]; 
+      this.generations = mockGenerations;
+      // Set the latest generation as the default selected one on load
+      if (this.generations.length > 0) {
+        this.selectedGeneration = Math.max(...this.generations);
+      }
     },
     selectGeneration(year) {
       this.selectedGeneration = year;
@@ -255,7 +259,6 @@ export default {
         this.showToast(firstError, 'error');
       }
     },
-
     resetForm() {
       this.student.name = '';
       this.student.email = '';
