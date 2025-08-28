@@ -43,9 +43,16 @@
       <li v-if="generations.length > maxVisibleGenerations">
         <button
           @click="toggleShowAllGenerations"
-          class="text-blue-500 hover:underline mt-2 p-2 block w-full text-left"
+          class="text-blue-500 hover:underline mt-2 p-2 flex items-center space-x-2 w-full text-left"
         >
-          {{ showAllGenerations ? 'Show Less' : 'See More' }}
+          <svg v-if="!showAllGenerations" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
+            <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd" />
+          </svg>
+          <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M15.707 15.707a1 1 0 01-1.414 0L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 011.414-1.414L10 8.586l4.293-4.293a1 1 0 011.414 1.414L11.414 10l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+          </svg>
+          <span>{{ showAllGenerations ? 'Show Less' : 'Archived' }}</span>
         </button>
       </li>
     </ul>
@@ -71,19 +78,22 @@
             />
           </div>
 
-          <!-- Email -->
           <div class="space-y-2">
-            <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
-            <input
-              type="email"
-              id="email"
-              v-model="student.email"
-              placeholder="Enter your name@student.passerellessnumeriques.org"
-              required
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
+  <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+  <input
+    type="email"
+    id="email"
+    v-model="student.email"
+    placeholder="Enter your name@student.passerellessnumeriques.org"
+    required
+    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
+    :class="{
+      'border-red-500 ring-red-500': emailError,
+      'border-gray-300 ring-blue-500': !emailError
+    }"
+  />
+  <p v-if="emailError" class="mt-1 text-sm text-red-600">{{ emailError }}</p>
+</div>
           <!-- Generation Field -->
           <div class="space-y-2" v-if="!isGenerationLocked">
             <label for="generation" class="block text-sm font-medium text-gray-700">Generation</label>
@@ -106,30 +116,39 @@
 
           <!-- Password -->
           <div class="space-y-2">
-            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-            <input
-              type="password"
-              id="password"
-              v-model="student.password"
-              placeholder="Enter a strong password"
-              required
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+  <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+  <input
+    type="password"
+    id="password"
+    v-model="student.password"
+    placeholder="Enter a strong password"
+    required
+    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
+    :class="{
+      'border-red-500 ring-red-500': passwordError,
+      'border-gray-300 ring-blue-500': !passwordError
+    }"
+  />
+  <p v-if="passwordError" class="mt-1 text-sm text-red-600">{{ passwordError }}</p>
+</div>
 
-          <!-- Password Confirmation -->
-          <div class="space-y-2">
-            <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Confirm Password</label>
-            <input
-              type="password"
-              id="password_confirmation"
-              v-model="student.password_confirmation"
-              placeholder="Re-enter your password"
-              required
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+<div class="space-y-2">
+  <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+  <input
+    type="password"
+    id="password_confirmation"
+    v-model="student.password_confirmation"
+    placeholder="Re-enter your password"
+    required
+    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
+    :class="{
+      'border-red-500 ring-red-500': passwordError,
+      'border-gray-300 ring-blue-500': !passwordError
+    }"
+  />
+</div>
 
+         
           <!-- Submit Button -->
           <button
             type="submit"
@@ -155,122 +174,149 @@ import axios from 'axios';
 import Toast from '@/components/Toast.vue';
 
 export default {
-  name: 'CreateAccountStudent',
-  components: { Toast },
-  data() {
-    return {
-      student: {
-        name: '',
-        email: '',
-        generation: '',
-        password: '',
-        password_confirmation: ''
-      },
-      generations: [], // Initialize as an empty array to be populated
-      isGenerationLocked: false,
-      selectedGeneration: null,
-      maxVisibleGenerations: 5,
-      showAllGenerations: false,
-      toast: { isVisible: false, message: '', type: '', position: 'top-right' }
-    };
-  },
-  mounted() {
-    // Fetch generations from your backend or student data.
-    // For this example, I'll simulate it.
-    this.fetchGenerations();
+  name: 'CreateAccountStudent',
+  components: { Toast },
+  data() {
+    return {
+      student: {
+        name: '',
+        email: '',
+        generation: '',
+        password: '',
+        password_confirmation: ''
+      },
+      generations: [],
+      isGenerationLocked: false,
+      selectedGeneration: null,
+      maxVisibleGenerations: 5,
+      showAllGenerations: false,
+      toast: { isVisible: false, message: '', type: '', position: 'top-right' },
+      emailError: null,
+      passwordError: null // New data property for password errors
+    };
+  },
+  mounted() {
+    this.fetchGenerations();
 
-    const generationFromQuery = this.$route.query.generation;
-    if (generationFromQuery) {
-      this.student.generation = parseInt(generationFromQuery);
-      this.isGenerationLocked = true;
-    }
-  },
-  computed: {
-    visibleGenerations() {
-      // Sort the generations in descending order before displaying
-      const sortedGenerations = [...this.generations].sort((a, b) => b - a);
-      return this.showAllGenerations
-        ? sortedGenerations
-        : sortedGenerations.slice(0, this.maxVisibleGenerations);
-    }
-  },
-  methods: {
-    // New method to handle adding and selecting a new generation
-    addAndSelectNewGeneration() {
-      // Find the highest year in the current generations list
-      const latestGeneration = this.generations.length > 0
-        ? Math.max(...this.generations)
-        : new Date().getFullYear() - 1;
+    const generationFromQuery = this.$route.query.generation;
+    if (generationFromQuery) {
+      this.student.generation = parseInt(generationFromQuery);
+      this.isGenerationLocked = true;
+    }
+  },
+  computed: {
+    visibleGenerations() {
+      const sortedGenerations = [...this.generations].sort((a, b) => b - a);
+      return this.showAllGenerations
+        ? sortedGenerations
+        : sortedGenerations.slice(0, this.maxVisibleGenerations);
+    }
+  },
+  methods: {
+    addAndSelectNewGeneration() {
+      const currentYear = new Date().getFullYear();
+      const latestGeneration = this.generations.length > 0
+        ? Math.max(...this.generations)
+        : currentYear - 1;
+      const newYear = latestGeneration < currentYear ? currentYear : latestGeneration + 1;
 
-      // Calculate the next generation year
-      const newYear = latestGeneration + 1;
+      if (!this.generations.includes(newYear)) {
+        this.generations.push(newYear);
+      }
+      this.generations.sort((a, b) => b - a);
+      this.selectedGeneration = newYear;
+      this.student.generation = newYear;
+      this.isGenerationLocked = true;
+    },
+    fetchGenerations() {
+      const mockGenerations = [2025, 2026, 2027];
+      this.generations = mockGenerations;
+      if (this.generations.length > 0) {
+        this.selectedGeneration = Math.max(...this.generations);
+      }
+    },
+    selectGeneration(year) {
+      this.selectedGeneration = year;
+      this.student.generation = year;
+      this.isGenerationLocked = true;
+    },
+    toggleShowAllGenerations() {
+      this.showAllGenerations = !this.showAllGenerations;
+    },
 
-      // Add the new year to the generations list
-      if (!this.generations.includes(newYear)) {
-        this.generations.push(newYear);
-      }
-
-      // Select the new generation and lock the field
-      this.selectedGeneration = newYear;
-      this.student.generation = newYear;
-      this.isGenerationLocked = true;
-    },
-    // Simulating fetching generations from student data
-    fetchGenerations() {
-      // This part would be replaced with an actual API call
-      // For demonstration, I'll use a mock array of years
-      const mockGenerations = [2025, 2026, 2027]; 
-      this.generations = mockGenerations;
-      // Set the latest generation as the default selected one on load
-      if (this.generations.length > 0) {
-        this.selectedGeneration = Math.max(...this.generations);
-      }
-    },
-    selectGeneration(year) {
-      this.selectedGeneration = year;
-      this.student.generation = year;
-      this.isGenerationLocked = true;
-    },
-    toggleShowAllGenerations() {
-      this.showAllGenerations = !this.showAllGenerations;
-    },
-    async createAccount() {
-      this.toast.isVisible = false;
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        this.showToast('Authentication token is missing.', 'error');
-        return;
-      }
-      try {
-        const response = await axios.post(
-          'http://127.0.0.1:8000/api/educator/students',
-          this.student,
-          { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } }
-        );
-        this.showToast(response.data.message, 'success');
-        this.resetForm();
-      } catch (error) {
-        let firstError = 'An unexpected error occurred.';
-        if (error.response?.status === 422) {
-          firstError = Object.values(error.response.data.errors).flat()[0];
-        } else if (error.response?.status === 403) {
-          firstError = 'Forbidden: You do not have permission.';
+    validateEmailDomain(email) {
+      const requiredDomain = '@student.passerellessnumeriques.org';
+      return email.endsWith(requiredDomain);
+    },
+    
+    validatePassword() {
+        if (this.student.password.length < 8) {
+            this.passwordError = 'Password must be at least 8 characters long.';
+            return false;
         }
-        this.showToast(firstError, 'error');
-      }
+        if (this.student.password !== this.student.password_confirmation) {
+            this.passwordError = 'Passwords do not match.';
+            return false;
+        }
+        this.passwordError = null;
+        return true;
     },
-    resetForm() {
-      this.student.name = '';
-      this.student.email = '';
-      if (!this.isGenerationLocked) this.student.generation = '';
-      this.student.password = '';
-      this.student.password_confirmation = '';
-    },
-    showToast(message, type) {
-      this.toast.isVisible = true;
-      this.toast.message = message;
-      this.toast.type = type;
-    }
-  }
+
+    async createAccount() {
+      this.toast.isVisible = false;
+      
+      // Reset validation errors
+      this.emailError = null;
+      this.passwordError = null;
+
+      // Perform client-side validation
+      if (!this.validateEmailDomain(this.student.email)) {
+        this.emailError = 'Email must end with @student.passerellessnumeriques.org.';
+        return;
+      }
+
+      if (!this.validatePassword()) {
+        return;
+      }
+
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        this.showToast('Authentication token is missing.', 'error');
+        return;
+      }
+
+      try {
+        const response = await axios.post(
+          'http://127.0.0.1:8000/api/educator/students',
+          this.student,
+          { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } }
+        );
+        this.showToast(response.data.message, 'success');
+        this.resetForm();
+      } catch (error) {
+        let firstError = 'An unexpected error occurred.';
+        if (error.response?.status === 422) {
+          firstError = Object.values(error.response.data.errors).flat()[0];
+        } else if (error.response?.status === 403) {
+          firstError = 'Forbidden: You do not have permission.';
+        }
+        this.showToast(firstError, 'error');
+      }
+    },
+    resetForm() {
+      this.student.name = '';
+      this.student.email = '';
+      if (!this.isGenerationLocked) this.student.generation = '';
+      this.student.password = '';
+      this.student.password_confirmation = '';
+      this.emailError = null;
+      this.passwordError = null; // Reset password error on form reset
+    },
+    showToast(message, type) {
+      this.toast.isVisible = true;
+      this.toast.message = message;
+      this.toast.type = type;
+    }
+  }
 };
 </script>

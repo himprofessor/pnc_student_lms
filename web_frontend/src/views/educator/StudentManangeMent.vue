@@ -4,7 +4,7 @@
     <aside class="w-64 bg-white shadow-md p-4 flex flex-col -mt-0">
   <h2 class="text-xl font-bold mb-6">Student Generations</h2>
 
-  <div class="mt-2 mb-6 relative">
+  <div class="mt-2 mb-6">
     <button
       @click="addAndSelectNewGeneration"
       class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-600 transition duration-300"
@@ -30,9 +30,16 @@
       <li v-if="generations.length > maxVisibleGenerations">
         <button
           @click="toggleShowAllGenerations"
-          class="text-blue-500 hover:underline mt-2 p-2 block w-full text-left"
+          class="text-blue-500 hover:underline mt-2 p-2 flex items-center space-x-2 w-full text-left"
         >
-          {{ showAllGenerations ? 'Show Less' : 'See More' }}
+          <svg v-if="!showAllGenerations" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
+            <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd" />
+          </svg>
+          <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M15.707 15.707a1 1 0 01-1.414 0L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 011.414-1.414L10 8.586l4.293-4.293a1 1 0 011.414 1.414L11.414 10l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+          </svg>
+          <span>{{ showAllGenerations ? 'Show Less' : 'Archived' }}</span>
         </button>
       </li>
     </ul>
