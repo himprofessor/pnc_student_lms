@@ -93,7 +93,7 @@ class LeaveRequestController extends Controller
                 "🔄 *Type:* %s\n" .
                 "📝 *Reason:* %s\n" .
                 "� *Contact:* %s\n\n" .
-                "Please approve/reject:",
+                "",
                 $leaveRequest->id,
                 $student->name,
                 $leaveRequest->from_date->format('M d, Y'),
@@ -111,8 +111,7 @@ class LeaveRequestController extends Controller
                 'reply_markup' => json_encode([
                     'inline_keyboard' => [
                         [
-                            ['text' => '✅ Approve', 'callback_data' => "approve_{$leaveRequest->id}"],
-                            ['text' => '❌ Reject', 'callback_data' => "reject_{$leaveRequest->id}"],
+                           
                         ]
                     ]
                 ])
