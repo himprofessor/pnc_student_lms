@@ -188,7 +188,7 @@ export default {
       generations: [],
       isGenerationLocked: false,
       selectedGeneration: null,
-      maxVisibleGenerations: 5,
+      maxVisibleGenerations: 3,
       showAllGenerations: false,
       toast: { isVisible: false, message: '', type: '', position: 'top-right' },
       emailError: null,
